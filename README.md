@@ -17,7 +17,7 @@ What follows is a list of programs* for which the source code is stored here, as
   * tudu - Configurable developer tool to overview projects' todos.\
   * wcdl - Extensive Perl downloader for Wallpaperscraft.
 
-_I define a 'program' as not just being some 'quick and dirty' script I knock out then forget about. To me, a 'program' is something I truely care about presenting to people; something I endeavor to be carefully-written and usually maintained, while being mindful of the user's experience. My definition of a program is flexible, but one thing stands out: I give a damn about you and your experience!_
+_\* I define a 'program' as not just being some 'quick and dirty' script I knock out then forget about. To me, a 'program' is something I truely care about presenting to people; something I endeavor to be carefully-written and usually maintained, while being mindful of the user's experience. My definition of a program is flexible, but one thing stands out: I give a damn about you and your experience!_
 
 # How to Install TFL.pm (`libtfl-perl`)
 
