@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/devutils/gitsap.test
 # Started On        - Wed 15 Jan 13:44:46 GMT 2020
-# Last Change       - Thu 16 Jan 22:41:06 GMT 2020
+# Last Change       - Fri 17 Jan 16:29:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
 SetVal Color_Symbol bright_red
-Execute "Default configuration settings."
+Execute 'Default configuration settings.'
 
 SetVal Target '$HOME/GitHub/terminalforlife'
 SetVal ShowSize false

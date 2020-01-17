@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Thu 16 Jan 22:36:15 GMT 2020
+# Last Change       - Fri 17 Jan 20:55:17 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized', 'File::Find';
 
-my $CurVer = "2020-01-16";
+my $CurVer = "2020-01-17";
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -149,6 +149,7 @@ my %Index = (
 	}
 );
 
+# This is the correct number of keys, for which will later be checked.
 my $ValidKeysTTL = @{$Index{'Sets'}} + @{$Index{'CKeys'}} + keys(%{$Index{'Syms'}});
 
 unlink($ConfigFile) if $ForceReset eq 'true';
@@ -163,6 +164,7 @@ if (-f -r -T $ConfigFile){
 		next if length($_) <= 1 or $_ =~ '^#';
 		chomp(my ($Key, $Value) = split('=', $_));
 
+		# Tally up the total number of keys found, to check after below block.
 		$TTL++;
 
 		if ($Key eq 'Target'){
@@ -191,11 +193,11 @@ if (-f -r -T $ConfigFile){
 			$ColorHash{$Key} = $Value =~ tr/['"]//dr
 		}elsif ($Key =~ '^Color_.*'){
 			FErr(1, __LINE__, "Invalid 'Color_*' key detected.")
-				unless grep($Key, @{$Index{'CKeys'}});
+				unless exists(${$Index{'CKeys'}}{$Key});
 
 			$ColorHash{$Key} = $Value =~ tr/['"]//dr
 		}elsif ($Key =~ '^Char_.*'){
-			if (not grep($Key, keys(%{$Index{'Syms'}}))){
+			unless (exists(${$Index{'Syms'}}{$Key})){
 				FErr(1, __LINE__, "Invalid 'Char_*' key detected.")
 			}elsif (length($Value) > 1){
 				FErr(1, __LINE__, "Invalid 'Char_*' value detected.")
@@ -212,7 +214,11 @@ if (-f -r -T $ConfigFile){
 		}
 	}
 
-	FErr(1, __LINE__, 'One or more keys are missing.') unless $TTL == $ValidKeysTTL
+	FErr(1, __LINE__, 'One or more keys are missing.') if $TTL < $ValidKeysTTL;
+
+	# This should catch rogue keys which passed by Char_* and Color_* tests.
+	FErr(1, __LINE__, "One or more 'Char_*' and/or 'Color_*' keys are invalid.")
+		if $TTL > $ValidKeysTTL
 }else{
 	open(my $FH, '>', $ConfigFile);
 
@@ -281,12 +287,9 @@ find(
 	sub {
 		my $Name = $File::Find::name;
 
-		# Avoids error via missing argument in below `sprintf()` call, this happens
-		# when the user specifies the `--alt-path|-P` option.
-		#return() if length($Name) == 1;
-
 		return unless ($Name =~ '(?:.*/)(.*)')[0] eq '.git';
 		return unless -d -r -x $Name;
+
 		my $NewName = $Name =~ s/^$Target\///r;
 
 		push(@FileArr, ($NewName =~ '(.*)(?:/\.git$)')[0])
@@ -294,6 +297,14 @@ find(
 
 	$Target
 );
+
+my $Sym = ${$Index{'Syms'}}{'Char_Unknown'};
+my $Desc = '..?';
+
+sub SetSymDesc{
+	# This just tidies up the code in the following level two `foreach`.
+	($Sym, $Desc) = (${$Index{'Syms'}}{$_[0]}, $_[1])
+}
 
 my (@Results, $Result);
 foreach (@FileArr){
@@ -313,101 +324,73 @@ foreach (@FileArr){
 
 	# Default values, in-case something goes wrong.
 	my $Branch = "Unknown branch ";
-	my $Sym = ${$Index{'Syms'}}{'unknown'};
-	my $Desc = '...';
 
 	chomp(my @Status = $Git->run('status'));
 
-	FErr(1, __LINE__, "Unable to acquire repository information.")
-		unless -f "$Path/.git/HEAD";
+	unless (scalar(@Status) > 0){
+		FErr(1, __LINE__, 'Unable to gather git repository status data.')
+	}elsif ($ShowBranch ne 'false'){
+		FErr(1, __LINE__, "Unable to acquire branch information.")
+			unless -f "$Path/.git/HEAD";
 
-	unless ($ShowBranch eq 'false'){
 		open(my $FH, '<', "$Path/.git/HEAD");
 		$Branch = (<$FH> =~ '(?:.*/)(.*)')[0];
-		close($FH);
+		close($FH)
 	}
 
-	#TODO: Combine ordered loop functionality into the one loop.
-
-	# Loops in special order:
-
+	# Desired order of priority, from most (left) to least (right):
+	#
+	#   Uncommitted Changes -> Modified files -> ...
+	#   ... New files -> Leads -> Clean -> Conflicts -> Initial
+	#
+	# It's not by design that there still remains some situations which aren't
+	# provided here. I've just yet to come across such a situation, in order to
+	# correctly parse and write it.
+	my ($ModifiedFound, $UntrackedFound, $AheadFound);
 	foreach (@Status){
 		chomp(my @Arr = split(' ', $_));
 
-		($Sym, $Desc) = (${$Index{'Syms'}}{'Char_Initial'}, 'has no commits, yet.')
-			if "$Arr[0]$Arr[1]" eq 'Initialcommit';
-	}
-
-	foreach (@Status){
-		chomp(my @Arr = split(' ', $_));
-
-		($Sym, $Desc) = (${$Index{'Syms'}}{'Char_Fix'}, 'has conflict(s).')
-			if "$Arr[0]$Arr[1]$Arr[2]" eq '(fixconflictsand'
-	}
-
-	foreach (@Status){
-		chomp(my @Arr = split(' ', $_));
-
-		my @CommitsRaw = $Git->run('log', '--format=oneline');
-		my $Commits = scalar(@CommitsRaw);
-
-		($Sym, $Desc) = (${$Index{'Syms'}}{'Char_Clean'}, "is $Commits commit(s) clean.")
-			if "$Arr[0]$Arr[1]$Arr[2]" eq 'nothingtocommit,';
-	}
-
-	foreach (@Status){
-		chomp(my @Arr = split(' ', $_));
-
-		my $Found = 'true' if "$Arr[0]$Arr[1]$Arr[3]" eq 'Yourbranchahead';
-
-		if ($Found eq 'true'){
-			my $Leads = $Arr[scalar(@Arr) - 2];
-			($Sym, $Desc) = (${$Index{'Syms'}}{'Char_Leads'}, "leads by $Leads commit(s).")
+		if ($Arr[0] eq 'modified:'){
+			$ModifiedFound = 'true'
+		}elsif ("$Arr[0]$Arr[1]" eq 'Untrackedfiles:'){
+			$UntrackedFound = 'true'
+		}elsif ("$Arr[0]$Arr[1]$Arr[3]" eq 'Yourbranchahead'){
+			$AheadFound = 'true'
 		}
-	}
 
-	foreach (@Status){
-		chomp(my @Arr = split(' ', $_));
-
-		my $Found = 'true' if "$Arr[0]$Arr[1]" eq 'Untrackedfiles:';
-
-		my $FilesTTL = 0;
-		if ($Found eq 'true'){
-			my @Data = $Git->run('status', '--short');
-
-			foreach (@Data){
-				$FilesTTL++ if $_ =~ '^?? '
-			}
-
-			($Sym, $Desc) = (${$Index{'Syms'}}{'Char_New'}, "has $FilesTTL new file(s).")
-		}
-	}
-
-	foreach (@Status){
-		chomp(my @Arr = split(' ', $_));
-
-		my $Found = 'true' if $Arr[0] eq 'modified:';
-
-		if ($Found eq 'true'){
+		if ("$Arr[0]$Arr[1]$Arr[2]$Arr[3]" eq 'Changestobecommitted:'){
+			SetSymDesc('Char_Unstaged', 'has changes to commit.') and last
+		}elsif ($ModifiedFound eq 'true'){
 			my @Data = $Git->run('diff', '--shortstat');
 
 			my $FilesTTL;
-			foreach (@Data){
-				$FilesTTL = (split(' ', $_))[0] and last
-			}
+			$FilesTTL = (split(' ', $_))[0] and last foreach @Data;
 
-			($Sym, $Desc) = (${$Index{'Syms'}}{'Char_Uncommitted'}, "has $FilesTTL modified file(s).")
+			SetSymDesc('Char_Uncommitted', "has $FilesTTL modified file(s).") and last
+		}elsif ($UntrackedFound eq 'true'){
+			my @Data = $Git->run('status', '--short');
+
+			my $FilesTTL = 0;
+			/^?? / and $FilesTTL++ foreach @Data;
+
+			SetSymDesc('Char_New', "has $FilesTTL new file(s).") and last
+		}elsif ($AheadFound eq 'true'){
+			my $Leads = $Arr[scalar(@Arr) - 2];
+
+			SetSymDesc('Char_Leads', "leads by $Leads commit(s).") and last
+		}else{
+			if ("$Arr[0]$Arr[1]$Arr[2]" eq 'nothingtocommit,'){
+				my @CommitsRaw = $Git->run('log', '--format=oneline');
+				my $Commits = scalar(@CommitsRaw);
+
+				SetSymDesc('Char_Clean', "is $Commits commit(s) clean.") and last
+			}elsif ("$Arr[0]$Arr[1]$Arr[2]" eq '(fixconflictsand'){
+				SetSymDesc('Char_Fix', 'has conflict(s).') and last
+			}elsif ("$Arr[0]$Arr[1]" eq 'Initialcommit'){
+				SetSymDesc('Char_Initial', 'has no commits, yet.') and last
+			}
 		}
 	}
-
-	foreach (@Status){
-		chomp(my @Arr = split(' ', $_));
-
-		($Sym, $Desc) = (${$Index{'Syms'}}{'Char_Unstaged'}, "has changes to commit.")
-			if "$Arr[0]$Arr[1]$Arr[2]$Arr[3]" eq 'Changestobecommitted:'
-	}
-
-	# End of specially-ordered loops.
 
 	my $DirName = ($ShowPath =~ '(.*)(?:/.*)')[0];
 
