@@ -25,7 +25,7 @@ _Thanks to issue #1 by @sonick13 for prompting me to type this out for you guys.
 
 One of the dependencies to many of the Perl programs the source for which is within this repository, is a Perl module called `TFL` (`libtfl-perl`); it was created for use by various Perl programs written by me, _terminalforlife_. Below, is a set of instructions to obtain and install this module.
 
-### If You're **NOT** on a Debian- or Ubuntu-Based Distribution
+#### If You're **NOT** on a Debian- or Ubuntu-Based Distribution
 
 If you have [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito) (Debian packages [here](https://github.com/terminalforlife/DEB-Packages/blob/master/cito)), it's an easy solution, but skip this option if you're on Debian or Ubuntu (or distributions based thereon):
 
@@ -33,11 +33,11 @@ If you have [Cito](https://github.com/terminalforlife/Extra/blob/master/source/c
 sudo cito -r terminalforlife PerlProjects master source/TFL.pm
 ```
 
-### If You **ARE** on a Debian- or Ubuntu-Based Distribution
+#### If You **ARE** on a Debian- or Ubuntu-Based Distribution
 
 You can use one of the many available Debian packages stored in the [DEB-Packages](https://github.com/terminalforlife/DEB-Packages) repository.
 
-### If Neither Options are Desired
+#### If Neither Options are Desired
 
 Lastly, if neither of these two options are desired or available to you, you can install it manually, which I _don't_ recommend:
 
