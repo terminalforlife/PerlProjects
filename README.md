@@ -5,16 +5,16 @@
 
 What follows is a list of programs* for which the source code is stored here, as of 2020-01-17:
 
-  * apt-download-deps - Download all dependencies for one or more Debian packages.\
-  * apt-undo-install - A Perl solution to undo recent APT installations.\
-  * clean-locales - Remove non-English localizations.\
-  * cpufreq - Display the current CPU core frequencies.\
-  * getip - View your internal and/or external IP address.\
-  * gitsap - Display an elegant overview of your git repositories.\
-  * lsbins - A descriptive, searchable overview of PATH executables.\
-  * previewer - Perl program to pretty-print Linux Mint package reviews.\
-  * redshifter - Quality-of-life Perl wrapper for redshift.\
-  * tudu - Configurable developer tool to overview projects' todos.\
+  * apt-download-deps - Download all dependencies for one or more Debian packages.
+  * apt-undo-install - A Perl solution to undo recent APT installations.
+  * clean-locales - Remove non-English localizations.
+  * cpufreq - Display the current CPU core frequencies.
+  * getip - View your internal and/or external IP address.
+  * gitsap - Display an elegant overview of your git repositories.
+  * lsbins - A descriptive, searchable overview of PATH executables.
+  * previewer - Perl program to pretty-print Linux Mint package reviews.
+  * redshifter - Quality-of-life Perl wrapper for redshift.
+  * tudu - Configurable developer tool to overview projects' todos.
   * wcdl - Extensive Perl downloader for Wallpaperscraft.
 
 _\* I define a 'program' as not just being some 'quick and dirty' script I knock out then forget about. To me, a 'program' is something I truely care about presenting to people; something I endeavor to be carefully-written and usually maintained, while being mindful of the user's experience. My definition of a program is flexible, but one thing stands out: I give a damn about you and your experience!_
