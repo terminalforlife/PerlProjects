@@ -43,7 +43,7 @@ Lastly, if neither of these two options are desired or available to you, you can
 
 ```
 wget -O /tmp/TFL.pm.tmp https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/TFL.pm
-sudo chown 0:0 /tmp/TFL.pm.tmp; sudo chmod 755 /tmp/TFL.pm.tmp
+sudo chown 0:0 /tmp/TFL.pm.tmp; sudo chmod 644 /tmp/TFL.pm.tmp
 sudo mv /tmp/TFL.pm.tmp /usr/share/perl5/TFL.pm
 ```
 
