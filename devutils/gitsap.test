@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/devutils/gitsap.test
 # Started On        - Wed 15 Jan 13:44:46 GMT 2020
-# Last Change       - Sun 19 Jan 17:18:14 GMT 2020
+# Last Change       - Sun 19 Jan 17:34:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -51,10 +51,8 @@ while [ "$1" ]; do
 	shift
 done
 
-for Argument in "$@"; {
-	if ! [[ $Argument =~ ^[0-9]+$ ]]; then
-		Err 1 'Invalid test number.'
-	fi
+for Arg; {
+	[[ $Arg =~ ^[0-9]+$ ]] || Err 1 'Invalid test number.'
 }
 
 ChkDep tput mktemp perl sed sleep rm cp
@@ -95,6 +93,11 @@ SetVal(){
 	fi
 }
 
+Title(){
+	printf "\r[$1] \e[1;31m%s\e[0m" $1 "$2"
+	sleep 1s
+}
+
 Execute(){
 	[ "$Auto" == 'true' ] || tput clear
 
@@ -103,15 +106,13 @@ Execute(){
 
 	[ $# -gt 0 ] && printf '\e[0;37m%s\e[0m\n' "$@"
 
-	# Obnoxious to differentiate from test script to program.
-	for I in {1..0}; {
-		for Color in '1;32' '0;31' '2;32' '0;31' '0;32' '0;31' '1;31'; {
-			printf "\r\e[${Color}m%s\e[0m" $I "$Message"
-			sleep 0.03s
+	if [ "$Auto" == 'true' ]; then
+		for I in {3..0}; { Title $I "$Message"; }
+	else
+		for I in {2..0}; { Title $I "$Message"; }
+	fi
 
-			[ "$Auto" == 'true' ] && sleep 0.07s
-		}
-	}
+	# Double-time, so you can actually read something in time.
 
 	printf '\n\n'
 	printf '%s\n' "$Bars"
@@ -119,10 +120,8 @@ Execute(){
 	perl $Run --config "$TestConfig" "$@"
 	ExitStatus=$?
 
-	printf '%s\n' "$Bars"
-	printf '\nexit(\e[1;36m%d\e[0m)\n\n' $ExitStatus
+	printf '%s\n\nexit(\e[1;36m%d\e[0m)\n\n\n' "$Bars" $ExitStatus
 
-	printf '\n'
 	[ "$Auto" == 'true' ] || read -n 1 -s -p 'Press any key to continue...'
 }
 
