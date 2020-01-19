@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/devutils/gitsap.test
 # Started On        - Wed 15 Jan 13:44:46 GMT 2020
-# Last Change       - Fri 17 Jan 16:29:12 GMT 2020
+# Last Change       - Sun 19 Jan 01:40:56 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -96,6 +96,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -105,6 +107,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -118,6 +123,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -140,6 +147,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -149,6 +158,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -162,6 +174,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -171,6 +185,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -184,6 +201,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -193,6 +212,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -206,6 +228,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -215,6 +239,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -228,6 +255,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -237,6 +266,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -250,6 +282,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -259,6 +293,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -272,6 +309,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -281,6 +320,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -294,6 +336,8 @@ SetVal OmitClean false
 SetVal RegexStr 'i3Config'
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -303,6 +347,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -316,6 +363,8 @@ SetVal OmitClean false
 SetVal RegexStr '^i3Config$'
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -325,6 +374,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -338,6 +390,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -347,6 +401,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -360,6 +417,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -369,6 +428,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -382,6 +444,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -391,6 +455,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -404,6 +471,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -413,6 +482,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -426,6 +498,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean 'X'
 SetVal Char_Fix
 SetVal Char_Initial
@@ -435,6 +509,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -448,6 +525,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean '_-'
 SetVal Char_Fix
 SetVal Char_Initial
@@ -457,6 +536,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -470,6 +552,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -479,6 +563,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo bright_yellow
 SetVal Color_RepoDir bright_yellow
 SetVal Color_Status bright_yellow
@@ -492,6 +579,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact 'asdf'
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -501,6 +590,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -514,6 +606,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact false
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -523,11 +617,95 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
 SetVal Color_Symbol bright_red
 Execute "Disabled 'Compact' key."
+
+SetVal Target "$HOME/GitHub/terminalforlife"
+SetVal ShowSize false
+SetVal ShowBranch false
+SetVal OmitClean false
+SetVal RegexStr
+SetVal Parseable false
+SetVal Compact false
+SetVal ShowLatest true
+SetVal LatestFormat describe
+SetVal Char_Clean
+SetVal Char_Fix
+SetVal Char_Initial
+SetVal Char_Leads
+SetVal Char_New
+SetVal Char_Removed
+SetVal Char_Uncommitted
+SetVal Char_Unknown
+SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
+SetVal Color_Repo red
+SetVal Color_RepoDir red
+SetVal Color_Status bright_white
+SetVal Color_Symbol bright_red
+Execute "Disable 'Compact' and enable 'ShowLatest' key. ('describe')"
+
+SetVal Target "$HOME/GitHub/terminalforlife"
+SetVal ShowSize false
+SetVal ShowBranch false
+SetVal OmitClean false
+SetVal RegexStr
+SetVal Parseable false
+SetVal Compact false
+SetVal ShowLatest true
+SetVal LatestFormat array
+SetVal Char_Clean
+SetVal Char_Fix
+SetVal Char_Initial
+SetVal Char_Leads
+SetVal Char_New
+SetVal Char_Removed
+SetVal Char_Uncommitted
+SetVal Char_Unknown
+SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
+SetVal Color_Repo red
+SetVal Color_RepoDir red
+SetVal Color_Status bright_white
+SetVal Color_Symbol bright_red
+Execute "Disable 'Compact' and enable 'ShowLatest' key. ('array')"
+
+SetVal Target "$HOME/GitHub/terminalforlife"
+SetVal ShowSize false
+SetVal ShowBranch false
+SetVal OmitClean false
+SetVal RegexStr
+SetVal Parseable false
+SetVal Compact false
+SetVal ShowLatest true
+SetVal LatestFormat simple
+SetVal Char_Clean
+SetVal Char_Fix
+SetVal Char_Initial
+SetVal Char_Leads
+SetVal Char_New
+SetVal Char_Removed
+SetVal Char_Uncommitted
+SetVal Char_Unknown
+SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
+SetVal Color_Repo red
+SetVal Color_RepoDir red
+SetVal Color_Status bright_white
+SetVal Color_Symbol bright_red
+Execute "Disable 'Compact' and enable 'ShowLatest' key. ('simple')"
 
 SetVal Target "$HOME/GitHub/terminalforlife"
 SetVal ShowSize true
@@ -536,6 +714,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -545,6 +725,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -558,6 +741,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -567,6 +752,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -580,6 +768,8 @@ SetVal OmitClean true
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -589,6 +779,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
@@ -602,6 +795,8 @@ SetVal OmitClean false
 SetVal RegexStr
 SetVal Parseable false
 SetVal Compact true
+SetVal ShowLatest false
+SetVal LatestFormat describe
 SetVal Char_Clean
 SetVal Char_Fix
 SetVal Char_Initial
@@ -611,6 +806,9 @@ SetVal Char_Removed
 SetVal Char_Uncommitted
 SetVal Char_Unknown
 SetVal Char_Unstaged
+SetVal Color_Author white
+SetVal Color_Date white
+SetVal Color_Hash white
 SetVal Color_Repo red
 SetVal Color_RepoDir red
 SetVal Color_Status bright_white
