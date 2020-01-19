@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Fri 17 Jan 20:55:17 GMT 2020
+# Last Change       - Sun 19 Jan 02:09:21 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized', 'File::Find';
 
-my $CurVer = "2020-01-17";
+my $CurVer = "2020-01-19";
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -62,7 +62,8 @@ sub Usage{
 
 my (
 	$ShowBranch, $SolidTarget, $Parseable, $Compact, $ShowSize,
-	$DoCase, $Target, $ForceReset, %ColorHash, $OmitClean
+	$DoCase, $Target, $ForceReset, %ColorHash, $OmitClean,
+	$ShowLatest, $LatestFormat, $AbsoPath
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -119,21 +120,27 @@ if (scalar(@ARGV) > 1){
 }
 
 my %Index = (
-	'Sets' => [
-		'Compact',                  # Keep each result on one line.
-		'OmitClean',                # Don't display repositories which are clean.
-		'Parseable',                # Raw-like data for use by scripts, etc.
-		'RegexStr',                 # REGEX to filter results by repository path.
-		'ShowBranch',               # Currently-active branch of each repository.
-		'ShowSize',                 # Total disk space used by each repository.
-		'Target'                    # Directory in which to look for repositories.
-	],
-
 	'CKeys' => [
+		'Color_Author',             # The author string of the latest commit.
+		'Color_Date',               # The timestamp of the latest commit.
+		'Color_Hash',               # The hash of the latest commit.
 		'Color_Repo',               # Base name of each repository path.
 		'Color_RepoDir',            # Directory name of each repository path.
 		'Color_Status',             # Status string for each repository.
 		'Color_Symbol'              # Symbol assigned to each category of status.
+	],
+
+	'Sets' => [
+		'Compact',                  # Keep each result on one line.
+		'LatestFormat',             # Format style to use for `ShowLatest`.
+		'OmitClean',                # Don't display repositories which are clean.
+		'Parseable',                # Raw-like data for use by scripts, etc.
+		'RegexStr',                 # REGEX to filter results by repository path.
+		'ShowBranch',               # Currently-active branch of each repository.
+		'AbsoPath',                 # Display repositories as an absolute path.
+		'ShowLatest',               # Information for the most recent commit.
+		'ShowSize',                 # Total disk space used by each repository.
+		'Target'                    # Directory in which to look for repositories.
 	],
 
 	'Syms' => {
@@ -186,6 +193,17 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'OmitClean'){
 			Boolean($Value);
 			$OmitClean = $Value
+		}elsif ($Key eq 'ShowLatest'){
+			Boolean($Value);
+			$ShowLatest = $Value
+		}elsif ($Key eq 'AbsoPath'){
+			Boolean($Value);
+			$AbsoPath = $Value
+		}elsif ($Key eq 'LatestFormat'){
+			FErr(1, __LINE__, "Invalid '$Key' value detected.")
+				unless $Value =~ '^(array|simple|describe)$';
+
+			$LatestFormat = $Value
 		}elsif ($Key =~ '^Color_.*'){
 			FErr(1, __LINE__, "Invalid color '$Value' detected.")
 				unless colorvalid($Value);
@@ -227,6 +245,9 @@ if (-f -r -T $ConfigFile){
 		# Specify the location (file or directory) for $TFL::PROGNAME to use.
 		Target=NULL
 
+		# If enabled, display the repository as an absolute path.
+		AbsoPath=false
+
 		# Display the total human-readable size of each repository.
 		ShowSize=false
 
@@ -248,6 +269,15 @@ if (-f -r -T $ConfigFile){
 		# Display each repository's symbol, name, and status on a single line.
 		Compact=true
 
+		# If enabled and compact mode is disabled, output the full hash, author
+		# string, and timestamp for the most recent commit made to the current
+		# branch of each repository.
+		ShowLatest=false
+
+		# The formatting style to use for the `ShowLatest` output. Valid values are
+		# either `array`, `simple`, or `describe`.
+		LatestFormat=describe
+
 		# Optionally assign your own character to each type of status. The defaults
 		# will be used if these keys' values are left empty.
 		Char_Clean=
@@ -262,6 +292,9 @@ if (-f -r -T $ConfigFile){
 
 		# Various color keys and their values. To disable color support, simply
 		# set each of these to null, by removing all of their values.
+		Color_Author=white
+		Color_Date=white
+		Color_Hash=white
 		Color_Repo=red
 		Color_RepoDir=red
 		Color_Status=bright_white
@@ -275,8 +308,11 @@ if (-f -r -T $ConfigFile){
 
 # Handle user-provided environment variables.
 foreach (keys(%ENV)){
-	$Target = $Target =~ s|\$$_|$ENV{$_}|gr if exists($ENV{$_})
+	$Target = $Target =~ s|\$$_|$ENV{$_}|gr if exists($ENV{$_});
 }
+
+# Handle user-provided tilde (`~`) in place of `HOME`; first `~/` only.
+$Target = $Target =~ s|^~|$ENV{'HOME'}|r if $Target =~ '^~/';
 
 FErr(1, __LINE__, "Target directory not provided.") unless length($Target) > 0;
 FErr(1, __LINE__, "Target directory not found.") unless -d $Target;
@@ -287,7 +323,10 @@ find(
 	sub {
 		my $Name = $File::Find::name;
 
+		# Indicates it's a valid repository, otherwise. Besides, we need this
+		# directory for the later gathering of the branch information.
 		return unless ($Name =~ '(?:.*/)(.*)')[0] eq '.git';
+
 		return unless -d -r -x $Name;
 
 		my $NewName = $Name =~ s/^$Target\///r;
@@ -306,10 +345,17 @@ sub SetSymDesc{
 	($Sym, $Desc) = (${$Index{'Syms'}}{$_[0]}, $_[1])
 }
 
-my (@Results, $Result);
+my (@Results, $Result, $LastCom, $ShowPath);
 foreach (@FileArr){
+	# The path used for the code stuff.
 	my $Path = "$Target/$_";
-	my $ShowPath = ($Path =~ "(?:$Target/)(.*)")[0];
+
+	# Here, we set and parse the path the user will see.
+	if ($AbsoPath ne 'true'){
+		$ShowPath = ($Path =~ "(?:$Target/)(.*)")[0]
+	}else{
+		$ShowPath = $Path =~ s/$ENV{'HOME'}/~/r
+	}
 
 	# Look for user-provided REGEX in line, if one is given.
 	if (length($RegexStr) > 0){
@@ -321,6 +367,52 @@ foreach (@FileArr){
 	}
 
 	my $Git = Git::Repository->new('work_tree' => $Path);
+
+	if ($ShowLatest eq 'true'){
+		my (@Arr, $Date, $Author, $Commit);
+
+		foreach ($Git->run('log', '--left-right')){
+			# Remove leading and trailing spaces from each index.
+			@Arr = split(' ', $_ =~ s/(^[[:space:]]+|[[:space:]]+$)//r);
+
+			# Ensures only the first section is parsed.
+			last if /^$/;
+
+			# Don't want this line, because it's inconsistent.
+			next if /^Merge:/;
+
+			if (/^commit/){
+				$Commit = $Arr[2]
+			}elsif (/^Author:/){
+				$Author = "$Arr[1] $Arr[2]"
+			}elsif (/^Date:/){
+				$Date = substr(join(' ', @Arr[1..@Arr]), 0, length($Date) - 1)
+			}
+		}
+
+		if ($LatestFormat eq 'array'){
+			$LastCom = sprintf(
+				color($ColorHash{'Color_Date'}) . "     [\n         '%s'," . color('reset') .
+				color($ColorHash{'Color_Author'}) . "\n         '%s'," . color('reset') .
+				color($ColorHash{'Color_Hash'}) . "\n         '%s'\n     ]" . color('reset'),
+				$Date, $Author, $Commit
+			)
+		}elsif ($LatestFormat eq 'simple'){
+			$LastCom = sprintf(
+				color($ColorHash{'Color_Date'}) . "     %s" . color('reset') .
+				color($ColorHash{'Color_Author'}) . "\n     %s" . color('reset') .
+				color($ColorHash{'Color_Hash'}) . "\n     %s" . color('reset'),
+				$Date, $Author, $Commit
+			)
+		}elsif ($LatestFormat eq 'describe'){
+			$LastCom = sprintf(
+				color($ColorHash{'Color_Date'}) . "     Date    - '%s'" . color('reset') .
+				color($ColorHash{'Color_Author'}) . "\n     Author  - '%s'" . color('reset') .
+				color($ColorHash{'Color_Hash'}) . "\n     Hash    - '%s'" . color('reset'),
+				$Date, $Author, $Commit
+			)
+		}
+	}
 
 	# Default values, in-case something goes wrong.
 	my $Branch = "Unknown branch ";
@@ -340,8 +432,7 @@ foreach (@FileArr){
 
 	# Desired order of priority, from most (left) to least (right):
 	#
-	#   Uncommitted Changes -> Modified files -> ...
-	#   ... New files -> Leads -> Clean -> Conflicts -> Initial
+	#   Uncommitted, Modified, New, Leads, Clean, Conflicts, Initial
 	#
 	# It's not by design that there still remains some situations which aren't
 	# provided here. I've just yet to come across such a situation, in order to
@@ -350,6 +441,8 @@ foreach (@FileArr){
 	foreach (@Status){
 		chomp(my @Arr = split(' ', $_));
 
+		# Some situations need a couple of lines from `@Status`, so the following
+		# flags are used, still in order, for use in the other if statement.
 		if ($Arr[0] eq 'modified:'){
 			$ModifiedFound = 'true'
 		}elsif ("$Arr[0]$Arr[1]" eq 'Untrackedfiles:'){
@@ -401,7 +494,12 @@ foreach (@FileArr){
 
 	my $BaseName = ($ShowPath =~ '(?:.*/)?(.*)')[0];
 
-	$Desc = "Branch '$Branch' $Desc" if $ShowBranch eq 'true';
+	if ($ShowBranch eq 'true'){
+		$Desc = "Branch '$Branch' $Desc";
+	}else{
+		# Fixes starting word being lowercase, when the branch string is disabled.
+		$Desc = ucfirst($Desc);
+	}
 
 	if ($ShowSize eq 'true'){
 		use Number::Bytes::Human 'format_bytes';
@@ -438,7 +536,12 @@ foreach (@FileArr){
 			color($ColorHash{'Color_Repo'}) . "%s\n" . color('reset') .
 			color($ColorHash{'Color_Status'}) . "     %s" . color('reset'),
 			$Sym, $DirName, $BaseName, $Desc
-		)
+		);
+
+		$Result = $Result . sprintf(
+			color($ColorHash{'Color_Status'}) . "\n\n%s" . color('reset'),
+			$LastCom
+		) if $ShowLatest eq 'true'
 	}
 
 	next if $OmitClean eq 'true' and $Desc =~ 'commit\(s\) clean';
