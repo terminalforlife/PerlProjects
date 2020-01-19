@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Sun 19 Jan 02:09:21 GMT 2020
+# Last Change       - Sun 19 Jan 15:43:45 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -240,9 +240,10 @@ if (-f -r -T $ConfigFile){
 }else{
 	open(my $FH, '>', $ConfigFile);
 
-	print($FH qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
+	print($FH qq{# User configuration file for GitSAP ($CurVer)
 
-		# Specify the location (file or directory) for $TFL::PROGNAME to use.
+		# Specify the absolute path for GitSAP to use. The initial tilde and most
+		# of the environment variables are available for expansion.
 		Target=NULL
 
 		# If enabled, display the repository as an absolute path.
@@ -274,12 +275,16 @@ if (-f -r -T $ConfigFile){
 		# branch of each repository.
 		ShowLatest=false
 
-		# The formatting style to use for the `ShowLatest` output. Valid values are
-		# either `array`, `simple`, or `describe`.
+		# The formatting style to use for the `ShowLatest` output.
+		#
+		# Valid styles:
+		#
+		#   `array`, `describe`, `simple`
+		#
 		LatestFormat=describe
 
-		# Optionally assign your own character to each type of status. The defaults
-		# will be used if these keys' values are left empty.
+		# Optionally assign your own single character to each type of status. The
+		# defaults will be used if these keys' values are left empty.
 		Char_Clean=
 		Char_Fix=
 		Char_Initial=
@@ -292,6 +297,15 @@ if (-f -r -T $ConfigFile){
 
 		# Various color keys and their values. To disable color support, simply
 		# set each of these to null, by removing all of their values.
+		#
+		# Valid colors:
+		#
+		#   `black`, `blue`, `cyan`, `green`, `magenta`, `red`, `white`, `yellow`
+		#
+		# 3 prefixes are available:
+		#
+		#   `bright_`, `on_`, `on_bright_`
+		#
 		Color_Author=white
 		Color_Date=white
 		Color_Hash=white
