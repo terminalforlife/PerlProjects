@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Tue 21 Jan 03:52:03 GMT 2020
+# Last Change       - Tue 21 Jan 15:53:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -342,11 +342,11 @@ use Git::Repository;
 sub GetRepos{
 	use Cwd;
 
-	#TODO: This kinda works, but needs fixing; won't always work.
+	#TODO: Disabled until the result is achievable without the git module.
 	# If we're within a repository, handle it, then bail.
-	my $Git = Git::Repository->new('work_tree' => getcwd());
-	return(($Git->run('rev-parse', '--show-toplevel'))) if $_[0] eq '.';
-	undef($Git); # <-- Free up some memory.
+	#my $Git = Git::Repository->new('work_tree' => getcwd());
+	#return(($Git->run('rev-parse', '--show-toplevel'))) if $_[0] eq '.';
+	#undef($Git); # <-- Free up some memory.
 
 	# Gather an initial list of directories within 'Target'.
 	my @Dirs;
