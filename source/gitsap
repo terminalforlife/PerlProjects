@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Sun 19 Jan 16:07:14 GMT 2020
+# Last Change       - Tue 21 Jan 03:52:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -18,17 +18,16 @@
 #   libtfl-perl (>= 2020-01-08)
 #----------------------------------------------------------------------------------
 
+#TODO: The `Target` fails if the user provides just `/`.
+
 use strict;
 use warnings;
 use autodie;
 use TFL 'FErr', 'Boolean';
-use File::Find;
-use Git::Repository;
-use Term::ANSIColor 'color', 'colorvalid';
 
-no warnings 'uninitialized', 'File::Find';
+no warnings 'uninitialized';
 
-my $CurVer = "2020-01-19";
+my $CurVer = "2020-01-21";
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -156,6 +155,8 @@ my %Index = (
 		'Char_Unstaged' => '≭'      # Changes in the repository yet to be staged.
 	}
 );
+
+use Term::ANSIColor 'color', 'colorvalid';
 
 # This is the correct number of keys, for which will later be checked.
 my $ValidKeysTTL = @{$Index{'Sets'}} + @{$Index{'CKeys'}} + keys(%{$Index{'Syms'}});
@@ -336,25 +337,44 @@ $Target = $Target =~ s|^~|$ENV{'HOME'}|r if $Target =~ '^~/';
 FErr(1, __LINE__, "Target directory not provided.") unless length($Target) > 0;
 FErr(1, __LINE__, "Target directory not found.") unless -d $Target;
 
-# Recursive search for files in `Target` per `Conditions()`.
-my @FileArr;
-find(
-	sub {
-		my $Name = $File::Find::name;
+use Git::Repository;
 
-		# Indicates it's a valid repository, otherwise. Besides, we need this
-		# directory for the later gathering of the branch information.
-		return unless ($Name =~ '(?:.*/)(.*)')[0] eq '.git';
+sub GetRepos{
+	use Cwd;
 
-		return unless -d -r -x $Name;
+	#TODO: This kinda works, but needs fixing; won't always work.
+	# If we're within a repository, handle it, then bail.
+	my $Git = Git::Repository->new('work_tree' => getcwd());
+	return(($Git->run('rev-parse', '--show-toplevel'))) if $_[0] eq '.';
+	undef($Git); # <-- Free up some memory.
 
-		my $NewName = $Name =~ s/^$Target\///r;
+	# Gather an initial list of directories within 'Target'.
+	my @Dirs;
+	foreach (glob("$_[0]/{*,.*}")){
+		next if m{/(\.\.|\.)$};
+		push(@Dirs, $_) if -d -r -x;
+	}
 
-		push(@FileArr, ($NewName =~ '(.*)(?:/\.git$)')[0])
-	},
+	# Iterate over each directory until `.git` is found, then skip to the next one.
+	# This was initially done by `File::Find`, but there seemed to have been
+	# annoying limitations, not to mention this approach seems a lot faster.
+	my @FileArr;
+	foreach (@Dirs){
+		foreach (glob("$_/{*,.*}")){
+			next if m{/(\.\.|\.)$};
 
-	$Target
-);
+			# Keep adding to the array until there's nothing left and the looping
+			# comes to an end. It's akin to a while loop iterating over arguments.
+			push(@Dirs, $_) if -d -r -x;
+
+			if (-d -r -x $_ and ($_ =~ m{(?:.*/)(.*)})[0] eq '.git'){
+				push(@FileArr, $_ =~ s/\/\.git$//r) and last
+			}
+		}
+	}
+
+	return(@FileArr)
+}
 
 my $Sym = ${$Index{'Syms'}}{'Char_Unknown'};
 my $Desc = '..?';
@@ -365,9 +385,9 @@ sub SetSymDesc{
 }
 
 my (@Results, $Result, $LastCom, $ShowPath);
-foreach (@FileArr){
+foreach (GetRepos($Target)){
 	# The path used for the code stuff.
-	my $Path = "$Target/$_";
+	my $Path = $_;
 
 	# Here, we set and parse the path the user will see.
 	if ($AbsoPath ne 'true'){
@@ -522,13 +542,20 @@ foreach (@FileArr){
 
 	if ($ShowSize eq 'true'){
 		use Number::Bytes::Human 'format_bytes';
+		use File::Find;
 
 		my $Bytes = 0;
 
+		# Don't repeat hard links.
+		my %INodeDone;
+
 		find(
 			sub {
-				# Tally up the bytes for each file found.
-				$Bytes += (stat($File::Find::name))[7]
+				my ($INode, $Blocks) = (stat($_))[1,12];
+				unless ($INodeDone{$INode} == 1){
+					$Bytes += 512 * $Blocks;
+					$INodeDone{$INode} = 1
+				}
 			},
 
 			$Path
