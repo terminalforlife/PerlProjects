@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Fri 24 Jan 18:50:26 GMT 2020
+# Last Change       - Fri 24 Jan 19:17:54 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -346,7 +346,7 @@ sub GetRepos{
 
 	#TODO: Temporary solution. Redirect `Git::Repository` to `/dev/null`, but how?
 	# If we're within a repository, handle it, then bail.
-	if (`git rev-parse --show-toplevel &> /dev/null`){
+	if (system('git rev-parse --show-toplevel 1> /dev/null 2>&1') == 0){
 		my $Git = Git::Repository->new('work_tree' => getcwd());
 		return(($Git->run('rev-parse', '--show-toplevel'))) if $_[0] eq '.';
 		undef($Git); # <-- Free up some memory.
