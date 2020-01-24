@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Tue 21 Jan 15:53:52 GMT 2020
+# Last Change       - Fri 24 Jan 18:50:26 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -23,11 +23,11 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'Boolean';
+use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-21";
+my $CurVer = "2020-01-24";
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -117,6 +117,8 @@ if (scalar(@ARGV) > 1){
 }elsif ($DoCase eq 'i' and scalar(@ARGV) == 0){
 	FErr(1, __LINE__, "Option '--ignore-case|-i' used, but no REGEX provided.")
 }
+
+DepChk('git');
 
 my %Index = (
 	'CKeys' => [
@@ -342,11 +344,13 @@ use Git::Repository;
 sub GetRepos{
 	use Cwd;
 
-	#TODO: Disabled until the result is achievable without the git module.
+	#TODO: Temporary solution. Redirect `Git::Repository` to `/dev/null`, but how?
 	# If we're within a repository, handle it, then bail.
-	#my $Git = Git::Repository->new('work_tree' => getcwd());
-	#return(($Git->run('rev-parse', '--show-toplevel'))) if $_[0] eq '.';
-	#undef($Git); # <-- Free up some memory.
+	if (`git rev-parse --show-toplevel &> /dev/null`){
+		my $Git = Git::Repository->new('work_tree' => getcwd());
+		return(($Git->run('rev-parse', '--show-toplevel'))) if $_[0] eq '.';
+		undef($Git); # <-- Free up some memory.
+	}
 
 	# Gather an initial list of directories within 'Target'.
 	my @Dirs;
