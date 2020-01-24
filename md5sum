@@ -17,7 +17,7 @@ aebbf93a5cb6da27c31405428f99bda5  source/getip
 14a1b023e19b025773c750d44fa05ef8  source/ldmod
 8235a76450c6cef1ac19f9bae45caf75  source/lsbins
 1d6deb087da166a541c01a57cc54de94  source/mkdeb
-21027045d944ef56a4278829e46150ea  source/notify-upgrade
+45eb879f26e09ef3d4cfc607b9b80c3d  source/notify-upgrade
 eade09b4413ebc944a87b83e98ed295d  source/previewer
 f57ec083ecc7a026ca57a70bf924a0ea  source/redshifter
 6053ce2c2e61c3c0afcce0c0069d2f5d  source/suptime
