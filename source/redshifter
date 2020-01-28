@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Tue 28 Jan 15:34:24 GMT 2020
+# Last Change       - Tue 28 Jan 17:07:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use autodie;
 use TFL 'Err', 'DepChk';
+use File::Basename 'dirname';
 
 no warnings 'uninitialized';
 
@@ -25,29 +26,39 @@ sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
 		            $TFL::AUTHOR
 
-		            Quality-of-life Perl wrapper for redshift.
+		            Quality-of-life Perl wrapper for Redshift.
 
 		SYNTAX:     $TFL::PROGNAME [OPTS] [ACTION]
 
 		OPTS:       --help|-h|-?            - Displays this help information.
 		            --version|-v            - Output only the version datestamp.
+		            --file|-f PATH          - Use PATH instead of the default.
 
 		ACTIONS:    lower N                 - Lower the current gamma by N.
 		            set N                   - Manually set the gamma to N.
 		            raise N                 - Raise the current gamma by N.
 		            reset                   - Reset to the default of 6500.
 
-		FILE:       ~/.config/redshifter.tmp
+		FILE:       ~/.config/rs-gamma
 	} =~ tr/\t//dr)
 }
 
-Err(1, "At least one argument is required.") if $#ARGV == -1;
+my ($Temp, $GammasNow);
+my $Buffer = "$ENV{HOME}/.config/rs-gamma";
+
+Err(1, "At least one argument is required.") if @ARGV == 0;
 
 while (defined($ARGV[0])){
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
 		Usage(1); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
+	}elsif ($ARGV[0] =~ '^(--file|-f)$'){
+		shift();
+
+		Err(1, "Option '--file|-f' given a directory.") if -d $ARGV[0];
+
+		$Buffer = $ARGV[0];
 	}elsif ($ARGV[0] =~ '^-'){
 		Err(1, "Incorrect option(s) specified.")
 	}else{
@@ -59,11 +70,6 @@ while (defined($ARGV[0])){
 
 DepChk('redshift');
 
-my ($Temp, $GammasNow);
-my $Buffer = "$ENV{HOME}/.config/redshifter.tmp";
-
-mkdir("$ENV{HOME}/.config") unless -d "$ENV{HOME}/.config";
-
 sub GetSetValue{ # Usage: {[<] | [>]} [GAMMA_INT]
 	open(my $FH, $_[0], $Buffer);
 
@@ -73,37 +79,55 @@ sub GetSetValue{ # Usage: {[<] | [>]} [GAMMA_INT]
 	close($FH)
 }
 
-# Get current value if file available, else set default value.
-GetSetValue('<') ? -f -r -w $Buffer : GetSetValue('>', 6500);
+sub ChkVal{ # Usage: [ACTION] [VALUE]
+	Err(1, "Action '$_[0]' needs an integer.") unless $_[1] =~ '^[0-9]+$';
+
+	if ($_[0] eq 'raise'){
+		$Temp = $GammasNow + $_[1];
+
+		Err(1, "Maximum gamma available is 25000.") unless $Temp <= 25000;
+	}elsif ($_[0] eq 'lower'){
+		$Temp = $GammasNow - $_[1];
+
+		Err(1, "Minimum gamma available is 1000.") unless $Temp >= 1000;
+	}
+}
+
+mkdir(dirname($Buffer)) unless -d dirname($Buffer);
+
+if (-f $Buffer){
+	GetSetValue('<')
+}else{
+	GetSetValue('>', 6500)
+}
 
 # Parse ACTIONS.
 while (defined($ARGV[0])){
-	if($ARGV[0] eq 'set'){
+	if ($ARGV[0] eq 'set'){
 		shift();
 
+		ChkVal('set', $ARGV[0]);
 		GetSetValue('>', $ARGV[0]);
-		system("redshift -o -O $ARGV[0]K 1> /dev/null")
-	}elsif($ARGV[0] eq 'reset'){
+
+		system("redshift -o -O $ARGV[0]K 1> /dev/null 2>&1")
+	}elsif ($ARGV[0] eq 'reset'){
 		GetSetValue('>', '6500');
-		system('redshift -o -O 6500K 1> /dev/null')
-	}elsif($ARGV[0] eq 'raise'){
+
+		system('redshift -o -O 6500K 1> /dev/null 2>&1')
+	}elsif ($ARGV[0] eq 'raise'){
 		shift();
 
-		$Temp = $GammasNow + $ARGV[0];
-
-		Err(1, "Gamma setting '25000' is the highest.") unless $Temp <= 25000;
-
+		ChkVal('raise', $ARGV[0]);
 		GetSetValue('>', $Temp);
-		system("redshift -o -O ${Temp}K 1> /dev/null")
-	}elsif($ARGV[0] eq 'lower'){
+
+		system("redshift -o -O ${Temp}K 1> /dev/null 2>&1")
+	}elsif ($ARGV[0] eq 'lower'){
 		shift();
 
-		$Temp = $GammasNow - $ARGV[0];
-
-		Err(1, "Gamma setting '1000' is the lowest.") unless $Temp >= 1000;
-
+		ChkVal('lower', $ARGV[0]);
 		GetSetValue('>', $Temp);
-		system("redshift -o -O ${Temp}K 1> /dev/null")
+
+		system("redshift -o -O ${Temp}K 1> /dev/null 2>&1")
 	}else{
 		Err(1, "Incorrect action(s) specified.")
 	}
