@@ -3,11 +3,19 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl (Wallpaperscraft Downloader)
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Wed 15 Jan 16:26:39 GMT 2020
+# Last Change       - Tue 28 Jan 01:36:45 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
 # NOTE: The web pages use UTF-8 encoding.
+#
+# Dependencies:
+#
+#   libimage-magick-perl (>= 8:6.8.9.9-7)
+#   liblist-moreutils-perl (>= 0.413-1build1)
+#   libtfl-perl (>= 2020-01-03)
+#   libwww-perl (>= 6.15-1)
+#   libx11-protocol-perl (>= 0.56-7)
 #----------------------------------------------------------------------------------
 
 #TODO: Add a preview feature. Use ImageMagick.
@@ -15,19 +23,19 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr'; # <-- libtfl-perl (>= 2020-01-03)
-use LWP::Simple; # <-- libwww-perl (6.15-1)
-use LWP::UserAgent; # <-- libwww-perl (6.15-1)
-use Image::Magick; # <-- libimage-magick-perl (>= 8:6.8.9.9-7)
-use List::MoreUtils 'uniq'; # <-- liblist-moreutils-perl (>= 0.413-1build1)
-use X11::Protocol; # <-- libx11-protocol-perl (>= 0.56-7)
+use TFL 'FErr';
+use LWP::UserAgent;
+use Image::Magick;
+use X11::Protocol;
 use Term::ANSIColor 'GREEN', 'RED', 'BOLD', 'RESET', 'YELLOW';
 use File::Basename 'dirname', 'basename';
 use File::Path 'make_path';
 use File::Temp;
 use POSIX 'ceil';
 
-my $CurVer = "2020-01-15";
+no warnings 'uninitialized';
+
+my $CurVer = "2020-01-28";
 
 my $Domain = 'https://wallpaperscraft.com';
 my $GHURL = "https://github.com/terminalforlife/$TFL::PROGNAME/raw/master/version";
@@ -47,26 +55,26 @@ sub Usage{
 
 		OPTS:       --help|-h|-?            - Displays this help information.
 		            --version|-v            - Output only the version datestamp.
-		            --colorless             - Don't color output with escape sequences.
-		            --links-only|-O         - Just output the direct download links.
+		            --colorless             - Disable ANSI color support.
+		            --links-only|-O         - Iutput only the download links.
 		            --show-categories       - List categories, images, and pages.
-		            --show-resolutions      - List the site's available resolutions.
+		            --show-resolutions      - List the available resolutions.
 		            --resolution|-r XY      - Where XY is, for example: '1920x1080'
 		            --filter|-f TAG         - Omit images not matching TAG.
 		            --dest|-D PATH          - Specify where the files will be saved.
-		            --png|-p                - Save image in PNG format, instead of JPG.
+		            --png|-p                - Convert the JPG image to PNG format.
 		            --no-cache|-N           - Run without using or keeping cache.
 		            --repopulate            - Repopulate all processed cache files.
-		            --clobber               - Overwrite ALL processed image files.
+		            --clobber               - Overwrite all processed image files.
 
-		NOTE:       Page numbers can be given in ranges, or single digits, as shown below.
+		NOTE:       Page numbers can be given in ranges or single digits.
 
-		DISPLAY:    By default, $TFL::PROGNAME will try to detect the current display resolution.
+		DISPLAY:    By default, $TFL::PROGNAME tries to detect your display's resolution.
 
-		            If you're using a multi-monitor setup, only the first discovered
-		            (connected) display will be processed; in this case, you might be
-		            better off picking your resolution manually, with the
-		            '--resolution|-r' flags.
+		            If you're using a multi-monitor setup, only the first
+					discovered (connected) display will be processed; in this
+		            case, you might be better off picking your resolution
+		            manually, with the '--resolution|-r' flags.
 
 		EXAMPLE:    $TFL::PROGNAME -D ~/Downloads -N nature '2 8 10'
 		            $TFL::PROGNAME --links-only abstract '1 3 8 10-24 105'
@@ -77,18 +85,13 @@ sub Usage{
 	} =~ s/\t//gr)
 }
 
-my $Resolution = '';
+my (
+	$Resolution, $Clobber, $SaveAsPNG, $Repopulate, $LinksOnly, %CatNums,
+	$ListCats, $NoCache, $Filter, @FilterMatch, $ShowRes, @Resolutions
+);
+
 my $Destination = './';
 my $Color = 1;
-my $Clobber = 0;
-my $SaveAsPNG = 0;
-my $Repopulate = 0;
-my $LinksOnly = 0;
-my $ListCats = 0;
-my $NoCache = 0;
-my $Filter = 0;
-my @FilterMatch;
-my $ShowRes = 0;
 
 while (defined($ARGV[0])){
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
@@ -147,17 +150,18 @@ while (defined($ARGV[0])){
 
 #--------------------------------------------------------------------------UA SETUP
 
-my $UA = LWP::UserAgent->new();
-$UA->max_redirect(1);
-$UA->timeout(10);
-$UA->protocols_allowed(['http', 'https']);
-$UA->agent('Mozilla/5.0');
+my $UA = LWP::UserAgent->new(
+	'protocols_allowed' => ['http', 'https'],
+	'agent' => 'Mozilla/5.0',
+	'max_redirect' => 1,
+	'timeout' => 10
+);
 
 #-----------------------------------------------------------------PRIMARY FUNCTIONS
 
 my $TempFile; # <-- Set scope here, for later cleanup.
 sub DLPage{
-	if (not $NoCache){
+	unless ($NoCache){
 		if (not $Repopulate and -f $_[0]){
 			return(1)
 		}elsif ($Repopulate or not -f $_[0]){
@@ -180,7 +184,7 @@ sub DLPage{
 
 			close($FH)
 		}
-	}elsif ($NoCache){
+	}else{
 		# Ignoring the first index to ensure no cache overwrites.
 
 		FErr(1, __LINE__, "Told to repopulate, but '--no-cache|N' is enabled")
@@ -246,8 +250,6 @@ if (length($Resolution) == 0){
 DLPage($HomePage, $Domain);
 open(my $FH, '<:encoding(UTF-8)', $HomePage);
 
-my %CatNums;
-my @Resolutions;
 while (<$FH>){
 	chomp();
 
@@ -288,13 +290,8 @@ if ($ListCats){
 	}
 
 	foreach (keys(%CatNums)){
-		my $PAGE_TTL = ceil($CatNums{$_});
-
-		printf(
-			"%-14s %6d %d\n",
-			$_, $CatNums{$_},
-			ceil($PAGE_TTL / 15)
-		)
+		my $PageTTL = ceil($CatNums{$_});
+		printf("%-14s %6d %d\n", $_, $CatNums{$_}, ceil($PageTTL / 15))
 	}
 
 	exit(0)
@@ -306,19 +303,19 @@ if ($ARGV[0] and not exists($CatNums{$ARGV[0]})){
 
 #--------------------------------------------------------------PROCESS PAGE NUMBERS
 
-my @PAGES;
+my @Pages;
 unless ($ARGV[1]){
 	FErr(1, __LINE__, "At least one (non-0) page must be provided.")
 }else{
 	my @PAGE_NUM_LIST = split(' ', $ARGV[1]);
 	foreach (@PAGE_NUM_LIST){
 		if ($_ =~ /^([1-9]|[1-9][0-9]+)$/){
-			push(@PAGES, $_)
+			push(@Pages, $_)
 		}elsif ($_ =~ /^[0-9]+-[0-9]+$/){
 			# Process ranges, like 1-4, which would output '1 2 3 4'.
 			my ($START, $END) = split('-', $_);
 			my @NUMS = ($START..$END);
-			push(@PAGES, $_) foreach @NUMS
+			push(@Pages, $_) foreach @NUMS
 		}else{
 			FErr(1, __LINE__, "Invalid page number detected.")
 		}
@@ -329,7 +326,7 @@ unless ($ARGV[1]){
 
 my $DL_LINK = 'https://images.wallpaperscraft.com/image';
 
-foreach (@PAGES){
+foreach (@Pages){
 	my $DLFH;
 
 	# Check the user didn't enter too high a page number, by deviding the total
