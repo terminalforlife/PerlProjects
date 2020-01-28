@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl (Wallpaperscraft Downloader)
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Tue 28 Jan 01:50:40 GMT 2020
+# Last Change       - Tue 28 Jan 02:18:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -38,7 +38,6 @@ no warnings 'uninitialized';
 my $CurVer = "2020-01-28";
 
 my $Domain = 'https://wallpaperscraft.com';
-my $GHURL = "https://github.com/terminalforlife/$TFL::PROGNAME/raw/master/version";
 my $LocalDir = "$ENV{HOME}/.local/share/$TFL::PROGNAME";
 my $CacheDir = "$LocalDir/cache";
 my $CacheCats = "$CacheDir/categories";
@@ -55,17 +54,18 @@ sub Usage{
 
 		OPTS:       --help|-h|-?            - Displays this help information.
 		            --version|-v            - Output only the version datestamp.
+		            --clobber               - Overwrite all processed image files.
 		            --colorless             - Disable ANSI color support.
+		            --dest|-D PATH          - Specify where the files will be saved.
+		            --filter|-f TAG         - Omit images not matching TAG.
+		            --force|-F              - Make missing destination directory.
 		            --links-only|-O         - Iutput only the download links.
+		            --no-cache|-N           - Run without using or keeping cache.
+		            --png|-p                - Convert the JPG image to PNG format.
+		            --repopulate            - Repopulate all processed cache files.
+		            --resolution|-r XY      - Where XY is, for example: '1920x1080'
 		            --show-categories       - List categories, images, and pages.
 		            --show-resolutions      - List the available resolutions.
-		            --resolution|-r XY      - Where XY is, for example: '1920x1080'
-		            --filter|-f TAG         - Omit images not matching TAG.
-		            --dest|-D PATH          - Specify where the files will be saved.
-		            --png|-p                - Convert the JPG image to PNG format.
-		            --no-cache|-N           - Run without using or keeping cache.
-		            --repopulate            - Repopulate all processed cache files.
-		            --clobber               - Overwrite all processed image files.
 
 		NOTE:       Page numbers can be given in ranges or single digits.
 
@@ -86,8 +86,9 @@ sub Usage{
 }
 
 my (
-	$Resolution, $Clobber, $SaveAsPNG, $Repopulate, $LinksOnly, %CatNums,
-	$ListCats, $NoCache, $Filter, @FilterMatch, $ShowRes, @Resolutions
+	$Resolution, $Clobber, $SaveAsPNG, $Repopulate, $LinksOnly,
+	%CatNums, $ListCats, $NoCache, $Filter, @FilterMatch,
+	$ShowRes, @Resolutions, $ForceDir
 );
 
 my $Destination = './';
@@ -98,14 +99,16 @@ while (defined($ARGV[0])){
 		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^--colorless$'){
+	}elsif ($ARGV[0] eq '--colorless'){
 		$Color = 0
 	}elsif ($ARGV[0] =~ '^(--links-only|-O)$'){
 		$LinksOnly = 1
-	}elsif ($ARGV[0] =~ '^--show-categories$'){
+	}elsif ($ARGV[0] eq '--show-categories'){
 		$ListCats = 1
-	}elsif ($ARGV[0] =~ '^--show-resolutions$'){
+	}elsif ($ARGV[0] eq '--show-resolutions'){
 		$ShowRes = 1
+	}elsif ($ARGV[0] =~ '^(--force|-F)$'){
+		$ForceDir = 1
 	}elsif ($ARGV[0] =~ '^(--resolution|-r)$'){
 		shift(@ARGV);
 
@@ -124,18 +127,19 @@ while (defined($ARGV[0])){
 	}elsif ($ARGV[0] =~ '^(--dest|-D)$'){
 		shift(@ARGV);
 
-		if (-d $ARGV[0]){
-			if ($ARGV[0] !~ '/$'){
-				$Destination = $ARGV[0] . '/'
+		$Destination = $ARGV[0] =~ s/\/$//r;
+
+		unless (-d $Destination){
+			if ($ForceDir){
+				mkdir($Destination)
+					or FErr(1, __LINE__, "Failed to create new directory.")
 			}else{
-				$Destination = $ARGV[0]
+				FErr(1, __LINE__, "Directory not found.")
 			}
-		}else{
-			FErr(1, __LINE__, "Directory not found.")
 		}
-	}elsif ($ARGV[0] =~ '^--repopulate$'){
+	}elsif ($ARGV[0] eq '--repopulate'){
 		$Repopulate = 1
-	}elsif ($ARGV[0] =~ '^--clobber$'){
+	}elsif ($ARGV[0] eq '--clobber'){
 		$Clobber = 1
 	}elsif ($ARGV[0] =~ '^(--no-cache|-N)$'){
 		$NoCache = 1
