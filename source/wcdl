@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl (Wallpaperscraft Downloader)
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Tue 28 Jan 01:36:45 GMT 2020
+# Last Change       - Tue 28 Jan 01:50:40 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -27,8 +27,8 @@ use TFL 'FErr';
 use LWP::UserAgent;
 use Image::Magick;
 use X11::Protocol;
-use Term::ANSIColor 'GREEN', 'RED', 'BOLD', 'RESET', 'YELLOW';
-use File::Basename 'dirname', 'basename';
+use Term::ANSIColor qw{GREEN RED BOLD RESET YELLOW};
+use File::Basename qw{dirname basename};
 use File::Path 'make_path';
 use File::Temp;
 use POSIX 'ceil';
@@ -72,7 +72,7 @@ sub Usage{
 		DISPLAY:    By default, $TFL::PROGNAME tries to detect your display's resolution.
 
 		            If you're using a multi-monitor setup, only the first
-					discovered (connected) display will be processed; in this
+		            discovered (connected) display will be processed; in this
 		            case, you might be better off picking your resolution
 		            manually, with the '--resolution|-r' flags.
 
@@ -82,7 +82,7 @@ sub Usage{
 		            $TFL::PROGNAME -O -f cat -f snow animals 1-100
 
 		SITE:       $Domain
-	} =~ s/\t//gr)
+	} =~ tr/\t//dr)
 }
 
 my (
