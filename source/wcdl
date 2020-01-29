@@ -1,22 +1,21 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/wcdl
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl (Wallpaperscraft Downloader)
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Wed 29 Jan 03:34:30 GMT 2020
+# Last Change       - Wed 29 Jan 04:05:39 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # NOTE: The web pages use UTF-8 encoding.
 #
 # Dependencies:
 #
 #   libimage-magick-perl (>= 8:6.8.9.9-7)
-#   liblist-moreutils-perl (>= 0.413-1build1)
 #   libtfl-perl (>= 2020-01-03)
 #   libwww-perl (>= 6.15-1)
 #   libx11-protocol-perl (>= 0.56-7)
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 #TODO: Add a preview feature. Use ImageMagick.
 
@@ -24,52 +23,40 @@ use strict;
 use warnings;
 use autodie;
 use TFL 'FErr';
-use File::Basename qw{dirname basename};
-use File::Path 'make_path';
-use File::Temp;
-use Image::Magick;
-use LWP::UserAgent;
-use POSIX 'ceil';
-use Term::ANSIColor qw{GREEN RED BOLD RESET YELLOW};
-use X11::Protocol;
 
 no warnings 'uninitialized';
 
 my $CurVer = "2020-01-29";
 
 my $Domain = 'https://wallpaperscraft.com';
-my $LocalDir = "$ENV{HOME}/.local/share/$TFL::PROGNAME";
-my $CacheDir = "$LocalDir/cache";
-my $CacheCats = "$CacheDir/categories";
-my $CachePages = "$CacheDir/pages";
-my $HomePage = "$CacheDir/homepage";
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            Written by terminalforlife <terminalforlife\@yahoo.com>
+		            $TFL::AUTHOR
 
 		            Extensive Perl downloader for Wallpaperscraft.
 
 		SYNTAX:     $TFL::PROGNAME [OPTS] [CATEGORY] [PAGE]
 
 		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --clobber               - Overwrite all processed image files.
+		            --version|-v            - Output the version datestamp.
+		            --clobber               - Overwrite processed image files.
 		            --colorless             - Disable ANSI color support.
-		            --dest|-D PATH          - Specify where the files will be saved.
+		            --dest|-D PATH          - Specify where to save files.
 		            --filter|-f TAG         - Omit images not matching TAG.
-		            --force|-F              - Make missing destination directory.
-		            --links-only|-O         - Iutput only the download links.
-		            --no-cache|-N           - Run without using or keeping cache.
-		            --png|-p                - Convert the JPG image to PNG format.
-		            --repopulate            - Repopulate all processed cache files.
-		            --resolution|-r XY      - Where XY is, for example: '1920x1080'
-		            --show-categories       - List categories, images, and pages.
-		            --show-resolutions      - List the available resolutions.
+		            --force|-F              - Make missing target directory.
+		            --links-only|-O         - Output only the download links.
+		            --no-cache|-N           - Don't use or keep cache.
+		            --png|-p                - Convert JPG image to PNG format.
+		            --repopulate            - Repopulate processed cache files.
+		            --resolution|-r XY      - Where XY is, IE: '1920x1080'
+		            --show-categories       - List of categories, plus details.
+		            --show-resolutions      - List available resolutions.
 
 		NOTE:       Page numbers can be given in ranges or single digits.
 
-		DISPLAY:    By default, $TFL::PROGNAME tries to detect your display's resolution.
+		DISPLAY:    By default, $TFL::PROGNAME tries to detect your display's
+		            resolution, using the X11 protocol.
 
 		            If you're using a multi-monitor setup, only the first
 		            discovered (connected) display will be processed; in this
@@ -81,9 +68,18 @@ sub Usage{
 		            $TFL::PROGNAME --repopulate --clobber -O cars 1-5
 		            $TFL::PROGNAME -O -f cat -f snow animals 1-100
 
+		FILE:       ~/.local/share/$TFL::PROGNAME/homepage
+		            ~/.local/share/$TFL::PROGNAME/cache
+
 		SITE:       $Domain
 	} =~ tr/\t//dr)
 }
+
+my $LocalDir = "$ENV{HOME}/.local/share/$TFL::PROGNAME";
+my $CacheDir = "$LocalDir/cache";
+my $CacheCats = "$CacheDir/categories";
+my $CachePages = "$CacheDir/pages";
+my $HomePage = "$CacheDir/homepage";
 
 my (
 	$Resolution, $Clobber, $SaveAsPNG, $Repopulate, $LinksOnly,
@@ -152,7 +148,9 @@ while (defined($ARGV[0])){
 	shift(@ARGV)
 }
 
-#--------------------------------------------------------------------------UA SETUP
+#----------------------------------------------------------------------UA SETUP
+
+use LWP::UserAgent;
 
 my $UA = LWP::UserAgent->new(
 	'protocols_allowed' => ['http', 'https'],
@@ -161,10 +159,13 @@ my $UA = LWP::UserAgent->new(
 	'timeout' => 10
 );
 
-#-----------------------------------------------------------------PRIMARY FUNCTIONS
+#-------------------------------------------------------------PRIMARY FUNCTIONS
 
 my $TempFile; # <-- Set scope here, for later cleanup.
 sub PageDL{
+	use File::Basename 'dirname';
+	use File::Path 'make_path';
+
 	my $Dir = dirname($_[0]);
 	make_path($Dir) unless -d $Dir;
 
@@ -189,6 +190,8 @@ sub PageDL{
 			close($FH)
 		}
 	}else{
+		use File::Temp;
+
 		# Ignoring the first index to ensure no cache overwrites.
 
 		FErr(1, __LINE__, "Told to repopulate, but '--no-cache|N' is enabled")
@@ -210,6 +213,8 @@ sub PageDL{
 		close($FH)
 	}
 }
+
+use Term::ANSIColor qw{GREEN RED BOLD RESET YELLOW};
 
 sub ImageDL{
 	return(1) if -f $_[0] and not $Clobber;
@@ -233,6 +238,8 @@ sub ImageDL{
 	close($FH);
 
 	if ($SaveAsPNG){
+		use Image::Magick;
+
 		my $ImageObj = Image::Magick->new();
 		$ImageObj->Read($_[0]);
 		$ImageObj->Write($_[0] =~ s/\.jpg$/.png/r);
@@ -240,16 +247,18 @@ sub ImageDL{
 	}
 }
 
-#--------------------------------------------------------------RESOLUTION DETECTION
+#----------------------------------------------------------RESOLUTION DETECTION
 
 if (length($Resolution) == 0){
+	use X11::Protocol;
+
 	my $X11 = X11::Protocol->new();
 	my $X = $X11->{screens}[0]{width_in_pixels};
 	my $Y = $X11->{screens}[0]{height_in_pixels};
 	$Resolution = $X . 'x' . $Y
 }
 
-#------------------------------------------------------CATEGORY & HOMEPAGE HANDLING
+#--------------------------------------------------CATEGORY & HOMEPAGE HANDLING
 
 PageDL($HomePage, $Domain);
 open(my $FH, '<:encoding(UTF-8)', $HomePage);
@@ -283,6 +292,8 @@ if ($ShowRes){
 	exit(0)
 }
 
+use POSIX 'ceil';
+
 if ($ListCats){
 	if ($Color){
 		printf(
@@ -305,7 +316,7 @@ if ($ARGV[0] and not exists($CatNums{$ARGV[0]})){
 	FErr(1, __LINE__, "Invalid category provided.")
 }
 
-#--------------------------------------------------------------PROCESS PAGE NUMBERS
+#----------------------------------------------------------PROCESS PAGE NUMBERS
 
 my @Pages;
 unless ($ARGV[1]){
@@ -326,7 +337,7 @@ unless ($ARGV[1]){
 	}
 }
 
-#-----------------------------------------------------------------IMAGE DOWNLOADING
+#-------------------------------------------------------------IMAGE DOWNLOADING
 
 my $DL_LINK = 'https://images.wallpaperscraft.com/image';
 
@@ -334,8 +345,8 @@ foreach (@Pages){
 	my $DLFH;
 
 	# Check the user didn't enter too high a page number, by deviding the total
-	# number of images (hence the hash) for the chosen category, by 15. Must round
-	# up with `ceil()` (`POSIX`), as the final page may display 1-15 images.
+	# number of images (hence the hash) for the chosen category, by 15. Must
+	# round up with `ceil()` (`POSIX`), as final page may display 1-15 images.
 	my $TOTAL_IMAGES_INTO_PAGES = ceil($CatNums{$ARGV[0]} / 15);
 
 	FErr(1, __LINE__, "Page '$_' is out of range.")
@@ -353,11 +364,14 @@ foreach (@Pages){
 		FErr(1, __LINE__, "Resolution not supported.") unless $FoundRes
 	}
 
-	PageDL("$CacheCats/$ARGV[0]/$Resolution/$_", "$Domain/catalog/$ARGV[0]/page$_");
+	PageDL(
+		"$CacheCats/$ARGV[0]/$Resolution/$_",
+		"$Domain/catalog/$ARGV[0]/page$_"
+	);
 
-	if (not $NoCache){
+	unless ($NoCache){
 		open($DLFH, '<:encoding(UTF-8)', "$CacheCats/$ARGV[0]/$Resolution/$_");
-	}elsif ($NoCache){
+	}else{
 		open($DLFH, '<:encoding(UTF-8)', "$TempFile");
 	}
 
@@ -373,8 +387,8 @@ foreach (@Pages){
 			$ID = $TagsID =~ s/^.*_//gr;
 			$FullLink = "$DL_LINK/${TagsID}_$Resolution.jpg";
 
-			# For the --filter|-f feature. Multiple of these flags can be used to
-			# further narrow down the desired image.
+			# For the --filter|-f feature. Multiple of these flags can be used
+			# to further narrow down the desired image.
 			if ($Filter){
 				my $FilterCount = 0;
 				my $TAGS = $TagsID =~ s/_[0-9]+$//r;
@@ -386,8 +400,8 @@ foreach (@Pages){
 					}
 				}
 
-				# If the total number of matches equal the amount of array
-				# indices, in a human-readable way, then skip to the next image.
+				# If the total number of matches equal the amount of indices in
+				# the array, in a human-readable way, then skip to next image.
 				next if $FilterCount < $#FilterMatch + 1
 			}
 
