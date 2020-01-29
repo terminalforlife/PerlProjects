@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl (Wallpaperscraft Downloader)
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Tue 28 Jan 02:18:57 GMT 2020
+# Last Change       - Wed 29 Jan 03:15:15 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ use POSIX 'ceil';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-28";
+my $CurVer = "2020-01-29";
 
 my $Domain = 'https://wallpaperscraft.com';
 my $LocalDir = "$ENV{HOME}/.local/share/$TFL::PROGNAME";
@@ -194,7 +194,7 @@ sub DLPage{
 		FErr(1, __LINE__, "Told to repopulate, but '--no-cache|N' is enabled")
 			if $Repopulate;
 
-		my $FH = File::Temp->new(UNLINK => 0, SUFFIX => '_{$TFL::PROGNAME}.tmp');
+		my $FH = File::Temp->new(UNLINK => 0, SUFFIX => "_{$TFL::PROGNAME}.tmp");
 		binmode($FH, ':utf8'); # <-- Ensure temp file uses UTF-8 encoding.
 		$TempFile = $FH->filename();
 
