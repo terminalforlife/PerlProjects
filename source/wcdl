@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl (Wallpaperscraft Downloader)
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Wed 29 Jan 03:15:15 GMT 2020
+# Last Change       - Wed 29 Jan 03:34:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -24,14 +24,14 @@ use strict;
 use warnings;
 use autodie;
 use TFL 'FErr';
-use LWP::UserAgent;
-use Image::Magick;
-use X11::Protocol;
-use Term::ANSIColor qw{GREEN RED BOLD RESET YELLOW};
 use File::Basename qw{dirname basename};
 use File::Path 'make_path';
 use File::Temp;
+use Image::Magick;
+use LWP::UserAgent;
 use POSIX 'ceil';
+use Term::ANSIColor qw{GREEN RED BOLD RESET YELLOW};
+use X11::Protocol;
 
 no warnings 'uninitialized';
 
@@ -164,14 +164,14 @@ my $UA = LWP::UserAgent->new(
 #-----------------------------------------------------------------PRIMARY FUNCTIONS
 
 my $TempFile; # <-- Set scope here, for later cleanup.
-sub DLPage{
+sub PageDL{
+	my $Dir = dirname($_[0]);
+	make_path($Dir) unless -d $Dir;
+
 	unless ($NoCache){
 		if (not $Repopulate and -f $_[0]){
 			return(1)
 		}elsif ($Repopulate or not -f $_[0]){
-			my $DIR = dirname($_[0]);
-			make_path($DIR) unless -d $DIR;
-
 			# Extra -f condition because file doesn't always exist.
 			unlink($_[0]) if $Repopulate and -f $_[0];
 
@@ -211,7 +211,7 @@ sub DLPage{
 	}
 }
 
-sub DL_IMAGE{
+sub ImageDL{
 	return(1) if -f $_[0] and not $Clobber;
 
 	open(my $FH, '>', $_[0]);
@@ -251,7 +251,7 @@ if (length($Resolution) == 0){
 
 #------------------------------------------------------CATEGORY & HOMEPAGE HANDLING
 
-DLPage($HomePage, $Domain);
+PageDL($HomePage, $Domain);
 open(my $FH, '<:encoding(UTF-8)', $HomePage);
 
 while (<$FH>){
@@ -353,7 +353,7 @@ foreach (@Pages){
 		FErr(1, __LINE__, "Resolution not supported.") unless $FoundRes
 	}
 
-	DLPage("$CacheCats/$ARGV[0]/$Resolution/$_", "$Domain/catalog/$ARGV[0]/page$_");
+	PageDL("$CacheCats/$ARGV[0]/$Resolution/$_", "$Domain/catalog/$ARGV[0]/page$_");
 
 	if (not $NoCache){
 		open($DLFH, '<:encoding(UTF-8)', "$CacheCats/$ARGV[0]/$Resolution/$_");
@@ -403,7 +403,7 @@ foreach (@Pages){
 					print("FILE: '${TagsID}_$Resolution.jpg' ");
 				}
 
-				DL_IMAGE("$Destination/${TagsID}_$Resolution.jpg", $FullLink);
+				ImageDL("$Destination/${TagsID}_$Resolution.jpg", $FullLink);
 				print("\n")
 			}
 		}
