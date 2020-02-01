@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 #cito M:644 O:0 G:0 T:/usr/share/perl5/TFL.pm
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/TFL.pm
 # Started On        - Mon  6 May 19:29:05 BST 2019
-# Last Change       - Tue 28 Jan 15:27:27 GMT 2020
+# Last Change       - Sat  1 Feb 01:03:35 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 package TFL;
 
@@ -28,20 +28,18 @@ terminalforlife <terminalforlife@yahoo.com>
 =cut
 
 require v5.22.1;
-require Exporter;
+use parent 'Exporter';
 
 use strict;
 use warnings;
-use vars '@ISA', '@EXPORT', '$VERSION';
-
-@ISA = 'Exporter';
+use vars '@EXPORT', '$VERSION';
 
 @EXPORT = (
 	'$PROGNAME', '$AUTHOR', '$GITHUB', 'FErr', 'Err', 'KeyVal',
 	'DepChk', 'KeyDef', 'UsageCPU', 'UnderLine', 'Boolean', 'YNInput'
 );
 
-$VERSION = '2020-01-28';
+$VERSION = '2020-02-01';
 
 our ($PROGNAME) = $0 =~ m{(?:.*/)?([^/]*)};
 our $AUTHOR = 'Written by terminalforlife <terminalforlife@yahoo.com>';

@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/devutils/gitsap.test
 # Started On        - Wed 15 Jan 13:44:46 GMT 2020
-# Last Change       - Sun 19 Jan 17:34:12 GMT 2020
+# Last Change       - Fri 31 Jan 22:33:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Developer shell script for testing results of `gitsap`.
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 set -e
 . /usr/lib/tflbp-sh/Err
 . /usr/lib/tflbp-sh/ChkDep
 set +e
 
-CurVer='2020-01-19'
+CurVer='2020-01-31'
 Progrm=${0##*/}
 
 Usage(){
 	while read; do
-		printf "%s\n" "$REPLY"
+		printf '%s\n' "$REPLY"
 	done <<-EOF
 		            ${Progrm^^} ($CurVer)
 		            Written by terminalforlife (terminalforlife@yahoo.com)
@@ -29,9 +29,9 @@ Usage(){
 
 		SYNTAX:     $Progrm [OPTS] [TEST_1 [TEST_2] ...]
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --auto|-a               - Work through tests non-interactively.
+		OPTS:       --help|-h|-?            - Display this help information.
+		            --version|-v            - Output the version datestamp.
+		            --auto|-a               - Run tests non-interactively.
 	EOF
 }
 
@@ -125,7 +125,7 @@ Execute(){
 	[ "$Auto" == 'true' ] || read -n 1 -s -p 'Press any key to continue...'
 }
 
-#---------------------------------------------------------------------Test Commands
+#-----------------------------------------------------------------Test Commands
 
 for Test; {
 	# Set all of the default keys first.
@@ -299,7 +299,7 @@ for Test; {
 	fi
 }
 
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 printf '\n'
 read -n 1 -s -p 'Press any key to finish...'

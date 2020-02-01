@@ -1,87 +1,87 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/mkdeb
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/mkdeb
 # Started On        - Wed  1 May 23:27:08 BST 2019
-# Last Change       - Wed 15 Jan 16:25:42 GMT 2020
+# Last Change       - Sat  1 Feb 00:59:38 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # WARNING: Experimental work-in-progress. USE AT YOUR OWN RISK.
 #
-# Even when/if this is finished, it's going to be more for personal use, unless it
-# evolves into something more. I plan to build a lot of DEB packages, hence this.
-#----------------------------------------------------------------------------------
+# Even when/if this is finished, it's going to be more for personal use, unless
+# it evolves into something more. I build a lot of DEB packages, hence this.
+#
+# Dependencies:
+#
+#   libtfl-perl (>= 2020-01-03)
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
 use File::Basename 'dirname', 'basename';
-use TFL 'FErr', 'DepChk', 'KeyDef', 'KeyVal'; # <-- libtfl-perl (>= 2020-01-02)
+use TFL 'FErr', 'DepChk', 'KeyDef', 'KeyVal';
 use POSIX 'setuid', 'setgid';
 use File::Copy 'copy';
 use File::Path 'make_path';
 
-my $CurVer = "2020-01-15";
-my $Progrm = basename($0);
+my $CurVer = "2020-02-01";
 
 sub USAGE{
-	my $Info = qq{            @{[uc($Progrm)]} ($CurVer)
-		            Written by terminalforlife <terminalforlife\@yahoo.com>
+	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
+		            $TFL::AUTHOR
 
-		            Build a DEB package more easily. (non-compiling languages)
+		            DEB package builder for non-compiling languages.
 
-		SYNTAX:     $Progrm [OPTS] CMDS FILES
+		SYNTAX:     $TFL::PROGNAME [OPTS] CMDS FILES
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
+		OPTS:       --help|-h|-?            - Display this help information.
+		            --version|-v            - Output the version datestamp.
 
-		CMDS:       BASE=PATH               - Directory in which package files will live.
-		            NAME=STR                - Name of the project to be packaged.
-		            VERS=STR                - Version string for the package.
-		            SECT=STR                - Section under which this package falls.
-		            ESSE=STR                - Whether the package is essential or not.
+		CMDS:       ARCH=STR                - Architecture required by package.
+		            BASE=PATH               - Directory for package files.
 		            DEPS=STR                - List of dependencies; see below.
-		            SIZE=INT                - Total installed size, in KiB.
-		            SHDE=STR                - Short description for the package.
-		            LODE=STR                - Long description for the package.
+		            ESSE=STR                - Whether package is essential.
+		            LODE=STR                - Long description for package.
+		            NAME=STR                - Name of project to be packaged.
 		            PRIO=STR                - Priority of the package.
-		            ARCH=STR                - Architecture required by this package.
-		            REPO=STR                - Name of the GitHub repository to use.
+		            REPO=STR                - Name of the GitHub repository.
+		            SECT=STR                - Section assigned to this package.
+		            SHDE=STR                - Short description for package.
+		            SIZE=INT                - Total installed size, in KiB.
+		            VERS=STR                - Version string for the package.
 
 		NOTE:       All CMDS are written in key=value format.
 
-		            The FILES part of the command must consist of absolute paths, and must
-		            not only point to the files to add, but also the files for md5sums.
+		            The FILES part of the command must consist of absolute
+		            paths, and must not only point to the files to add, but
+		            also the files for md5sums.
 
-		            Dependencies, via the 'DEPS' key, should be correctly formatted.
-
-		            For example:
+		            Dependencies, via the 'DEPS' key, should be correctly
+		            formatted. For example:
 
 		              DEPS='perl (>= v5.22.1), libtfl-perl (>= 2019-05-07)'
 
-		            The longer description for the 'LODE' key, as the rest of the keys, can
-		            be a variable assigned to the associated data, for easier building.
-		            This inconvenience will be addressed in future versions of $Progrm.
-	};
-
-	print($Info =~ tr/\t//dr)
+		            The longer description for the 'LODE' key, as the rest of
+		            the keys, can be a variable assigned to the associated
+		            data, for easier building. This inconvenience will be
+		            addressed in future versions of $TFL::PROGNAME.
+	} =~ tr/\t//dr)
 }
 
-while (scalar(@ARGV) > 0){
-	my $Arg = $ARGV[0];
-
-	if ($Arg =~ '^(--help|-h|-\?)$'){
+while (defined($ARGV[0])){
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
 		USAGE; exit 0
-	}elsif ($Arg =~ '^(--version|-v)$'){
+	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit 0
-	}elsif ($Arg =~ '^-.*'){
+	}elsif ($ARGV[0] =~ '^-.*'){
 		FErr(1, __LINE__, "Incorrect argument(s) specified")
 	}else{
 		last
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
 DepChk('md5sum', 'dpkg-deb');
@@ -96,9 +96,7 @@ my @KeyList = (
 
 my %Keys;
 
-while (scalar(@ARGV) > 0){
-	my $Arg = $ARGV[0];
-
+while (defined($ARGV[0])){
 	# Ensure there are arguments left for FILES.
 	last() if $ARGV[0] =~ /^\//;
 
@@ -108,7 +106,7 @@ while (scalar(@ARGV) > 0){
 		}
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
 KeyDef(\%Keys, \@KeyList);
@@ -167,7 +165,7 @@ chmod(0755, $Debian); # <-- Required permissions.
 			FErr(1, __LINE__, "File(s) missing or inaccessible.")
 		}
 
-		shift(@ARGV)
+		shift()
 	}
 
 	close($FH);

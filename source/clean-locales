@@ -1,35 +1,38 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/clean-locales
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/clean-locales
 # Started On        - Thu  9 May 21:32:57 BST 2019
-# Last Change       - Wed 15 Jan 16:24:51 GMT 2020
+# Last Change       - Fri 31 Jan 23:41:55 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Dependencies:
+#
+#   libtfl-perl (>= 2020-01-03)
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use File::Basename 'basename';
-use TFL 'FErr'; # <-- libtfl-perl (>= 2020-01-03)
+use TFL 'Err';
 use File::Path 'remove_tree';
 
-my $CurVer = "2020-01-15";
+my $CurVer = "2020-01-31";
 
 my $LocDir = '/usr/share/locale';
 
 sub Usage{
-	my $Info = qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
+	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
 		            $TFL::AUTHOR
 
 		            Remove non-English localizations.
 
 		SYNTAX:     $TFL::PROGNAME [OPTS]
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --dir|-d PATH           - Process PATH instead of the default.
+		OPTS:       --help|-h|-?            - Display this help information.
+		            --version|-v            - Output the version datestamp.
+		            --dir|-d PATH           - Override default working path.
 
 		FILES:      Non-English locales in '$LocDir' will be deleted.
 
@@ -37,31 +40,27 @@ sub Usage{
 
 		              en_*
 		              locale.alias
-	};
-
-	print($Info =~ tr/\t//dr)
+	} =~ tr/\t//dr)
 }
 
-while (scalar(@ARGV) > 0){
-	my $Arg = $ARGV[0];
-
-	if ($Arg =~ '^(--help|-h|-\?)$'){
-		Usage(1); exit(0)
-	}elsif ($Arg =~ '^(--version|-v)$'){
+while (defined($ARGV[0])){
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+		Usage(); exit(0)
+	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
-	}elsif ($Arg =~ '^(--dir|-d)$'){
-		shift(@ARGV);
+	}elsif ($ARGV[0] =~ '^(--dir|-d)$'){
+		shift();
 
 		$LocDir = $ARGV[0]
 	}else{
-		FErr(1, __LINE__, "Incorrect argument(s) specified")
+		Err(1, "Incorrect argument(s) specified")
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
-FErr(1, __LINE__, "Root access is required") unless $< == 0;
-FErr(1, __LINE__, "Directory '$LocDir' doesn't exist.") unless -d $LocDir;
+Err(1, 'Root access is required') unless $< == 0;
+Err(1, "Directory '$LocDir' doesn't exist.") unless -d $LocDir;
 
 my $ErrCount = 0;
 
@@ -76,9 +75,9 @@ sub DelIt{
 		remove_tree($_[0], {safe => 1}) or ErrUpCount("$_[0]  [!]\n")
 	}elsif (-f $_[0]){
 		unlink($_[0]) or ErrUpCount("$_[0]  [!]\n")
+	}else{
+		ErrUpCount("$_[0]  [?]\n")
 	}
-
-	ErrUpCount("$_[0]  [?]\n")
 }
 
 foreach (glob("$LocDir/*")){

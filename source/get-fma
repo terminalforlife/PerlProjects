@@ -1,73 +1,77 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/get-fma
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/get-fma
 # Started On        - Fri 26 Apr 16:13:18 BST 2019
-# Last Change       - Wed 15 Jan 16:25:07 GMT 2020
+# Last Change       - Sat  1 Feb 00:13:33 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Dependencies:
+#
+#   liblist-moreutils-perl (>= 0.413-1build1)
+#   libtfl-perl (>= 2020-01-03)
+#   libwww-perl (>= 6.15-1)
+#   perl (>= 5.22.1-9)
 #----------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use File::Basename 'basename';
-use TFL 'Err'; # <-- libtfl-perl (>= 2020-01-02)
+use TFL 'Err';
 use LWP::UserAgent;
 use File::Temp 'tempfile';
 use List::MoreUtils 'uniq';
 
-my $CurVer = "2020-01-15";
-my $Progrm = basename($0);
+no warnings 'uninitialized';
+
+my $CurVer = "2020-02-01";
 
 my $Domain = 'https://freemusicarchive.org';
 
 sub Usage{
-	my $INFO = qq{            @{[uc($Progrm)]} ($CurVer)
-		            Written by terminalforlife <terminalforlife\@yahoo.com>
+	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
+		            $TFL::AUTHOR
 
 		            Perl downloader for MP3s discovered on Free Music Archive.
 
-		SYNTAX:     $Progrm [OPTS] [GENRE] [PAGE]
+		SYNTAX:     $TFL::PROGNAME [OPTS] [GENRE] [PAGE]
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --output-only|-O        - Don't download audio; output only.
-		            --name|-n TYPE          - Name TYPE to use for file names.
+		OPTS:       --help|-h|-?            - Display this help information.
+		            --version|-v            - Output the version datestamp.
 		            --dest|-D PATH          - Files will be downloaded to PATH.
+		            --name|-n TYPE          - Name TYPE to use for file names.
+		            --output-only|-O        - Don't download; output only.
 
-		NOTE:       Where DEST is the destination for the downloaded audio files.
+		NOTE:       Where DEST is the destination for the downloaded files.
 
-		            Available TYPEs are 'generic', 'id', and the default, 'title'.
+		            Available TYPEs are 'generic', 'id', and 'title', the
+		            latter of which is set by default.
 
 		SITE:       $Domain
-	};
-
-	print(split("\t", $INFO))
+	} =~ tr/\t//dr);
 }
 
 my $Destination = './';
-my $NameFormat = "title";
-my $OutputOnly = "false";
+my $NameFormat = 'title';
+my $OutputOnly = 'false';
 
-while ($ARGV[0]){
-	my $Arg = $ARGV[0];
-
-	if ($Arg =~ '^(--help|-h|-\?)$'){
-		Usage; exit(0)
-	}elsif ($Arg =~ '^(--version|-v)$'){
+while (defined($ARGV[0])){
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+		Usage(); exit(0)
+	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
-	}elsif ($Arg =~ '^(--name|-n)$'){
-		shift(@ARGV);
+	}elsif ($ARGV[0] =~ '^(--name|-n)$'){
+		shift();
 
 		Err(1, "Invalid format specified.")
 			unless $ARGV[0] =~ '^(title|generic|id|link)$';
 
 		$NameFormat = $ARGV[0]
-	}elsif ($Arg =~ '^(--output-only|-O)$'){
+	}elsif ($ARGV[0] =~ '^(--output-only|-O)$'){
 		$OutputOnly = 'true'
-	}elsif ($Arg =~ '^(--dest|-D)$'){
-		shift(@ARGV);
+	}elsif ($ARGV[0] =~ '^(--dest|-D)$'){
+		shift();
 
 		if (-d $ARGV[0]){
 			if ($ARGV[0] !~ '/$'){
@@ -78,49 +82,50 @@ while ($ARGV[0]){
 		}else{
 			Err(1, "Directory not found.")
 		}
-	}elsif ($Arg =~ '^-'){
-		Err(1, "Incorrect argument(s) specified")
+	}elsif ($ARGV[0] =~ '^-'){
+		Err(1, 'Incorrect argument(s) specified')
 	}else{
 		last
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
-unless ($ARGV[0] && $ARGV[1]){
-	Err(1, "Both a genre and page number are required.")
-}
+Err(1, 'Both a genre and page number are required.')
+	unless length($ARGV[0]) > 0 and length($ARGV[1]) > 0;
 
 my @Genres = (
-	"blues", "classical", "country", "electronic", "experimental", "folk",
-	"hip-hop", "instrumental", "international", "jazz", "novelty", "historic",
-	"pop", "rock", "soul-rnb", "spoken"
+	qw{
+		blues classical country electronic experimental folk hip-hop spoken
+		instrumental international jazz novelty historic pop rock soul-rnb
+	}
 );
 
-my $UA = LWP::UserAgent->new();
-$UA->max_redirect(1);
-$UA->protocols_allowed(['http', 'https']);
-$UA->agent('Mozilla/5.0');
+my $UA = LWP::UserAgent->new(
+	'max_redirect' => 1,
+	'protocols_allowed' => ['https', 'https'],
+	'agent' => 'Mozilla/5.0'
+);
 
 my $TempFile;
 my $ValidGenre = "false";
 
 foreach (@Genres){
-	if ($_ eq $ARGV[0]){
-		my $Sort = 'sort=track_date_published&d=1&';
-		my $Link = "$Domain/genre/$ARGV[0]/?${Sort}page=$ARGV[1]";
+	next unless $_ eq $ARGV[0];
 
-		my $FH = File::Temp->new(UNLINK => 0, SUFFIX => '.tmp');
-		$TempFile = $FH->filename();
-		print($FH $UA->get($Link)->decoded_content());
+	my $Sort = 'sort=track_date_published&d=1&';
+	my $Link = "$Domain/genre/$ARGV[0]/?${Sort}page=$ARGV[1]";
 
-		$ValidGenre = "true";
-		close($FH);
-		last
-	}
+	my $FH = File::Temp->new(UNLINK => 0, SUFFIX => '.tmp');
+	$TempFile = $FH->filename();
+	print($FH $UA->get($Link)->decoded_content());
+
+	$ValidGenre = 'true';
+	close($FH);
+	last
 }
 
-Err(1, "Genre not found.") if $ValidGenre eq "false";
+Err(1, 'Genre not found.') if $ValidGenre eq 'false';
 
 open(my $FH, '<', $TempFile);
 
@@ -130,7 +135,7 @@ my $Count = 0;
 while (<$FH>){
 	chomp();
 
-	if ($NameFormat eq "title"){
+	if ($NameFormat eq 'title'){
 		if ($_ =~ /class="ptxt-track"/ and $_ !~ /class="sortarr-up"/){
 			my @TitleLine = split('/', $_);
 			$Title = $TitleLine[6] =~ s/(.*">|<$|\s\([iI][dD]\s[0-9]{4}\))//gr
@@ -142,32 +147,32 @@ while (<$FH>){
 	my @Line = split(' ');
 	my $Link = $Line[1] =~ s/(href=|\")//gr;
 
-	if ($NameFormat eq "id"){
+	if ($NameFormat eq 'id'){
 		my $ID = $Link =~ s/^.*\///gr;
-		$Track = "$ID";
+		$Track = $ID;
 		print($Track)
-	}elsif ($NameFormat eq "title"){
+	}elsif ($NameFormat eq 'title'){
 		if(not $Title){
 			next
 		}else{
 			$Track = "${Title}.mp3";
 			print($Track)
 		}
-	}elsif($NameFormat eq "generic"){
-		$Count += 1;
-		if($Count < 10){$Count = '0' . $Count}
+	}elsif($NameFormat eq 'generic'){
+		$Count++;
+		$Count = "0$Count" if $Count < 10;
 		$Track = "Track_#$Pad$Count.mp3";
 		print($Track)
 	}
 
-	if($OutputOnly eq "true"){
+	if($OutputOnly eq 'true'){
 		print("\n")
 	}else{
 		open(my $Audio, '>', "$Destination$Track");
 
 		my $Buffer = $UA->get($Link);
 		if($Buffer->is_success()){
-			print($Audio $Buffer->decoded_content);
+			print($Audio $Buffer->decoded_content());
 			print(" [OK]\n")
 		}else{
 			unlink("$Destination$Track");

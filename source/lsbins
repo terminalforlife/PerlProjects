@@ -1,47 +1,49 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/lsbins
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019
-# Last Change       - Wed 15 Jan 16:25:38 GMT 2020
+# Last Change       - Sat  1 Feb 00:52:50 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Dependencies:
+#
+#   liblist-moreutils-perl (>= 0.413-1build1)
+#   libtfl-perl (>= 2020-01-03)
 #----------------------------------------------------------------------------------
 
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
+use TFL;
 use File::Basename 'basename';
-use TFL; # <-- libtfl-perl (>= 2020-01-02)
-use List::MoreUtils 'uniq'; # <-- liblist-moreutils-perl (>= 0.413-1build1)
+use List::MoreUtils 'uniq';
 
-my $CurVer = "2020-01-15";
-my $Progrm = basename($0);
+my $CurVer = "2020-02-01";
 
 sub Usage{
-	my $Info = qq{            @{[uc($Progrm)]} ($CurVer)
-		            Written by terminalforlife <terminalforlife\@yahoo.com>
+	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
+		            $TFL::AUTHOR
 
 		            A descriptive, searchable overview of PATH executables.
 
-		SYNTAX:     $Progrm [OPTS] [MATCH]
+		SYNTAX:     $TFL::PROGNAME [OPTS] [MATCH]
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --ignore-case|-i        - Search for MATCH case-insensitively.
-		            --extended-regexp|-E    - Search for MATCH with extended REGEX.
-		            --nodescribe|-N         - Omit short description for commands.
-		            --show-all|-a           - Show alternative short descriptions.
+		OPTS:       --help|-h|-?            - Display this help information.
+		            --version|-v            - Output the version datestamp.
+		            --ignore-case|-i        - Search case-insensitively.
+		            --extended-regexp|-E    - Search with extended REGEX.
+		            --nodescribe|-N         - Omit the short description.
+		            --show-all|-a           - Show alternative descriptions.
 
-		NOTE:       Where MATCH is a REGEX string for which is searched in the name
-		            of the command, program, file, etc. The description is ignored.
+		NOTE:       Where MATCH is a REGEX string for which is searched in the
+		            name of the command, program, file, etc. The description, -
+		            however, is ignored.
 
-		            Typically, executables found within PATH are lowercase, but for
-		            other times, the above applicable flags comes into play.
-	};
-
-	print($Info =~ tr/\t//dr)
+		            Typically, executables found within PATH are lowercase, but
+		            for other times, the above flags comes into play.
+	} =~ tr/\t//dr)
 }
 
 my $NoDescribe = 'false';
@@ -49,28 +51,26 @@ my $CaseInsen = 'false';
 my $ExtReg = 'false';
 my $ShowAll = 'false';
 
-while (scalar(@ARGV) > 0){
-	my $Arg = $ARGV[0];
-
-	if ($Arg =~ '^(--help|-h|-\?)$'){
+while (defined(@ARGV)){
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
 		Usage(1); exit(0)
-	}elsif ($Arg =~ '^(--version|-v)$'){
+	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
-	}elsif ($Arg =~ '^(--ignore-case|-i)$'){
+	}elsif ($ARGV[0] =~ '^(--ignore-case|-i)$'){
 		$CaseInsen = 'true'
-	}elsif ($Arg =~ '^(--extended-regexp|-E)$'){
+	}elsif ($ARGV[0] =~ '^(--extended-regexp|-E)$'){
 		$ExtReg = 'true'
-	}elsif ($Arg =~ '^(--nodescribe|-N)$'){
+	}elsif ($ARGV[0] =~ '^(--nodescribe|-N)$'){
 		$NoDescribe = 'true'
-	}elsif ($Arg =~ '^(--show-all|-a)$'){
+	}elsif ($ARGV[0] =~ '^(--show-all|-a)$'){
 		$ShowAll = 'true'
-	}elsif ($Arg =~ '^-.*'){
+	}elsif ($ARGV[0] =~ '^-.*'){
 		TFL::Err(1, "Unrecognised option(s) specified")
 	}else{
 		last
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
 TFL::Err(1, 'Only one MATCH is applicable.') if scalar(@ARGV) > 1;

@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 #cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/apt-undo-install
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/completions/apt-undo-install
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Wed 15 Jan 16:26:59 GMT 2020
+# Last Change       - Fri 31 Jan 23:43:13 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # This is the bash completion script for apt-undo-install.
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 _aptundoinstall(){
 	GetArgs(){
 		local CurLine Word
 
 		while read -a CurLine; do
-			if ! [[ "$IS_OPTS_LINE" == 'true' && "$Old" =~ ^[A-Z]+:$ ]]; then
+			if ! [[ "$OptsLine" == 'true' && "$Old" =~ ^[A-Z]+:$ ]]; then
 				case "${CurLine[0]}" in
 					OPTS:)
 						Word="${CurLine[1]//|/ } " ;;

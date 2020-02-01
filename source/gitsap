@@ -1,22 +1,24 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/gitsap
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Fri 24 Jan 19:17:54 GMT 2020
+# Last Change       - Sat  1 Feb 00:40:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
-# This project is based on a script I wrote in shell (Bash) called `gitsa` which
-# did the same thing but on a simpler and slower scale.
+#------------------------------------------------------------------------------
+# This project is based on a script I wrote in shell (Bash) called `gitsa`
+# which did the same thing but on a much simpler and slower scale.
 #
 # Dependencies:
 #
+#   git (>= 1:2.7.4-0)
 #   libfile-listing-perl (>= 6.04-1)
 #   libgit-repository-perl (>= 1.317-1)
 #   libnumber-bytes-human-perl (>= 0.09-1)
 #   libtfl-perl (>= 2020-01-08)
-#----------------------------------------------------------------------------------
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
 
 #TODO: The `Target` fails if the user provides just `/`.
 
@@ -27,7 +29,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-24";
+my $CurVer = "2020-02-01";
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -37,23 +39,23 @@ sub Usage{
 
 		SYNTAX:     $TFL::PROGNAME [OPTS] [REGEX]
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --ignore-case|-i        - Case-insensitive search for REGEX.
-		            --alt-path|-P PATH      - Override value in config with PATH.
-		            --config PATH           - Override default file with PATH.
-		            --force-reset           - Force regeneration of user's config.
+		OPTS:       --help|-h|-?            - Display this help information.
+		            --version|-v            - Output the version datestamp.
+		            --ignore-case|-i        - Case-insensitive REGEX search.
+		            --alt-path|-P PATH      - Override value in config.
+		            --config PATH           - Override default file.
+		            --force-reset           - Force generation of config file.
 		            --parseable             - Parseable output, similar to raw.
 
 		NOTE:       Signifying the end of OPTS with '--' is supported.
 
-		            Where REGEX is a REGEX string to use to filter repositories by
-		            the full path, relative to the 'Target' location.
+		            Where REGEX is a REGEX string to use to filter repositories
+		            by the full path, relative to the 'Target' location.
 
-		CONFIG:     A user configuration file (see below) will be generated when
-		            the program is executed without such a file existing.
+		CONFIG:     A user configuration file (see below) will be generated
+		            when the program is executed without such a file existing.
 
-		            Once the 'config' file has been generated, adjust as needed.
+		            Once the 'config' file has been generated, set as needed.
 
 		FILE:       ~/.config/$TFL::PROGNAME/config
 	} =~ tr/\t//dr)
@@ -128,7 +130,7 @@ my %Index = (
 		'Color_Repo',               # Base name of each repository path.
 		'Color_RepoDir',            # Directory name of each repository path.
 		'Color_Status',             # Status string for each repository.
-		'Color_Symbol'              # Symbol assigned to each category of status.
+		'Color_Symbol'              # Symbol for each category of status.
 	],
 
 	'Sets' => [
@@ -136,13 +138,13 @@ my %Index = (
 		'AbsoPath',                 # Display repositories as an absolute path.
 		'Compact',                  # Keep each result on one line.
 		'LatestFormat',             # Format style to use for `ShowLatest`.
-		'OmitClean',                # Don't display repositories which are clean.
+		'OmitClean',                # Don't display clean repositories.
 		'Parseable',                # Raw-like data for use by scripts, etc.
-		'RegexStr',                 # REGEX to filter results by repository path.
-		'ShowBranch',               # Currently-active branch of each repository.
+		'RegexStr',                 # Filter results by repository path.
+		'ShowBranch',               # Currently-active branch of repositories.
 		'ShowLatest',               # Information for the most recent commit.
 		'ShowSize',                 # Total disk space used by each repository.
-		'Target'                    # Directory in which to look for repositories.
+		'Target'                    # Directory in which to find repositories.
 	],
 
 	'Syms' => {
@@ -150,11 +152,11 @@ my %Index = (
 		'Char_Fix' => '⮂',          # When conflicts needing fixed are found.
 		'Char_Initial' => '≔',      # Freshly-created repository yet to commit.
 		'Char_Leads' => '∾',        # Repository leads by X amount of commits.
-		'Char_New' => '≺',          # X amount of new, unstaged files were found.
-		'Char_Removed' => '⊀',      # X amount of files were unexpectedly removed.
+		'Char_New' => '≺',          # X amount of new, unstaged files found.
+		'Char_Removed' => '⊀',      # X amount of files unexpectedly removed.
 		'Char_Uncommitted' => '≍',  # Staged modifications yet to be committed.
-		'Char_Unknown' => '!',      # When the status is unrecognised by `gitsap`.
-		'Char_Unstaged' => '≭'      # Changes in the repository yet to be staged.
+		'Char_Unknown' => '!',      # When the status is unknown to `gitsap`.
+		'Char_Unstaged' => '≭'      # Changes in repository yet to be staged.
 	}
 );
 
@@ -246,8 +248,8 @@ if (-f -r -T $ConfigFile){
 
 	print($FH qq{# User configuration file for GitSAP ($CurVer)
 
-		# Specify the absolute path for GitSAP to use. The initial tilde and most
-		# of the environment variables are available for expansion.
+		# Specify the absolute path for GitSAP to use. The initial tilde and
+		# most of the environment variables are available for expansion.
 		Target=NULL
 
 		# If enabled, display the repository as an absolute path.
@@ -262,9 +264,9 @@ if (-f -r -T $ConfigFile){
 		# If enabled, all clean repositories will be ommitted from the results.
 		OmitClean=false
 
-		# If set to a value, it will always be used as REGEX. This could be handy
-		# if you want to always view certain repositories. This key, if used, will
-		# override any REGEX string otherwise set.
+		# If set to a value, it will always be used as REGEX. This could be
+		# handy if you want to always view certain repositories. This key, if
+		# used, will override any REGEX string otherwise set.
 		RegexStr=
 
 		# Disable this to completely disable ANSI color support.
@@ -289,8 +291,8 @@ if (-f -r -T $ConfigFile){
 		#
 		LatestFormat=describe
 
-		# Optionally assign your own single character to each type of status. The
-		# defaults will be used if these keys' values are left empty.
+		# Optionally assign your own single character to each type of status.
+		# The defaults will be used if these keys' values are left empty.
 		Char_Clean=
 		Char_Fix=
 		Char_Initial=
@@ -305,7 +307,8 @@ if (-f -r -T $ConfigFile){
 		#
 		# Valid colors:
 		#
-		#   `black`, `blue`, `cyan`, `green`, `magenta`, `red`, `white`, `yellow`
+		#   `black`, `blue`, `cyan`, `green`,
+		#   `magenta`, `red`, `white`, `yellow`
 		#
 		# 3 prefixes are available:
 		#
@@ -344,7 +347,7 @@ use Git::Repository;
 sub GetRepos{
 	use Cwd;
 
-	#TODO: Temporary solution. Redirect `Git::Repository` to `/dev/null`, but how?
+	#TODO: Temporary. Redirect `Git::Repository` to `/dev/null`, but how?
 	# If we're within a repository, handle it, then bail.
 	if (system('git rev-parse --show-toplevel 1> /dev/null 2>&1') == 0){
 		my $Git = Git::Repository->new('work_tree' => getcwd());
@@ -359,16 +362,16 @@ sub GetRepos{
 		push(@Dirs, $_) if -d -r -x;
 	}
 
-	# Iterate over each directory until `.git` is found, then skip to the next one.
-	# This was initially done by `File::Find`, but there seemed to have been
-	# annoying limitations, not to mention this approach seems a lot faster.
+	# Iterate over each directory until `.git` is found, then skip to the next
+	# one. This was initially done by `File::Find`, but there seemed to have
+	# been annoying limitations, plus this approach seems a lot faster.
 	my @FileArr;
 	foreach (@Dirs){
 		foreach (glob("$_/{*,.*}")){
 			next if m{/(\.\.|\.)$};
 
-			# Keep adding to the array until there's nothing left and the looping
-			# comes to an end. It's akin to a while loop iterating over arguments.
+			# Keep adding to the array until it's empty, resulting in the loop
+			# coming to an end. Like a while loop iterating over arguments.
 			push(@Dirs, $_) if -d -r -x;
 
 			if (-d -r -x $_ and ($_ =~ m{(?:.*/)(.*)})[0] eq '.git'){
@@ -484,7 +487,7 @@ foreach (GetRepos($Target)){
 	foreach (@Status){
 		chomp(my @Arr = split(' ', $_));
 
-		# Some situations need a couple of lines from `@Status`, so the following
+		# Some situations need some lines from `@Status`, so the following
 		# flags are used, still in order, for use in the other if statement.
 		if ($Arr[0] eq 'modified:'){
 			$ModifiedFound = 'true'
@@ -530,9 +533,9 @@ foreach (GetRepos($Target)){
 
 	my $DirName = ($ShowPath =~ '(.*)(?:/.*)')[0];
 
-	# Addresses repository displaying incorrectly if there's only one directory in
-	# which repositories reside. Since `$Target` is omitted, `$DirName` would be
-	# empty, in that situation, hence this workaround.
+	# Addresses repository displaying incorrectly if there's only one directory
+	# in which repositories reside. Since `$Target` is omitted, `$DirName`
+	# would be empty, in that situation, hence this workaround.
 	$DirName = $DirName . '/' if length($DirName) > 0;
 
 	my $BaseName = ($ShowPath =~ '(?:.*/)?(.*)')[0];

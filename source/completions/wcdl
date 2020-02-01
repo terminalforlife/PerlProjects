@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/wcdl
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/completions/wcdl
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Wed 15 Jan 16:27:17 GMT 2020
+# Last Change       - Sat  1 Feb 01:04:44 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # This is the bash completion script for wcdl.
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 _wcdl(){
 	local Current=${COMP_WORDS[$COMP_CWORD]}

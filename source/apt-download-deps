@@ -1,37 +1,42 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/apt-download-deps
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-download-deps
 # Started On        - Sat  4 Jan 21:55:31 GMT 2020
-# Last Change       - Wed 15 Jan 16:24:44 GMT 2020
+# Last Change       - Fri 31 Jan 22:37:11 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Dependencies:
+#
+#   libapt-pkg-perl (>= 0.1.29build7)
+#   libtfl-perl (>= 2020-01-03)
+#   perl (>= 5.22.1-9)
 #----------------------------------------------------------------------------------
 
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err', 'DepChk'; # <-- libtfl-perl (>= 2020-01-03)
-use AptPkg::Cache; # <-- libapt-pkg-perl (>= 0.1.29build7)
+use TFL 'Err', 'DepChk';
+use AptPkg::Cache;
 
-my $CurVer = "2020-01-15";
+my $CurVer = "2020-01-31";
 
 sub Usage{
 	my $Info = qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
 		            $TFL::AUTHOR
 
-		            Download all dependencies for one or more Debian packages.
+		            Download dependencies for one or more Debian packages.
 
 		SYNTAX:     $TFL::PROGNAME [OPTS] [PKG_1 [PKG_2] ...]
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --include-base|-b       - Also download the base package(s).
+		OPTS:       --help|-h|-?            - Display this help information.
+		            --version|-v            - Output the version datestamp.
+		            --include-base|-b       - Also download base package(s).
 
-		NOTE:       This program, written in Perl, is ideal for situations in which
-		            the user wishes to transfer to or store packages on another
-		            machine for later offline use.
+		NOTE:       This program, written in Perl, is ideal for situations in
+		            which the user wishes to transfer to or store packages on
+		            another machine for later offline use.
 	};
 
 	print($Info =~ tr/\t//dr)
@@ -39,22 +44,20 @@ sub Usage{
 
 my $BaseToo = 'false';
 
-while (scalar(@ARGV) > 0){
-	my $Arg = $ARGV[0];
-
-	if ($Arg =~ '^(--help|-h|-\?)$'){
+while (defined($ARGV[0])){
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
 		Usage(1); exit(0)
-	}elsif ($Arg =~ '^(--version|-v)$'){
+	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
-	}elsif ($Arg =~ '^(--include-base|-b)$'){
+	}elsif ($ARGV[0] =~ '^(--include-base|-b)$'){
 		$BaseToo = 'true'
-	}elsif ($Arg =~ '^-'){
+	}elsif ($ARGV[0] =~ '^-'){
 		Err(1, "Incorrect argument(s) specified.")
 	}else{
 		last
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
 Err(1, 'At least one package is required.') if scalar(@ARGV) == 0;
@@ -99,5 +102,5 @@ while (scalar(@ARGV) > 0){
 		system("apt-get download @ToDL") unless $MissingPKG eq 'true';
 	}
 
-	shift(@ARGV)
+	shift()
 }

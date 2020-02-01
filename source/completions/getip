@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/getip
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/completions/getip
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Wed 15 Jan 16:27:04 GMT 2020
+# Last Change       - Sat  1 Feb 01:03:59 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # This is the bash completion script for getip.
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 _getip(){
 	GetArgs(){
