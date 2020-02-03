@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  3 Feb 23:44:55 GMT 2020
+# Last Change       - Mon  3 Feb 23:55:43 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
 		            $TFL::AUTHOR
 
-		            ...
+		            Send your Ubuntu system to the doctor for a check-up.
 
 		SYNTAX:     $TFL::PROGNAME [OPTS]
 
@@ -101,6 +101,7 @@ if (-f -r -T $ConfigFile){
 
 	print($FH qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
 
+		# If enabled, perform various checks for kernel parameters.
 		KernParams=false
 	} =~ tr/\t//dr);
 
@@ -149,8 +150,10 @@ if ($KernParams eq 'true'){
 		# Ignore pings.
 		'5434:1:/proc/sys/net/ipv4/icmp_echo_ignore_all',
 
-		# General system security.
+		# Restrict what users can garner from the kernel log.
 		'9623:1:/proc/sys/kernel/dmesg_restrict',
+
+		# General system security.
 		'8560:1:/proc/sys/kernel/kptr_restrict',
 		'1443:1:/proc/sys/kernel/yama/ptrace_scope'
 	){
