@@ -3,10 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/TFL.pm
 # Started On        - Mon  6 May 19:29:05 BST 2019
-# Last Change       - Sat  1 Feb 01:03:35 GMT 2020
+# Last Change       - Mon  3 Feb 04:15:40 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#----------------------------------------------------------------------------------
 
 package TFL;
 
@@ -39,7 +43,7 @@ use vars '@EXPORT', '$VERSION';
 	'DepChk', 'KeyDef', 'UsageCPU', 'UnderLine', 'Boolean', 'YNInput'
 );
 
-$VERSION = '2020-02-01';
+$VERSION = '2020-02-03';
 
 our ($PROGNAME) = $0 =~ m{(?:.*/)?([^/]*)};
 our $AUTHOR = 'Written by terminalforlife <terminalforlife@yahoo.com>';
@@ -235,9 +239,31 @@ sub YNInput{
 	}
 }
 
+=item GitTopLevel()
+
+Return the top level of the second argument's Git repository. Whether to substitute the value of `$HOME` with `~`, is dependent on the first argument's boolean, where `true` is to perform this substitution.
+
+=cut
+
+sub GitTopLevel{
+	use Cwd;
+
+	while (){
+		if (-d '.git'){
+			return(getcwd() =~ s/^$ENV{'HOME'}\//~\//r)
+		}else{
+			chdir('../')
+		}
+	}
+}
+
 =back
 
 =head1 CHANGES
+
+=head2 2020-02-03
+
+Added GitTopLevel().
 
 =head2 2020-01-11
 
