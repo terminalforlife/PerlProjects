@@ -11,14 +11,14 @@
 #
 # Dependencies:
 #
-#   libtfl-perl (>= 2020-01-11)
+#   libtfl-perl (>= 2020-02-03)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'Boolean', 'DepChk', 'YNInput';
+use TFL 'FErr', 'Boolean', 'DepChk', 'YNInput', 'ReadFile';
 
 no warnings 'uninitialized';
 
