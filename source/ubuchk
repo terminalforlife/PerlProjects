@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  3 Feb 19:04:20 GMT 2020
+# Last Change       - Mon  3 Feb 22:25:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'Boolean', 'DepChk', 'YNInput', 'ReadFile';
+use TFL 'FErr', 'Boolean', 'DepChk', 'YNInput', 'ReadFile', 'WriteFile';
 
 no warnings 'uninitialized';
 
@@ -36,15 +36,19 @@ sub Usage{
 		            --version|-v            - Output the version datestamp.
 		            --config PATH           - Override default file.
 		            --force-reset           - Force generation of config file.
+
+		FILE:       ~/.config/$TFL::PROGNAME/config
+		            ~/.config/$TFL::PROGNAME/kp_exclusions
 	} =~ tr/\t//dr)
 }
 
 my (
-	$ForceReset
+	$ForceReset, $KernParams
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
 my $ConfigFile = "$MainDir/config";
+my $ParamExcepts = "$MainDir/kp_exclusions";
 
 mkdir($MainDir) unless -d $MainDir;
 
@@ -74,43 +78,55 @@ while (defined($ARGV[0])){
 	shift()
 }
 
-my %Index = (
-	'Sets' => [
-	],
-
-	'Checks' => [
-	],
-);
-
-# This is the correct number of keys, for which will later be checked.
-my $ValidKeysTTL = @{$Index{'Sets'}} + @{$Index{'Checks'}};
-
-unlink($ConfigFile) if $ForceReset eq 'true';
+unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
 
 if (-f -r -T $ConfigFile){
-	my $TTL = 0;
 	foreach (ReadFile($ConfigFile)){
 		next if length() <= 1 or /^#/;
 		chomp(my ($Key, $Value) = split('='));
 
-		# Tally up the total number of keys found, to check after below block.
-		$TTL++;
-
-		if ($Key eq 'KEY_NAME'){
+		if ($Key eq 'KernParams'){
+			Boolean($Value);
+			$KernParams = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
 	}
-
-	FErr(1, __LINE__, 'One or more keys are missing.') if $TTL < $ValidKeysTTL;
 }else{
-	open(my $FH, '>', $ConfigFile);
+	WriteFile(
+		$ConfigFile,
+		qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
 
-	print($FH qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
+			KernParams=false
+		} =~ tr/\t//dr
+	);
 
-	} =~ tr/\t//dr);
-
-	close($FH);
 	printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
 	exit(0)
+}
+
+sub Alert{ # Usage: [ALERT_ID] [STRING]
+	printf("[A%0.4d]: %s\n", $_[0], $_[1])
+}
+
+#-------------------------------------------------------------Kernel Parameters
+
+if ($KernParams eq 'true'){
+	sub ChkParam{ # Usage: [FILE]
+		my $ShowKey = $_[0] =~ tr/\//./r =~ s/\.proc\.sys\.//r;
+		my $Value = ReadFile($_[0]);
+
+		return($Value, $ShowKey)
+	}
+
+	foreach ( # [ALERT_ID] [TARGET_VALUE] [PATH]
+		'1491:60:/proc/sys/vm/swappiness',
+		'8852:0:/proc/sys/net/ipv4/conf/all/log_martians'
+	){
+		my ($AlertID, $TargetValue, $Path) = split(':');
+		my ($Value, $ShowKey) = ChkParam($Path);
+
+		Alert($AlertID, "Key '$ShowKey' assigned '$Value'.")
+			if $Value == $TargetValue
+	}
 }
