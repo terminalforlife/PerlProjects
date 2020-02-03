@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  3 Feb 18:54:23 GMT 2020
+# Last Change       - Mon  3 Feb 19:04:20 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ while (defined($ARGV[0])){
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
 	}elsif($ARGV[0] =~ '^(--config|-c)$'){
-		shift(@ARGV);
+		shift();
 
 		unless (length($ARGV[0]) > 0){
 			FErr(1, __LINE__, "Option '--config|-c' requires a PATH.")
@@ -90,8 +90,8 @@ unlink($ConfigFile) if $ForceReset eq 'true';
 if (-f -r -T $ConfigFile){
 	my $TTL = 0;
 	foreach (ReadFile($ConfigFile)){
-		next if length($_) <= 1 or $_ =~ '^#';
-		chomp(my ($Key, $Value) = split('=', $_));
+		next if length() <= 1 or /^#/;
+		chomp(my ($Key, $Value) = split('='));
 
 		# Tally up the total number of keys found, to check after below block.
 		$TTL++;
