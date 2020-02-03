@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  3 Feb 22:25:42 GMT 2020
+# Last Change       - Mon  3 Feb 23:44:55 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,14 +11,14 @@
 #
 # Dependencies:
 #
-#   libtfl-perl (>= 2020-02-03)
+#   libtfl-perl (>= 2020-01-09)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'Boolean', 'DepChk', 'YNInput', 'ReadFile', 'WriteFile';
+use TFL 'FErr', 'Boolean';
 
 no warnings 'uninitialized';
 
@@ -81,7 +81,9 @@ while (defined($ARGV[0])){
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
 
 if (-f -r -T $ConfigFile){
-	foreach (ReadFile($ConfigFile)){
+	open(my $FH, '<', $ConfigFile);
+
+	while (<$FH>){
 		next if length() <= 1 or /^#/;
 		chomp(my ($Key, $Value) = split('='));
 
@@ -92,15 +94,17 @@ if (-f -r -T $ConfigFile){
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
 	}
+
+	close($FH)
 }else{
-	WriteFile(
-		$ConfigFile,
-		qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
+	open(my $FH, '>', $ConfigFile);
 
-			KernParams=false
-		} =~ tr/\t//dr
-	);
+	print($FH qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
 
+		KernParams=false
+	} =~ tr/\t//dr);
+
+	close($FH);
 	printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
 	exit(0)
 }
@@ -112,21 +116,56 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 #-------------------------------------------------------------Kernel Parameters
 
 if ($KernParams eq 'true'){
-	sub ChkParam{ # Usage: [FILE]
-		my $ShowKey = $_[0] =~ tr/\//./r =~ s/\.proc\.sys\.//r;
-		my $Value = ReadFile($_[0]);
+	my ($Value, $AlertID, $GoodValue, $Path, $ShowKey);
 
-		return($Value, $ShowKey)
-	}
+	foreach ( # [ALERT_ID] [DESIRED_VALUE] [KEY_PATH]
+		# Assume we're not running on a server.
+		'1491:10:/proc/sys/vm/swappiness',
 
-	foreach ( # [ALERT_ID] [TARGET_VALUE] [PATH]
-		'1491:60:/proc/sys/vm/swappiness',
-		'8852:0:/proc/sys/net/ipv4/conf/all/log_martians'
+		# Log martians.
+		'8852:1:/proc/sys/net/ipv4/conf/all/log_martians',
+		'2847:1:/proc/sys/net/ipv4/icmp_ignore_bogus_error_responses',
+
+		# Protects against IP spoofing.
+		'7512:1:/proc/sys/net/ipv4/conf/all/rp_filter',
+		'1821:1:/proc/sys/net/ipv4/conf/default/rp_filter',
+
+		# Not a router. Also ignores ICMP redirects.
+		'1211:0:/proc/sys/net/ipv4/conf/all/accept_redirects',
+		'2916:0:/proc/sys/net/ipv6/conf/all/accept_redirects',
+		'9191:0:/proc/sys/net/ipv4/conf/all/send_redirects',
+		'2529:0:/proc/sys/net/ipv4/conf/default/send_redirects',
+		'6576:0:/proc/sys/net/ipv4/conf/all/accept_source_route',
+		'8963:0:/proc/sys/net/ipv6/conf/all/accept_source_route',
+		'6279:0:/proc/sys/net/ipv4/conf/default/accept_source_route',
+		'1291:0:/proc/sys/net/ipv6/conf/default/accept_source_route',
+
+		# Block SYN attacks.
+		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
+		'2125:2048:/proc/sys/net/ipv4/tcp_max_syn_backlog',
+		'5668:2:/proc/sys/net/ipv4/tcp_synack_retries',
+		'1090:5:/proc/sys/net/ipv4/tcp_syn_retries',
+
+		# Ignore pings.
+		'5434:1:/proc/sys/net/ipv4/icmp_echo_ignore_all',
+
+		# General system security.
+		'9623:1:/proc/sys/kernel/dmesg_restrict',
+		'8560:1:/proc/sys/kernel/kptr_restrict',
+		'1443:1:/proc/sys/kernel/yama/ptrace_scope'
 	){
-		my ($AlertID, $TargetValue, $Path) = split(':');
-		my ($Value, $ShowKey) = ChkParam($Path);
+		($AlertID, $GoodValue, $Path) = split(':');
+		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;
+
+		if (-f -r -T $Path){
+			open(my $FH, '<', $Path);
+			chomp($Value = <$FH>);
+			close($FH)
+		}else{
+			next
+		}
 
 		Alert($AlertID, "Key '$ShowKey' assigned '$Value'.")
-			if $Value == $TargetValue
+			if $Value != $GoodValue
 	}
 }
