@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  3 Feb 18:27:18 GMT 2020
+# Last Change       - Mon  3 Feb 18:32:54 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use TFL 'FErr', 'Boolean', 'DepChk', 'YNInput';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-02-03";
+my $CurVer = '2020-02-03';
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -39,7 +39,7 @@ sub Usage{
 
 while (defined($ARGV[0])){
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
-		Usage(1); exit(0)
+		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
 	}elsif ($ARGV[0] =~ '^-'){
@@ -48,5 +48,5 @@ while (defined($ARGV[0])){
 		last
 	}
 
-	shift(@ARGV)
+	shift()
 }
