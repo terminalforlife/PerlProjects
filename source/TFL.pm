@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/TFL.pm
 # Started On        - Mon  6 May 19:29:05 BST 2019
-# Last Change       - Mon  3 Feb 18:38:58 GMT 2020
+# Last Change       - Mon  3 Feb 18:40:38 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -39,8 +39,9 @@ use warnings;
 use vars '@EXPORT', '$VERSION';
 
 @EXPORT = (
-	'$PROGNAME', '$AUTHOR', '$GITHUB', 'FErr', 'Err', 'KeyVal', 'GitTopLevel',
-	'DepChk', 'KeyDef', 'UsageCPU', 'UnderLine', 'Boolean', 'YNInput'
+	'$PROGNAME', '$AUTHOR', '$GITHUB', 'FErr', 'Err', 'KeyVal',
+	'GitTopLevel', 'DepChk', 'KeyDef', 'UsageCPU', 'UnderLine',
+	'Boolean', 'YNInput', 'ReadFile'
 );
 
 $VERSION = '2020-02-03';
