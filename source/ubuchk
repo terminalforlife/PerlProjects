@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 00:36:01 GMT 2020
+# Last Change       - Tue  4 Feb 01:14:34 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ sub Usage{
 }
 
 my (
-	$ForceReset, $KernParams, $PathPerms, @SkipKP
+	$ForceReset, $KernParams, $PathPerms, @SkipKP, $PurgeChk
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -93,6 +93,9 @@ if (-f -r -T $ConfigFile){
 			$PathPerms = $Value
 		}elsif ($Key eq 'SkipKP'){
 			push(@SkipKP, $Value)
+		}elsif ($Key eq 'PurgeChk'){
+			Boolean($Value);
+			$PurgeChk = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -122,6 +125,11 @@ if (-f -r -T $ConfigFile){
 		# It's important to note that, at least for now, only the last three
 		# digits of the numeric mode (for example `0755`) are checked.
 		PathPerms=true
+
+		# If enabled, look for removed packages yet to be purged. An unpurged
+		# package simply means there are associated files (these are typically
+		# global configurations) still remainig.
+		PurgeChk=true
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -218,4 +226,45 @@ if ($PathPerms eq 'true'){
 			}
 		}
 	}
+}
+
+#-----------------------------------------------------Packages Yet to Be Purged
+
+if ($PurgeChk eq 'true'){
+	my $DpkgStatus = '/var/lib/dpkg/status';
+
+	# These are unlikely in an Ubuntu installation, but just in-case.
+	FErr(1, __LINE__, "File '$DpkgStatus' not found.") unless -f $DpkgStatus;
+	FErr(1, __LINE__, "File '$DpkgStatus' unreadable.") unless -r $DpkgStatus;
+	FErr(1, __LINE__, "File '$DpkgStatus' is binary.") if -B $DpkgStatus;
+
+	open(my $FH, '<', $DpkgStatus);
+
+	my ($Package, $Arch, $Status, %Packages);
+	while (<$FH>){
+		chomp();
+		next if /^$/;
+
+		my ($Key, $Value) = split(':');
+
+		if ($Key eq 'Package'){
+			$Package = $Value =~ tr/ //dr;
+		}elsif ($Key eq 'Status'){
+			$Status = $Value =~ tr/ //dr;
+		}elsif ($Key eq 'Architecture'){
+			$Arch = $Value =~ tr/ //dr;
+
+			next unless $Status eq 'deinstallokconfig-files';
+
+			unless ($Arch eq 'all'){
+				$Packages{"$Package:$Arch"} = $Status
+			}else{
+				$Packages{$Package} = $Status
+			}
+		}
+	}
+
+	close($FH);
+
+	Alert(6712, "Package '$_' wasn't purged.") foreach sort(keys(%Packages))
 }
