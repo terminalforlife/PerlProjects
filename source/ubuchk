@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 03:25:28 GMT 2020
+# Last Change       - Tue  4 Feb 04:38:04 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ sub Usage{
 }
 
 my (
-	$ForceReset, $KernParams, $PathPerms, @SkipKP,
+	$ForceReset, $KernParams, $PathPerms, @SkipKP, @UnwantedPKGs,
 	$PurgeChk, $HardAPT, @SkipAPT, $SSHServer, $SSHDConfig
 );
 
@@ -107,6 +107,8 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'SSHServer'){
 			Boolean($Value);
 			$SSHServer = $Value
+		}elsif ($Key eq 'UnwantedPKGs'){
+			push(@UnwantedPKGs, $Value)
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -158,6 +160,12 @@ if (-f -r -T $ConfigFile){
 
 		# Optionally, override the default location of the `sshd_config` file.
 		SSHDConfig=/etc/ssh/sshd_config
+
+		# These packages are potentially unwanted, so will be checked to see if
+		# they are installed. Additional packages can be provided below. You
+		# must specify the exact architecture which you're targetting.
+		UnwantedPKGs=virtualbox-guest-dkms:all
+		UnwantedPKGs=virtualbox-guest-utils:all
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -167,6 +175,41 @@ if (-f -r -T $ConfigFile){
 
 sub Alert{ # Usage: [ALERT_ID] [STRING]
 	printf("[A%0.4d]: %s\n", $_[0], $_[1])
+}
+
+sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
+	my $DpkgStatus = '/var/lib/dpkg/status';
+
+	# These are unlikely in an Ubuntu installation, but just in-case.
+	FErr(1, __LINE__, "File '$DpkgStatus' not found.") unless -f $DpkgStatus;
+	FErr(1, __LINE__, "File '$DpkgStatus' unreadable.") unless -r $DpkgStatus;
+	FErr(1, __LINE__, "File '$DpkgStatus' is binary.") if -B $DpkgStatus;
+
+	open(my $FH, '<', $DpkgStatus);
+
+	my ($Package, $Arch, $Status, @Packages);
+	while (<$FH>){
+		chomp();
+		next if /^$/;
+
+		my ($Key, $Value) = split(':');
+
+		if ($Key eq 'Package'){
+			$Package = $Value =~ tr/ //dr;
+		}elsif ($Key eq 'Status'){
+			$Status = $Value =~ tr/ //dr;
+		}elsif ($Key eq 'Architecture'){
+			$Arch = $Value =~ tr/ //dr;
+
+			next unless $Status eq $_[0];
+
+			push(@Packages, "$Package:$Arch")
+		}
+	}
+
+	close($FH);
+
+	return(sort(@Packages))
 }
 
 #-------------------------------------------------------------Kernel Parameters
@@ -259,42 +302,8 @@ if ($PathPerms eq 'true'){
 #-----------------------------------------------------Packages Yet to Be Purged
 
 if ($PurgeChk eq 'true'){
-	my $DpkgStatus = '/var/lib/dpkg/status';
-
-	# These are unlikely in an Ubuntu installation, but just in-case.
-	FErr(1, __LINE__, "File '$DpkgStatus' not found.") unless -f $DpkgStatus;
-	FErr(1, __LINE__, "File '$DpkgStatus' unreadable.") unless -r $DpkgStatus;
-	FErr(1, __LINE__, "File '$DpkgStatus' is binary.") if -B $DpkgStatus;
-
-	open(my $FH, '<', $DpkgStatus);
-
-	my ($Package, $Arch, $Status, %Packages);
-	while (<$FH>){
-		chomp();
-		next if /^$/;
-
-		my ($Key, $Value) = split(':');
-
-		if ($Key eq 'Package'){
-			$Package = $Value =~ tr/ //dr;
-		}elsif ($Key eq 'Status'){
-			$Status = $Value =~ tr/ //dr;
-		}elsif ($Key eq 'Architecture'){
-			$Arch = $Value =~ tr/ //dr;
-
-			next unless $Status eq 'deinstallokconfig-files';
-
-			unless ($Arch eq 'all'){
-				$Packages{"$Package:$Arch"} = $Status
-			}else{
-				$Packages{$Package} = $Status
-			}
-		}
-	}
-
-	close($FH);
-
-	Alert(6712, "Package '$_' wasn't purged.") foreach sort(keys(%Packages))
+	Alert(6712, "Package '$_' wasn't purged.")
+		foreach sort(ParseDpkgStatus('deinstallokconfig-files'))
 }
 
 #-----------------------------------------------------------APT Security Tweaks
@@ -302,45 +311,46 @@ if ($PurgeChk eq 'true'){
 if ($HardAPT eq 'true'){
 	my $VendorFile = '/etc/apt/apt.conf.d/01-vendor-ubuntu';
 
-	if (-f -r -T $VendorFile){
-		open(my $FH, '<', $VendorFile);
+	FErr(1, __LINE__, "File '$VendorFile' not found.") unless -f $VendorFile;
+	FErr(1, __LINE__, "File '$VendorFile' unreadable.") unless -r $VendorFile;
+	FErr(1, __LINE__, "File '$VendorFile' is binary.") if -B $VendorFile;
 
-		my %Settings;
-		while (<$FH>){
-			chomp();
-			next if /(^#|^$)/;
+	open(my $FH, '<', $VendorFile);
 
-			my ($Key, $Value) = split(' ');
-			$Value = $Value =~ tr/"';//dr;
+	my %Settings;
+	while (<$FH>){
+		chomp();
+		next if /(^#|^$)/;
 
-			$Settings{$Key} = $Value
+		my ($Key, $Value) = split(' ');
+		$Value = $Value =~ tr/"';//dr;
+
+		$Settings{$Key} = $Value
+	}
+
+	close($FH);
+
+	foreach (
+		# These values, when set to `false`, offer much better security.
+		'false|APT::Get::AllowUnauthenticated',
+		'false|Acquire::http::AllowRedirect',
+
+		# These packages aren't required, so don't clutter the system up.
+		'false|APT::Install-Suggests',
+
+		# Perhaps a bit excessive, but can also be a time-saver. This is
+		# ignored by default, to avoid any issues with dependencies.
+		'false|APT::Install-Recommends'
+	){
+		my ($Target, $Key) = split('\|');
+
+		next if grep(/^$Key$/, @SkipAPT);
+
+		unless (exists($Settings{$Key})){
+			Alert(6131, "APT key '$Key' not assigned.")
+		}elsif ($Settings{$Key} ne $Target){
+			Alert(6131, "APT key '$Key' assigned '$Settings{$Key}'.")
 		}
-
-		close($FH);
-
-		foreach (
-			# These values, when set to `false`, offer much better security.
-			'false|APT::Get::AllowUnauthenticated',
-			'false|Acquire::http::AllowRedirect',
-
-			# These packages aren't required, so don't clutter the system up.
-			'false|APT::Install-Suggests',
-
-			# Perhaps a bit excessive, but can also be a time-saver. This is
-			# ignored by default, to avoid any issues with dependencies.
-			'false|APT::Install-Recommends'
-		){
-			my ($Target, $Key) = split('\|');
-
-			next if grep(/^$Key$/, @SkipAPT);
-
-			unless (exists($Settings{$Key})){
-				Alert(6131, "APT key '$Key' not assigned.")
-			}elsif ($Settings{$Key} ne $Target){
-				Alert(6131, "APT key '$Key' assigned '$Settings{$Key}'.")
-			}
-		}
-
 	}
 }
 
@@ -395,5 +405,14 @@ if ($SSHServer eq 'true'){
 		Alert(7541, "SSH daemon key 'Port' not assigned.")
 	}elsif ($Settings{'Port'} eq 22){
 		Alert(7541, "SSH daemon key 'Port' assigned '$Settings{Port}'.")
+	}
+}
+
+#---------------------------------------------------------Packages Best Avoided
+
+if (@UnwantedPKGs > 0){
+	foreach my $CurPKG (@UnwantedPKGs){
+		Alert(5656, "Package '$CurPKG' installed.")
+			if grep(/^$CurPKG$/, ParseDpkgStatus('installokinstalled'))
 	}
 }
