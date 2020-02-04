@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 00:17:29 GMT 2020
+# Last Change       - Tue  4 Feb 00:36:01 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -38,17 +38,15 @@ sub Usage{
 		            --force-reset           - Force generation of config file.
 
 		FILE:       ~/.config/$TFL::PROGNAME/config
-		            ~/.config/$TFL::PROGNAME/kp_exclusions
 	} =~ tr/\t//dr)
 }
 
 my (
-	$ForceReset, $KernParams, $PathPerms
+	$ForceReset, $KernParams, $PathPerms, @SkipKP
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
 my $ConfigFile = "$MainDir/config";
-my $ParamExcepts = "$MainDir/kp_exclusions";
 
 mkdir($MainDir) unless -d $MainDir;
 
@@ -93,6 +91,8 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'PathPerms'){
 			Boolean($Value);
 			$PathPerms = $Value
+		}elsif ($Key eq 'SkipKP'){
+			push(@SkipKP, $Value)
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -105,10 +105,23 @@ if (-f -r -T $ConfigFile){
 	print($FH qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
 
 		# If enabled, perform various checks for kernel parameters.
-		KernParams=false
+		KernParams=true
 
-		# ...
-		PathPerms=false
+		# Skip (ignore) the provided kernel parameter. This can be specified
+		# multiple times, using the same key, but only one value per key.
+		#
+		# Example: SkipKP=vm.swappiness
+		#
+		# No test will take place to confirm the parameter entered here is
+		# actually handled by $TFL::PROGNAME, so if you wanted to have several
+		# specific parameters ignored, for any future updates, it's possible.
+		SkipKP=
+
+		# If enabled, check for sane owner, group, and mode of `PATH` files.
+		#
+		# It's important to note that, at least for now, only the last three
+		# digits of the numeric mode (for example `0755`) are checked.
+		PathPerms=true
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -175,7 +188,7 @@ if ($KernParams eq 'true'){
 		}
 
 		Alert($AlertID, "Key '$ShowKey' assigned '$Value'.")
-			if $Value != $GoodValue
+			if $Value != $GoodValue and not grep(/^$ShowKey$/, @SkipKP)
 	}
 }
 
