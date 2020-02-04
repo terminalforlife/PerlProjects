@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 23:26:35 GMT 2020
+# Last Change       - Tue  4 Feb 23:28:44 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -82,6 +82,10 @@ while (defined($ARGV[0])){
 
 unless ($IsUbuntu eq 'true'){
 	my $OSRelease = '/etc/os-release';
+
+	FErr(1, __LINE__, "File '$OSRelease' not found.") unless -f $OSRelease;
+	FErr(1, __LINE__, "File '$OSRelease' unreadable.") unless -r $OSRelease;
+	FErr(1, __LINE__, "File '$OSRelease' is binary.") if -B $OSRelease;
 
 	open(my $FH, '<', $OSRelease);
 
