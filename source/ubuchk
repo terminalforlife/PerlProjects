@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 01:14:34 GMT 2020
+# Last Change       - Tue  4 Feb 02:43:51 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,7 +42,8 @@ sub Usage{
 }
 
 my (
-	$ForceReset, $KernParams, $PathPerms, @SkipKP, $PurgeChk
+	$ForceReset, $KernParams, $PathPerms, @SkipKP,
+	$PurgeChk, $HardAPT, @SkipAPT
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -93,9 +94,14 @@ if (-f -r -T $ConfigFile){
 			$PathPerms = $Value
 		}elsif ($Key eq 'SkipKP'){
 			push(@SkipKP, $Value)
+		}elsif ($Key eq 'SkipAPT'){
+			push(@SkipAPT, $Value)
 		}elsif ($Key eq 'PurgeChk'){
 			Boolean($Value);
 			$PurgeChk = $Value
+		}elsif ($Key eq 'HardAPT'){
+			Boolean($Value);
+			$HardAPT = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -130,6 +136,15 @@ if (-f -r -T $ConfigFile){
 		# package simply means there are associated files (these are typically
 		# global configurations) still remainig.
 		PurgeChk=true
+
+		# Security-bolstering APT options will be set, if this is enabled.
+		HardAPT=true
+
+		# Same applies as with `SkipKP`, but for skipping APT option checks.
+		# By default, the following key is ignored, because it may seem a bit
+		# excessive, but more importantly, could wind up causing dependency
+		# issues for users misunderstanding their packaging operation.
+		SkipAPT=APT::Install-Recommends
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -267,4 +282,51 @@ if ($PurgeChk eq 'true'){
 	close($FH);
 
 	Alert(6712, "Package '$_' wasn't purged.") foreach sort(keys(%Packages))
+}
+
+#-----------------------------------------------------------APT Security Tweaks
+
+if ($HardAPT eq 'true'){
+	my $VendorFile = '/etc/apt/apt.conf.d/01-vendor-ubuntu';
+
+	if (-f -r -T $VendorFile){
+		open(my $FH, '<', $VendorFile);
+
+		my %Settings;
+		while (<$FH>){
+			chomp();
+			next if /(^#|^$)/;
+
+			my ($Key, $Value) = split(' ');
+			$Value = $Value =~ tr/"';//dr;
+
+			$Settings{$Key} = $Value
+		}
+
+		close($FH);
+
+		foreach (
+			# These values, when set to `false`, offer much better security.
+			'false|APT::Get::AllowUnauthenticated',
+			'false|Acquire::http::AllowRedirect',
+
+			# These packages aren't required, so don't clutter the system up.
+			'false|APT::Install-Suggests',
+
+			# Perhaps a bit excessive, but can also be a time-saver. This is
+			# ignored by default, to avoid any issues with dependencies.
+			'false|APT::Install-Recommends'
+		){
+			my ($Target, $Key) = split('\|');
+
+			next if grep(/^$Key$/, @SkipAPT);
+
+			unless (exists($Settings{$Key})){
+				Alert(6131, "APT key '$Key' not assigned.")
+			}elsif ($Settings{$Key} ne $Target){
+				Alert(6131, "APT key '$Key' assigned '$Settings{$Key}'.")
+			}
+		}
+
+	}
 }
