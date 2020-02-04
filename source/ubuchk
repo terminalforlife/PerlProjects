@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 02:43:51 GMT 2020
+# Last Change       - Tue  4 Feb 03:16:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ sub Usage{
 
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP,
-	$PurgeChk, $HardAPT, @SkipAPT
+	$PurgeChk, $HardAPT, @SkipAPT, $SSHServer
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -102,6 +102,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'HardAPT'){
 			Boolean($Value);
 			$HardAPT = $Value
+		}elsif ($Key eq 'SSHServer'){
+			Boolean($Value);
+			$SSHServer = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -145,6 +148,9 @@ if (-f -r -T $ConfigFile){
 		# excessive, but more importantly, could wind up causing dependency
 		# issues for users misunderstanding their packaging operation.
 		SkipAPT=APT::Install-Recommends
+
+		# If enabled, performs various SSH Daemon security checks.
+		SSHServer=true
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -328,5 +334,60 @@ if ($HardAPT eq 'true'){
 			}
 		}
 
+	}
+}
+
+#-------------------------------------------------------------SSH Server Checks
+
+if ($SSHServer eq 'true'){
+	#TODO: The user can just override this, so a more thorough check is needed.
+	my $SSHDConfig = '/etc/ssh/sshd_config';
+
+	if (-f -r -T $SSHDConfig){
+		open(my $FH, '<', $SSHDConfig);
+
+		my %Settings;
+		while (<$FH>){
+			chomp();
+			next if /(^#|^$)/;
+
+			print("$_\n");
+
+			my ($Key, $Value) = split(' ');
+
+			$Settings{$Key} = $Value
+		}
+
+		close($FH);
+
+		foreach (
+			# While cool, it's recommended to disable it, for security reasons.
+			'no|X11Forwarding',
+
+			# A must-have during setup, and for otherwise gaining access when
+			# keys aren't working, but keep in mind that this is nowhere near
+			# as safe as using cryptographic keys. Disables "tunneled clear
+			# text passwords", as it says in the default `sshd_config`
+			# configuration file.
+			'no|PasswordAuthentication',
+			'no|PermitEmptyPasswords',
+		){
+			my ($Target, $Key) = split('\|');
+
+			next if grep(/^$Key$/, @SkipAPT);
+
+			unless (exists($Settings{$Key})){
+				Alert(7541, "SSH daemon key '$Key' not assigned.")
+			}elsif ($Settings{$Key} ne $Target){
+				Alert(7541, "SSH daemon key '$Key' assigned '$Settings{$Key}'.")
+			}
+		}
+
+		# Ordinarily, you shouldn't use the commonplace `22` port.
+		unless (exists($Settings{'Port'})){
+			Alert(7541, "SSH daemon key 'Port' not assigned.")
+		}elsif ($Settings{'Port'} eq 22){
+			Alert(7541, "SSH daemon key 'Port' assigned '$Settings{Port}'.")
+		}
 	}
 }
