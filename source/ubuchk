@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  3 Feb 23:55:43 GMT 2020
+# Last Change       - Tue  4 Feb 00:17:29 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use TFL 'FErr', 'Boolean';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-03';
+my $CurVer = '2020-02-04';
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -43,7 +43,7 @@ sub Usage{
 }
 
 my (
-	$ForceReset, $KernParams
+	$ForceReset, $KernParams, $PathPerms
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -90,6 +90,9 @@ if (-f -r -T $ConfigFile){
 		if ($Key eq 'KernParams'){
 			Boolean($Value);
 			$KernParams = $Value
+		}elsif ($Key eq 'PathPerms'){
+			Boolean($Value);
+			$PathPerms = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -103,6 +106,9 @@ if (-f -r -T $ConfigFile){
 
 		# If enabled, perform various checks for kernel parameters.
 		KernParams=false
+
+		# ...
+		PathPerms=false
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -170,5 +176,33 @@ if ($KernParams eq 'true'){
 
 		Alert($AlertID, "Key '$ShowKey' assigned '$Value'.")
 			if $Value != $GoodValue
+	}
+}
+
+#--------------------------------------------------PATH Permissions & Ownership
+
+if ($PathPerms eq 'true'){
+	my @AlertPerms;
+	foreach (split(':', $ENV{'PATH'})){
+		foreach (glob("$_/*")){
+			my $Perms = sprintf('%04o', (stat($_))[2] & 07777);
+			my ($Owner, $Group) = (stat($_))[4,5];
+
+			#TODO: Does not take into account the first digit.
+			Alert(7869, "File '$_' permits '$Perms'.")
+				unless substr($Perms, 1) <= 755;
+
+			# These executables should not be owned by a standard user, nor
+			# should they be in such a group. <1000 is for system users/groups.
+			# A stricter test (make optional?) would be to flag all non-0s.
+			# There are exceptions, however, such as the user having his or her
+			# own `bin` directory in their `/home` directory.
+			#TODO: Add a stricter version of this, for the more paranoid.
+			if ($Owner >= 1000){
+				Alert(6005, "File '$_' owned by '$Owner'.")
+			}elsif ($Group >= 1000){
+				Alert(3597, "File '$_' in group '$Group'.")
+			}
+		}
 	}
 }
