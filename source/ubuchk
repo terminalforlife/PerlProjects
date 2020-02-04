@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 04:38:04 GMT 2020
+# Last Change       - Tue  4 Feb 23:26:35 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -36,13 +36,14 @@ sub Usage{
 		            --version|-v            - Output the version datestamp.
 		            --config PATH           - Override default file.
 		            --force-reset           - Force generation of config file.
+		            --is-ubuntu|-U          - Execute as though in Ubuntu.
 
 		FILE:       ~/.config/$TFL::PROGNAME/config
 	} =~ tr/\t//dr)
 }
 
 my (
-	$ForceReset, $KernParams, $PathPerms, @SkipKP, @UnwantedPKGs,
+	$ForceReset, $KernParams, $PathPerms, @SkipKP, @UnwantedPKGs, $IsUbuntu,
 	$PurgeChk, $HardAPT, @SkipAPT, $SSHServer, $SSHDConfig
 );
 
@@ -68,6 +69,8 @@ while (defined($ARGV[0])){
 		$ConfigFile = $ARGV[0]
 	}elsif($ARGV[0] =~ '^(--force-reset|-F)$'){
 		$ForceReset = 'true'
+	}elsif($ARGV[0] =~ '^(--is-ubuntu|-U)$'){
+		$IsUbuntu = 'true'
 	}elsif ($ARGV[0] =~ '^-'){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
@@ -75,6 +78,28 @@ while (defined($ARGV[0])){
 	}
 
 	shift()
+}
+
+unless ($IsUbuntu eq 'true'){
+	my $OSRelease = '/etc/os-release';
+
+	open(my $FH, '<', $OSRelease);
+
+	my ($LSB, $Found);
+	while (<$FH>){
+		chomp();
+		next if /(^$|^#)/;
+		next unless /^ID=ubuntu$/;
+
+		$Found = 'true';
+
+		last
+	}
+
+	close($FH);
+
+	FErr(1, __LINE__, "Your distribution is not supported.")
+		unless $Found eq 'true'
 }
 
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
@@ -99,6 +124,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'PurgeChk'){
 			Boolean($Value);
 			$PurgeChk = $Value
+		}elsif ($Key eq 'IsUbuntu'){
+			Boolean($Value);
+			$IsUbuntu = $Value
 		}elsif ($Key eq 'HardAPT'){
 			Boolean($Value);
 			$HardAPT = $Value
@@ -120,6 +148,11 @@ if (-f -r -T $ConfigFile){
 
 	print($FH qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
 
+		# Since we're intended for use on Ubuntu distributions, and those based
+		# thereon, an error will display, were it not detected. This can can be
+		# overridden by enabling this key, like the `--is-ubuntu-|U` option.
+		IsUbuntu=false
+
 		# If enabled, perform various checks for kernel parameters.
 		KernParams=true
 
@@ -129,8 +162,8 @@ if (-f -r -T $ConfigFile){
 		# Example: SkipKP=vm.swappiness
 		#
 		# No test will take place to confirm the parameter entered here is
-		# actually handled by $TFL::PROGNAME, so if you wanted to have several
-		# specific parameters ignored, for any future updates, it's possible.
+		# actually handled by $TFL::PROGNAME, so if you wanted to have several specific
+		# parameters ignored, for any future updates, it's possible.
 		SkipKP=
 
 		# If enabled, check for sane owner, group, and mode of `PATH` files.
@@ -172,6 +205,8 @@ if (-f -r -T $ConfigFile){
 	printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
 	exit(0)
 }
+
+#-------------------------------------------------------------------Subroutines
 
 sub Alert{ # Usage: [ALERT_ID] [STRING]
 	printf("[A%0.4d]: %s\n", $_[0], $_[1])
