@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 16:30:57 GMT 2020
+# Last Change       - Wed  5 Feb 16:32:04 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -208,7 +208,7 @@ if (-f -r -T $ConfigFile){
 		IsUbuntu=false
 
 		# Skip (ignore) one or more alert IDs. This key can be provided any
-		# number of times, but unlike other similar keys, you may proide a
+		# number of times, but unlike other similar keys, you may provide a
 		# comma-separated list of IDs.
 		SkipIDs=
 
