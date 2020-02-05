@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 03:01:54 GMT 2020
+# Last Change       - Wed  5 Feb 03:54:29 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,6 +42,8 @@ sub Usage{
 		            --query|-Q N            - Read about alert ID number N.
 		            --verbose|-V            - Execute checks verbosely.
 
+		NOTE:       A valid alert ID is 4 digits, IE: 5248
+
 		FILE:       ~/.config/$TFL::PROGNAME/config
 	} =~ tr/\t//dr)
 }
@@ -49,7 +51,7 @@ sub Usage{
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
-	$SSHDConfig, $Verbose, $Firewall
+	$SSHDConfig, $Verbose, $Firewall, $SystemD
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -77,7 +79,10 @@ while (defined($ARGV[0])){
 	}elsif($ARGV[0] =~ '^(--query|-Q)$'){
 		shift();
 
-		FErr(1, __LINE__, "Invalid alert ID.")
+		FErr(1, __LINE__, "Option '--query|-Q' requires an alert ID.")
+			unless length($ARGV[0]) > 0;
+
+		FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
 			unless $ARGV[0] =~ '^[0-9]{4}$';
 
 		$Query = 'true';
@@ -162,6 +167,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'Firewall'){
 			Boolean($Value);
 			$Firewall = $Value
+		}elsif ($Key eq 'SystemD'){
+			Boolean($Value);
+			$SystemD = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -232,6 +240,9 @@ if (-f -r -T $ConfigFile){
 		# (unit) is active. If the UFW executable is not found in PATH, then
 		# this check will be skipped.
 		Firewall=true
+
+		# ...
+		SystemD=true
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -561,3 +572,14 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 		FErr(1, __LINE__, "Dependency 'systemctl' not met.")
 	}
 }
+
+#----------------------------------------------------------------SystemD Tweaks
+
+if ($SystemD eq 'true'){
+	my $SystemDConfig = '/etc/systemd/system.conf';
+
+}
+
+#------------------------------------------------------------------------Finish
+
+#TODO: Write some sort of an optional summary feature here.
