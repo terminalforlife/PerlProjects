@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 16:13:24 GMT 2020
+# Last Change       - Wed  5 Feb 16:30:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ sub Usage{
 		            --force-reset           - Force generation of config file.
 		            --is-ubuntu|-U          - Execute as though in Ubuntu.
 		            --query|-Q N            - Read about alert ID number N.
+		            --skip=N[,N ...]        - Skip one or more N alerts, by ID.
 		            --verbose|-V            - Execute checks verbosely.
 
 		NOTE:       A valid alert ID is 4 digits, IE: 5248
@@ -52,7 +53,7 @@ my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
-	@SkipKMs
+	@SkipKMs, @SkipIDs
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -88,6 +89,16 @@ while (defined($ARGV[0])){
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
+	}elsif($ARGV[0] =~ '^--skip='){
+		@SkipIDs = split(',', $ARGV[0] =~ s/^--skip=//r);
+
+		FErr(1, __LINE__, "Option '--skip=' requires at least one alert ID.")
+			unless @SkipIDs > 0;
+
+		foreach (@SkipIDs){
+			FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
+				unless /^[0-9]{4}$/;
+		}
 	}elsif($ARGV[0] =~ '^(--is-ubuntu|-U)$'){
 		$IsUbuntu = 'true'
 	}elsif($ARGV[0] =~ '^(--verbose|-V)$'){
@@ -178,6 +189,8 @@ if (-f -r -T $ConfigFile){
 			push(@CustomKMs, $Value)
 		}elsif ($Key eq 'SkipKMs'){
 			push(@SkipKMs, $Value)
+		}elsif ($Key eq 'SkipIDs'){
+			push(@SkipIDs, split(',', $Value))
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -193,6 +206,11 @@ if (-f -r -T $ConfigFile){
 		# thereon, an error will display, were it not detected. This can can be
 		# overridden by enabling this key, like the `--is-ubuntu-|U` option.
 		IsUbuntu=false
+
+		# Skip (ignore) one or more alert IDs. This key can be provided any
+		# number of times, but unlike other similar keys, you may proide a
+		# comma-separated list of IDs.
+		SkipIDs=
 
 		# Be verbose during checks, if enabled, like the `--verbose|-V` option.
 		Verbose=false
@@ -271,6 +289,13 @@ if (-f -r -T $ConfigFile){
 	exit(0)
 }
 
+if (@SkipIDs > 0){
+	foreach (@SkipIDs){
+		FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
+			unless /^[0-9]{4}$/
+	}
+}
+
 #-------------------------------------------------------------Querying an Alert
 
 if ($Query eq 'true'){
@@ -334,7 +359,7 @@ sub Info{ # Usage: [STRING]
 }
 
 sub Alert{ # Usage: [ALERT_ID] [STRING]
-	printf("[A%0.4d]: %s\n", $_[0], $_[1])
+	printf("[A%0.4d]: %s\n", $_[0], $_[1]) unless grep(/^$_[0]$/, @SkipIDs)
 }
 
 sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
