@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 16:40:42 GMT 2020
+# Last Change       - Wed  5 Feb 16:45:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -44,6 +44,9 @@ sub Usage{
 		            --verbose|-V            - Execute checks verbosely.
 
 		NOTE:       A valid alert ID is 4 digits, IE: 5248
+
+		EXAMPLE:    $TFL::PROGNAME -V --skip=5754,7416
+		            $TFL::PROGNAME -Q 8471
 
 		FILE:       ~/.config/$TFL::PROGNAME/config
 	} =~ tr/\t//dr)
