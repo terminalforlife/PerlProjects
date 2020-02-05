@@ -74,7 +74,9 @@ Bottom line, run ufw. Better safe than sorry."
 
   -- Scaine, January 22nd, 2011, on askubuntu.com
 :5754,3421
-Refer to systemd-system.conf(5) and systemd(1).
+Refer to systemd-system.conf(5) and systemd(1) for in-depth information.
+
+Apparently, it's recommended, for security, to set `DefaultLimitNPROC` to `1024`, `DefaultLimitNOFILE` to `1024`, CrashShell to `no`, and DumpCore to `no`. (citation needed)
 :1274
 Presents potential vulnerabilities, regarding the old CVE-2017-5689, which may or may not have actually been (successfully) patched on your installation. There's a good chance you don't need these modules anyway, but if you do, and have otherwise mitigated any risk as a result of this CVE or similar, you can disable this test.
 
