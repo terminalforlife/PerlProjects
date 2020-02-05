@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 03:54:29 GMT 2020
+# Last Change       - Wed  5 Feb 04:05:58 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -576,8 +576,45 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 #----------------------------------------------------------------SystemD Tweaks
 
 if ($SystemD eq 'true'){
-	my $SystemDConfig = '/etc/systemd/system.conf';
+	my $SDConfig = '/etc/systemd/system.conf';
 
+	FErr(1, __LINE__, "File '$SDConfig' not found.") unless -f $SDConfig;
+	FErr(1, __LINE__, "File '$SDConfig' unreadable.") unless -r $SDConfig;
+	FErr(1, __LINE__, "File '$SDConfig' is binary.") if -B $SDConfig;
+
+	open(my $FH, '<', $SDConfig);
+
+	Info("Checking '$SDConfig' file.");
+
+	my %Settings;
+	while (<$FH>){
+		chomp();
+		next if /(^#|^$)/;
+
+		my ($Key, $Value) = split('=');
+
+		Info("Key '$Key' is '$Value'.");
+
+		$Settings{$Key} = $Value
+	}
+
+	close($FH);
+
+	foreach (
+		'1024|DefaultLimitNPROC',
+		'no|CrashShell',
+		'no|DumpCore'
+	){
+		my ($Target, $Key) = split('\|');
+
+		#TODO: Have a grep check here to ignore certain keys.
+
+		unless (exists($Settings{$Key})){
+			Alert(5754, "SystemD key '$Key' not assigned.")
+		}elsif ($Settings{$Key} ne $Target){
+			Alert(3421, "SystemD key '$Key' assigned '$Settings{$Key}'.")
+		}
+	}
 }
 
 #------------------------------------------------------------------------Finish
