@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 01:02:18 GMT 2020
+# Last Change       - Wed  5 Feb 01:41:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,6 +11,8 @@
 #
 # Dependencies:
 #
+#   libterm-readkey-perl (>= 2.33-1build1)
+#   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-09)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
@@ -37,14 +39,16 @@ sub Usage{
 		            --config PATH           - Override default file.
 		            --force-reset           - Force generation of config file.
 		            --is-ubuntu|-U          - Execute as though in Ubuntu.
+		            --query|-Q N            - Read about alert ID number N.
 
 		FILE:       ~/.config/$TFL::PROGNAME/config
 	} =~ tr/\t//dr)
 }
 
 my (
-	$ForceReset, $KernParams, $PathPerms, @SkipKP, @UnwantedPKGs, $IsUbuntu,
-	$PurgeChk, $HardAPT, @SkipAPT, $SSHServer, $SSHDConfig
+	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
+	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
+	$SSHDConfig
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -69,6 +73,13 @@ while (defined($ARGV[0])){
 		$ConfigFile = $ARGV[0]
 	}elsif($ARGV[0] =~ '^(--force-reset|-F)$'){
 		$ForceReset = 'true'
+	}elsif($ARGV[0] =~ '^(--query|-Q)$'){
+		shift();
+
+		Err(1, "Invalid alert ID.") unless $ARGV[0] =~ '^[0-9]{4}$';
+
+		$Query = 'true';
+		$HelpAlertID = $ARGV[0]
 	}elsif($ARGV[0] =~ '^(--is-ubuntu|-U)$'){
 		$IsUbuntu = 'true'
 	}elsif ($ARGV[0] =~ '^-'){
@@ -207,6 +218,51 @@ if (-f -r -T $ConfigFile){
 
 	close($FH);
 	printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
+	exit(0)
+}
+
+#-------------------------------------------------------------Querying an Alert
+
+if ($Query eq 'true'){
+	use Term::ReadKey 'GetTerminalSize';
+	use Text::Wrap 'wrap';
+
+	my $Database = '/usr/share/ubuchk/ubuchk-db';
+
+	FErr(1, __LINE__, "File '$Database' not found.") unless -f $Database;
+	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
+
+	open(my $FH, '<', $Database);
+
+	my ($Found, @Body);
+	while (<$FH>){
+		chomp();
+
+		if (/^:[0-9,]+$/){
+			last if $Found eq 'true';
+
+			my @CurIDs = split(',', substr($_, 1));
+			foreach (@CurIDs){
+				next unless $_ == $HelpAlertID;
+
+				$Found = 'true';
+				last
+			}
+		}elsif ($Found eq 'true'){
+			push(@Body, $_)
+		}
+	}
+
+	close($FH);
+
+	FErr(1, __LINE__, "Alert '$HelpAlertID' not found.")
+		unless $Found eq 'true';
+
+	$Text::Wrap::columns = (GetTerminalSize())[0];
+
+	print("Alert #$HelpAlertID:\n");
+	print(wrap("\n  ", '  ', "$_\n")) foreach @Body;
+
 	exit(0)
 }
 
