@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 02:08:36 GMT 2020
+# Last Change       - Wed  5 Feb 02:41:09 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,7 +20,7 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'Boolean';
+use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
@@ -49,7 +49,7 @@ sub Usage{
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
-	$SSHDConfig, $Verbose
+	$SSHDConfig, $Verbose, $Firewall
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -158,6 +158,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'Verbose'){
 			Boolean($Value);
 			$Verbose = $Value unless $Verbose eq 'true'
+		}elsif ($Key eq 'Firewall'){
+			Boolean($Value);
+			$Firewall = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -223,6 +226,11 @@ if (-f -r -T $ConfigFile){
 		# must specify the exact architecture which you're targetting.
 		UnwantedPKGs=virtualbox-guest-dkms:all
 		UnwantedPKGs=virtualbox-guest-utils:all
+
+		# If enabled, perform various checks for the IP Tables front-end, -
+		# Uncomplicated FireWall (UFW). If it's determined that UFW is not
+		# installed, via APT packagement, then this check will be skipped.
+		Firewall=true
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -531,5 +539,18 @@ if (@UnwantedPKGs > 0){
 
 		Alert(5656, "Package '$CurPKG' installed.")
 			if grep(/^$CurPKG$/, ParseDpkgStatus('installokinstalled'))
+	}
+}
+
+#-----------------------------------------------------------UFW Firewall Checks
+
+if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
+	Info("Found the 'ufw' executable in PATH.");
+
+	if (DepChk(':', 'systemctl') == 0){
+		Info("Found 'systemctl' executable in PATH.");
+
+	}else{
+		FErr(1, __LINE__, "Dependency 'systemctl' not met.")
 	}
 }
