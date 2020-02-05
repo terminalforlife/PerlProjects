@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 01:41:31 GMT 2020
+# Last Change       - Wed  5 Feb 02:08:36 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -40,6 +40,7 @@ sub Usage{
 		            --force-reset           - Force generation of config file.
 		            --is-ubuntu|-U          - Execute as though in Ubuntu.
 		            --query|-Q N            - Read about alert ID number N.
+		            --verbose|-V            - Execute checks verbosely.
 
 		FILE:       ~/.config/$TFL::PROGNAME/config
 	} =~ tr/\t//dr)
@@ -48,7 +49,7 @@ sub Usage{
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
-	$SSHDConfig
+	$SSHDConfig, $Verbose
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -82,6 +83,8 @@ while (defined($ARGV[0])){
 		$HelpAlertID = $ARGV[0]
 	}elsif($ARGV[0] =~ '^(--is-ubuntu|-U)$'){
 		$IsUbuntu = 'true'
+	}elsif($ARGV[0] =~ '^(--verbose|-V)$'){
+		$Verbose = 'true'
 	}elsif ($ARGV[0] =~ '^-'){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
@@ -141,7 +144,7 @@ if (-f -r -T $ConfigFile){
 			$PurgeChk = $Value
 		}elsif ($Key eq 'IsUbuntu'){
 			Boolean($Value);
-			$IsUbuntu = $Value
+			$IsUbuntu = $Value unless $IsUbuntu eq 'true'
 		}elsif ($Key eq 'HardAPT'){
 			Boolean($Value);
 			$HardAPT = $Value
@@ -152,6 +155,9 @@ if (-f -r -T $ConfigFile){
 			$SSHServer = $Value
 		}elsif ($Key eq 'UnwantedPKGs'){
 			push(@UnwantedPKGs, $Value)
+		}elsif ($Key eq 'Verbose'){
+			Boolean($Value);
+			$Verbose = $Value unless $Verbose eq 'true'
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -167,6 +173,9 @@ if (-f -r -T $ConfigFile){
 		# thereon, an error will display, were it not detected. This can can be
 		# overridden by enabling this key, like the `--is-ubuntu-|U` option.
 		IsUbuntu=false
+
+		# Be verbose during checks, if enabled, like the `--verbose|-V` option.
+		Verbose=false
 
 		# If enabled, perform various checks for kernel parameters.
 		KernParams=true
@@ -268,6 +277,10 @@ if ($Query eq 'true'){
 
 #-------------------------------------------------------------------Subroutines
 
+sub Info{ # Usage: [STRING]
+	print("$_[0]\n") if $Verbose eq 'true'
+}
+
 sub Alert{ # Usage: [ALERT_ID] [STRING]
 	printf("[A%0.4d]: %s\n", $_[0], $_[1])
 }
@@ -338,6 +351,8 @@ if ($KernParams eq 'true'){
 		($AlertID, $GoodValue, $Path) = split(':');
 		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;
 
+		Info("Checking '$ShowKey' parameter.");
+
 		if (-f -r -T $Path){
 			open(my $FH, '<', $Path);
 			chomp($Value = <$FH>);
@@ -345,6 +360,8 @@ if ($KernParams eq 'true'){
 		}else{
 			next
 		}
+
+		Info("File '$Path' is '$Value'.");
 
 		Alert($AlertID, "Key '$ShowKey' assigned '$Value'.")
 			if $Value != $GoodValue and not grep(/^$ShowKey$/, @SkipKP)
@@ -356,9 +373,17 @@ if ($KernParams eq 'true'){
 if ($PathPerms eq 'true'){
 	my @AlertPerms;
 	foreach (split(':', $ENV{'PATH'})){
+		Info("Looking in '$_' directory.");
+
 		foreach (glob("$_/*")){
+			Info("Checking '$_' file.");
+
 			my $Perms = sprintf('%04o', (stat($_))[2] & 07777);
 			my ($Owner, $Group) = (stat($_))[4,5];
+
+			Info("Mode of file '$_' is '$Perms'.");
+			Info("Owner of file '$_' is '$Owner'.");
+			Info("Group of file '$_' is '$Group'.");
 
 			#TODO: Does not take into account the first digit.
 			Alert(7869, "File '$_' permits '$Perms'.")
@@ -382,6 +407,8 @@ if ($PathPerms eq 'true'){
 #-----------------------------------------------------Packages Yet to Be Purged
 
 if ($PurgeChk eq 'true'){
+	Info("Looking for unwanted packages.");
+
 	Alert(6712, "Package '$_' wasn't purged.")
 		foreach sort(ParseDpkgStatus('deinstallokconfig-files'))
 }
@@ -397,6 +424,8 @@ if ($HardAPT eq 'true'){
 
 	open(my $FH, '<', $VendorFile);
 
+	Info("Checking '$VendorFile' file.");
+
 	my %Settings;
 	while (<$FH>){
 		chomp();
@@ -404,6 +433,8 @@ if ($HardAPT eq 'true'){
 
 		my ($Key, $Value) = split(' ');
 		$Value = $Value =~ tr/"';//dr;
+
+		Info("Key '$Key' is '$Value'.");
 
 		$Settings{$Key} = $Value
 	}
@@ -443,6 +474,8 @@ if ($SSHServer eq 'true'){
 
 	open(my $FH, '<', $SSHDConfig);
 
+	Info("Checking '$SSHDConfig' file.");
+
 	my %Settings;
 	while (<$FH>){
 		chomp();
@@ -451,6 +484,8 @@ if ($SSHServer eq 'true'){
 		print("$_\n");
 
 		my ($Key, $Value) = split(' ');
+
+		Info("Key '$Key' is '$Value'.");
 
 		$Settings{$Key} = $Value
 	}
@@ -492,6 +527,8 @@ if ($SSHServer eq 'true'){
 
 if (@UnwantedPKGs > 0){
 	foreach my $CurPKG (@UnwantedPKGs){
+		Info("Looking for '$CurPKG' package.");
+
 		Alert(5656, "Package '$CurPKG' installed.")
 			if grep(/^$CurPKG$/, ParseDpkgStatus('installokinstalled'))
 	}
