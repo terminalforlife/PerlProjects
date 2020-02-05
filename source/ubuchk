@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 17:42:55 GMT 2020
+# Last Change       - Wed  5 Feb 17:50:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -446,7 +446,7 @@ if ($KernParams eq 'true'){
 		'1090:5:/proc/sys/net/ipv4/tcp_syn_retries',
 		'5434:1:/proc/sys/net/ipv4/icmp_echo_ignore_all',
 		'9623:1:/proc/sys/kernel/dmesg_restrict',
-		'8560:1:/proc/sys/kernel/kptr_restrict',
+		'8560:2:/proc/sys/kernel/kptr_restrict',
 		'1443:1:/proc/sys/kernel/yama/ptrace_scope'
 	){
 		($AlertID, $GoodValue, $Path) = split(':');
