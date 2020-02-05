@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 16:37:56 GMT 2020
+# Last Change       - Wed  5 Feb 16:40:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -683,6 +683,8 @@ if ($KernMods eq 'true'){
 	){
 		my ($AlertID, $Module) = split('\|');
 
+		Info("Module '$Module' not found.");
+
 		Alert($AlertID, "Module '$Module' discovered and live.")
 			if grep(/^$Module$/, @Modules) and not grep(/^$Module$/, @SkipKMs)
 	}
@@ -696,3 +698,5 @@ if ($KernMods eq 'true'){
 #------------------------------------------------------------------------Finish
 
 #TODO: Write some sort of an optional summary feature here.
+
+Info("Done.");
