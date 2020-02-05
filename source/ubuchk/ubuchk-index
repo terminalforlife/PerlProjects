@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-
+#cito M:644 O:0 G:0 T:/usr/bin/ubuchk-index
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/ubuchk-index
+# Project Name      - PerlProjects/source/ubuchk/ubuchk-index
 # Started On        - Tue  4 Feb 23:30:37 GMT 2020
-# Last Change       - Wed  5 Feb 00:58:30 GMT 2020
+# Last Change       - Wed  5 Feb 01:05:54 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -26,14 +26,13 @@ no warnings 'uninitialized';
 
 my $CurVer = '2020-02-05';
 
-#my $Database = '/usr/share/ubuchk/ubuchk-db';
-my $Database = 'ubuchk-db';
+my $Database = '/usr/share/ubuchk/ubuchk-db';
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
 		            $TFL::AUTHOR
 
-		            ...
+		            Search for and read about an UbuChk alert.
 
 		SYNTAX:     $TFL::PROGNAME [OPTS]
 
