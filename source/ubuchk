@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 17:58:36 GMT 2020
+# Last Change       - Wed  5 Feb 18:30:54 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -315,8 +315,6 @@ if ($Query eq 'true'){
 	use Text::Wrap 'wrap';
 
 	my $Database = '/usr/share/ubuchk/ubuchk-db';
-
-	#TODO: Update this for master use, when released to the wild.
 
 	unless (-f $Database){
 		if (DepChk(':', 'cito') == 0){
