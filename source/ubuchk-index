@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk-index
 # Started On        - Tue  4 Feb 23:30:37 GMT 2020
-# Last Change       - Tue  4 Feb 23:32:56 GMT 2020
+# Last Change       - Wed  5 Feb 00:58:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #------------------------------------------------------------------------------
 # Dependencies:
 #
+#   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-03)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
@@ -19,10 +20,14 @@ use strict;
 use warnings;
 use autodie;
 use TFL 'Err';
+use Text::Wrap;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-04';
+my $CurVer = '2020-02-05';
+
+#my $Database = '/usr/share/ubuchk/ubuchk-db';
+my $Database = 'ubuchk-db';
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -34,6 +39,8 @@ sub Usage{
 
 		OPTS:       --help|-h|-?            - Display this help information.
 		            --version|-v            - Output the version datestamp.
+
+		FILE:       $Database
 	} =~ tr/\t//dr)
 }
 
@@ -50,3 +57,32 @@ while (defined($ARGV[0])){
 
 	shift()
 }
+
+Err(1, "Invalid alert ID.") unless $ARGV[0] =~ '^[0-9]{4}$';
+
+open(my $FH, '<', $Database);
+
+my ($Found, @Body);
+while (<$FH>){
+	chomp();
+
+	if (/^:[0-9,]+$/){
+		last if $Found eq 'true';
+
+		my @CurIDs = split(',', substr($_, 1));
+		foreach (@CurIDs){
+			next unless $_ == $ARGV[0];
+
+			$Found = 'true';
+			last
+		}
+	}elsif ($Found eq 'true'){
+		@Body = $_;
+	}
+}
+
+close($FH);
+
+Err(1, "Alert '$ARGV[0]' not found.") unless $Found eq 'true';
+
+print("$_\n") foreach @Body
