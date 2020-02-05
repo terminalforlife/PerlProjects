@@ -77,3 +77,5 @@ Presents potential vulnerabilities, regarding the old CVE-2017-5689, which may o
 If you're a gamer, this might be useful, but for the rest of us, you needn't have this module loaded up every time you boot into Linux.
 :8471
 If you use a mouse via PS/2 ports, then you'll need this module, but in these modern times, the likelihood is probably not too high.
+:8189
+You've specified your own module(s) of which to check the existance and live status.
