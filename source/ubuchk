@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 04:05:58 GMT 2020
+# Last Change       - Wed  5 Feb 04:13:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -241,7 +241,7 @@ if (-f -r -T $ConfigFile){
 		# this check will be skipped.
 		Firewall=true
 
-		# ...
+		# If enabled, check for SystemD security tweaks and opimizations.
 		SystemD=true
 	} =~ tr/\t//dr);
 
@@ -460,15 +460,9 @@ if ($HardAPT eq 'true'){
 	close($FH);
 
 	foreach (
-		# These values, when set to `false`, offer much better security.
 		'false|APT::Get::AllowUnauthenticated',
 		'false|Acquire::http::AllowRedirect',
-
-		# These packages aren't required, so don't clutter the system up.
 		'false|APT::Install-Suggests',
-
-		# Perhaps a bit excessive, but can also be a time-saver. This is
-		# ignored by default, to avoid any issues with dependencies.
 		'false|APT::Install-Recommends'
 	){
 		my ($Target, $Key) = split('\|');
@@ -511,14 +505,7 @@ if ($SSHServer eq 'true'){
 	close($FH);
 
 	foreach (
-		# While cool, it's recommended to disable it, for security reasons.
 		'no|X11Forwarding',
-
-		# A must-have during setup, and for otherwise gaining access when
-		# keys aren't working, but keep in mind that this is nowhere near
-		# as safe as using cryptographic keys. Disables "tunneled clear
-		# text passwords", as it says in the default `sshd_config`
-		# configuration file.
 		'no|PasswordAuthentication',
 		'no|PermitEmptyPasswords',
 	){
@@ -589,7 +576,7 @@ if ($SystemD eq 'true'){
 	my %Settings;
 	while (<$FH>){
 		chomp();
-		next if /(^#|^$)/;
+		next if /(^#|^$|^\[Manager\]$)/;
 
 		my ($Key, $Value) = split('=');
 
