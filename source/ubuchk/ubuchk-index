@@ -3,12 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-index
 # Started On        - Tue  4 Feb 23:30:37 GMT 2020
-# Last Change       - Wed  5 Feb 01:11:43 GMT 2020
+# Last Change       - Wed  5 Feb 01:26:21 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Dependencies:
 #
+#   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-03)
 #   perl (>= 5.22.1-9)
@@ -18,7 +19,8 @@ use strict;
 use warnings;
 use autodie;
 use TFL 'Err';
-use Text::Wrap;
+use Text::Wrap 'wrap';
+use Term::ReadKey 'GetTerminalSize';
 
 no warnings 'uninitialized';
 
@@ -77,7 +79,7 @@ while (<$FH>){
 			last
 		}
 	}elsif ($Found eq 'true'){
-		@Body = $_;
+		push(@Body, $_)
 	}
 }
 
@@ -85,4 +87,7 @@ close($FH);
 
 Err(1, "Alert '$ARGV[0]' not found.") unless $Found eq 'true';
 
-print("$_\n") foreach @Body
+$Text::Wrap::columns = (GetTerminalSize())[0];
+
+print("#$ARGV[0]\n");
+print(wrap("\n  ", '  ', "$_\n")) foreach @Body
