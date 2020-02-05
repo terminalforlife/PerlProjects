@@ -67,3 +67,13 @@ Bottom line, run ufw. Better safe than sorry."
   -- Scaine, January 22nd, 2011, on askubuntu.com
 :5754,3421
 Refer to systemd-system.conf(5) and systemd(1).
+:1274
+Presents potential vulnerabilities, regarding the old CVE-2017-5689, which may or may not have actually been (successfully) patched on your installation. There's a good chance you don't need these modules anyway, but if you do, and have otherwise mitigated any risk as a result of this CVE or similar, you can disable this test.
+
+"An unprivileged network attacker could gain system privileges to provisioned Intel manageability SKUs: Intel Active Management Technology (AMT) and Intel Standard Manageability (ISM). An unprivileged local attacker could provision manageability features gaining unprivileged network or local system privileges on Intel manageability SKUs: Intel Active Management Technology (AMT), Intel Standard Manageability (ISM), and Intel Small Business Technology (SBT)."
+
+  -- Published May 2nd, 2017, on cvedetails.com
+:7416
+If you're a gamer, this might be useful, but for the rest of us, you needn't have this module loaded up every time you boot into Linux.
+:8471
+If you use a mouse via PS/2 ports, then you'll need this module, but in these modern times, the likelihood is probably not too high.

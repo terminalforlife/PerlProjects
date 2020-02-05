@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 14:33:12 GMT 2020
+# Last Change       - Wed  5 Feb 15:13:45 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -625,12 +625,37 @@ if ($SystemD eq 'true'){
 #-------------------------------------------------------Kernel Module Blacklist
 
 if ($KernBlacklist eq 'true'){
-	#TODO: Just a placeholder. Put this in the right place.
-	# Avoids potential vulnerabilities, regarding CVE-2017-5689. There's a good
-	# chance you don't need these modules anyway, but if you do, and have
-	# mitigated any risk as a result of this CVE or similar, you can disable
-	# this test.
+	my $ProcMods = '/proc/modules';
 
+	FErr(1, __LINE__, "File '$ProcMods' not found.") unless -f $ProcMods;
+	FErr(1, __LINE__, "File '$ProcMods' unreadable.") unless -r $ProcMods;
+	FErr(1, __LINE__, "File '$ProcMods' is binary.") if -B $ProcMods;
+
+	open(my $FH, '<', $ProcMods);
+
+	my @Modules;
+	while (<$FH>){
+		chomp();
+
+		my @Line = split(' ');
+
+		push(@Modules, $Line[0])
+	}
+
+	close($FH);
+
+	foreach (
+		'1274|mei',
+		'1274|mei_me',
+		'1274|mei_wtk',
+		'7416|joydev',
+		'8471|psmouse'
+	){
+		my ($AlertID, $Module) = split('\|');
+
+		Alert($AlertID, "Module '$Module' discovered and is live.")
+			if grep(/^$Module$/, @Modules)
+	}
 }
 
 #------------------------------------------------------------------------Finish
