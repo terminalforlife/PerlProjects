@@ -3,11 +3,9 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-index
 # Started On        - Tue  4 Feb 23:30:37 GMT 2020
-# Last Change       - Wed  5 Feb 01:05:54 GMT 2020
+# Last Change       - Wed  5 Feb 01:11:43 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#------------------------------------------------------------------------------
-# This will handle displaying descriptions for various alert IDs to the user.
 #------------------------------------------------------------------------------
 # Dependencies:
 #
@@ -58,6 +56,9 @@ while (defined($ARGV[0])){
 }
 
 Err(1, "Invalid alert ID.") unless $ARGV[0] =~ '^[0-9]{4}$';
+
+Err(1, "File '$Database' not found.") unless -f $Database;
+Err(1, "File '$Database' unreadable.") unless -r $Database;
 
 open(my $FH, '<', $Database);
 
