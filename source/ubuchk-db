@@ -35,3 +35,17 @@ PasswordAuthentication, PermitEmptyPasswords -- A must-have during setup, and fo
 There are a number of packages often made readily available in Ubuntu-based distributions which aren't required by most people, this alert simply means you've found one or more of these packages.
 
 To find out about a given package, open up a terminal and run `apt-cache show PKG`, where 'PKG' is the package name about which you which to learn.
+:5541
+The Uncomplicated FireWall, the front-end to `iptables` is disabled (as it usually is by default), but this doesn't necessarily mean that you're now rendered super-vulnerable to every whack-job with a computer and a grudge to bear, but you are probably best to enable it, just in-case.
+
+This poster says it aptly:
+
+"Out of the box, Ubuntu ships with no TCP or UDP ports open, hence the belief that there's no reason to run Uncomplicated Firewall (ufw) by default. I agree, though, that having ufw disabled is a strange decision. My reasoning being that inexperienced users are feasibly going to install things like Samba, Apache and such like as they experiment with the system put before them. If they don't understand the implications of this, they will expose themselves to malicious bevaviour on the internet.
+
+Example - I've got my laptop configured with Samba which is fine in my home network protected with WPA2. But if I take my laptop to a Starbucks, I might not think anything of it, but that laptop is now advertising my shares to all and sundry. With a firewall, I can restrict my samba ports to only my home server or peer devices. No need to worry as much now about who might be trying to connect to my laptop. Same goes for VNC, SSH, or a huge number of other useful services my laptop might be running, or trying to connect to.
+
+Ubuntu takes a very on/off approach to certain elements of security, a philosophy I can't agree with. Security might be technically on or off, but by layering elements of security over one another, you end up with a better system. Sure, Ubuntu's security is good enough for a large number of use cases, but not all.
+
+Bottom line, run ufw. Better safe than sorry."
+
+  -- Scaine, January 22nd, 2011, on askubuntu.com

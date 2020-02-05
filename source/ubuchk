@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 02:59:31 GMT 2020
+# Last Change       - Wed  5 Feb 03:01:54 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -549,10 +549,9 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 
 	if (DepChk(':', 'systemctl') == 0){
 		Info("Found 'systemctl' executable in PATH.");
-
 		Info('Finding out if UFW unit is active.');
 
-		chomp(my $Result = `systemctl is-active ufw`);
+		chomp(my $Result = `systemctl is-active ufw 2> /dev/null`);
 		unless ($Result eq 'active'){
 			Alert(5541, 'The UFW service is inactive.')
 		}else{
