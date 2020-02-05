@@ -65,5 +65,5 @@ Ubuntu takes a very on/off approach to certain elements of security, a philosoph
 Bottom line, run ufw. Better safe than sorry."
 
   -- Scaine, January 22nd, 2011, on askubuntu.com
-:5754, 3421
+:5754,3421
 Refer to systemd-system.conf(5) and systemd(1).
