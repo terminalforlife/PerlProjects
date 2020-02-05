@@ -34,7 +34,7 @@ Restrict what users can garner from the kernel log.
 :8560
 Mentioned over at the kernel hardening security section of Arch Wikki:
 
-"Setting kernel.kptr_restrict to 1 will hide kernel symbol addresses in /proc/kallsyms from regular users without CAP_SYSLOG, making it more difficult for kernel exploits to resolve addresses/symbols dynamically. This will not help that much on a pre-compiled Arch Linux kernel, since a determined attacker could just download the kernel package and get the symbols manually from there, but if you are compiling your own kernel, this can help mitigating local root exploits. This will break some perf commands when used by non-root users (but many perf features require root access anyway). See FS#34323 for more information.
+"Setting kernel.kptr_restrict to 1 will hide kernel symbol addresses in /proc/kallsyms from regular users without CAP_SYSLOG, making it more difficult for kernel exploits to resolve addresses/symbols dynamically. This will not help that much on a pre-compiled Arch Linux kernel, since a determined attacker could just download the kernel package and get the symbols manually from there, but if you are compiling your own kernel, this can help mitigating local root exploits. This will break some perf commands when used by non-root users (but many perf features require root access anyway).
 
 Setting kernel.kptr_restrict to 2 will hide kernel symbol addresses in /proc/kallsyms regardless of privileges."
 
