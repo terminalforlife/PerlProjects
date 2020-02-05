@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 17:50:16 GMT 2020
+# Last Change       - Wed  5 Feb 17:58:36 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -427,27 +427,27 @@ if ($KernParams eq 'true'){
 	my ($Value, $AlertID, $GoodValue, $Path, $ShowKey);
 
 	foreach ( # [ALERT_ID] [DESIRED_VALUE] [KEY_PATH]
-		'1491:10:/proc/sys/vm/swappiness',
-		'8852:1:/proc/sys/net/ipv4/conf/all/log_martians',
-		'2847:1:/proc/sys/net/ipv4/icmp_ignore_bogus_error_responses',
-		'7512:1:/proc/sys/net/ipv4/conf/all/rp_filter',
-		'1821:1:/proc/sys/net/ipv4/conf/default/rp_filter',
-		'1211:0:/proc/sys/net/ipv4/conf/all/accept_redirects',
-		'2916:0:/proc/sys/net/ipv6/conf/all/accept_redirects',
-		'9191:0:/proc/sys/net/ipv4/conf/all/send_redirects',
-		'2529:0:/proc/sys/net/ipv4/conf/default/send_redirects',
-		'6576:0:/proc/sys/net/ipv4/conf/all/accept_source_route',
-		'8963:0:/proc/sys/net/ipv6/conf/all/accept_source_route',
-		'6279:0:/proc/sys/net/ipv4/conf/default/accept_source_route',
-		'1291:0:/proc/sys/net/ipv6/conf/default/accept_source_route',
-		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
-		'2125:2048:/proc/sys/net/ipv4/tcp_max_syn_backlog',
-		'5668:2:/proc/sys/net/ipv4/tcp_synack_retries',
 		'1090:5:/proc/sys/net/ipv4/tcp_syn_retries',
+		'1211:0:/proc/sys/net/ipv4/conf/all/accept_redirects',
+		'1291:0:/proc/sys/net/ipv6/conf/default/accept_source_route',
+		'1443:1:/proc/sys/kernel/yama/ptrace_scope',
+		'1491:10:/proc/sys/vm/swappiness',
+		'1821:1:/proc/sys/net/ipv4/conf/default/rp_filter',
+		'2125:2048:/proc/sys/net/ipv4/tcp_max_syn_backlog',
+		'2529:0:/proc/sys/net/ipv4/conf/default/send_redirects',
+		'2847:1:/proc/sys/net/ipv4/icmp_ignore_bogus_error_responses',
+		'2916:0:/proc/sys/net/ipv6/conf/all/accept_redirects',
 		'5434:1:/proc/sys/net/ipv4/icmp_echo_ignore_all',
-		'9623:1:/proc/sys/kernel/dmesg_restrict',
+		'5668:2:/proc/sys/net/ipv4/tcp_synack_retries',
+		'6279:0:/proc/sys/net/ipv4/conf/default/accept_source_route',
+		'6576:0:/proc/sys/net/ipv4/conf/all/accept_source_route',
+		'7512:1:/proc/sys/net/ipv4/conf/all/rp_filter',
 		'8560:2:/proc/sys/kernel/kptr_restrict',
-		'1443:1:/proc/sys/kernel/yama/ptrace_scope'
+		'8852:1:/proc/sys/net/ipv4/conf/all/log_martians',
+		'8963:0:/proc/sys/net/ipv6/conf/all/accept_source_route',
+		'9191:0:/proc/sys/net/ipv4/conf/all/send_redirects',
+		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
+		'9623:1:/proc/sys/kernel/dmesg_restrict'
 	){
 		($AlertID, $GoodValue, $Path) = split(':');
 		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;
