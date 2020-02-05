@@ -14,7 +14,7 @@ Ubuntu system comes with a default of 60, meaning that the swap file will be use
 
 Or, if you prefer, this user goes in further detail:
 
-The vm.swappiness option is a modifier that changes the balance between swapping out file cache pages in favour of anonymous pages. The file cache is given an arbitrary priority value of 200 from which vm.swappiness modifier is deducted (file_prio=200-vm.swappiness). Anonymous pages, by default, start out with 60 (anon_prio=vm.swappiness). This means that, by default, the priority weights stand moderately in favour of anonymous pages (anon_prio=60, file_prio=200-60=140). The behaviour is defined in mm/vmscan.c in the kernel source tree.
+"The vm.swappiness option is a modifier that changes the balance between swapping out file cache pages in favour of anonymous pages. The file cache is given an arbitrary priority value of 200 from which vm.swappiness modifier is deducted (file_prio=200-vm.swappiness). Anonymous pages, by default, start out with 60 (anon_prio=vm.swappiness). This means that, by default, the priority weights stand moderately in favour of anonymous pages (anon_prio=60, file_prio=200-60=140). The behaviour is defined in mm/vmscan.c in the kernel source tree."
 
   -- Thomas Nyman, August 30th 2013, on unix.stackexchange.com
 
