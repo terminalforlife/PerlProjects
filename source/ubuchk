@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 02:52:28 GMT 2020
+# Last Change       - Wed  5 Feb 02:58:20 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -389,9 +389,7 @@ if ($PathPerms eq 'true'){
 			my $Perms = sprintf('%04o', (stat($_))[2] & 07777);
 			my ($Owner, $Group) = (stat($_))[4,5];
 
-			Info("Mode of file '$_' is '$Perms'.");
-			Info("Owner of file '$_' is '$Owner'.");
-			Info("Group of file '$_' is '$Group'.");
+			Info("File is '$Perms' and '$Owner:$Group'.");
 
 			#TODO: Does not take into account the first digit.
 			Alert(7869, "File '$_' permits '$Perms'.")
