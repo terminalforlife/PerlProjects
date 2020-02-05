@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/ubuchk
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/ubuchk/ubuchk
+# Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 04:37:04 GMT 2020
+# Last Change       - Wed  5 Feb 14:33:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -51,7 +51,7 @@ sub Usage{
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
-	$SSHDConfig, $Verbose, $Firewall, $SystemD
+	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernBlacklist
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -170,6 +170,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'SystemD'){
 			Boolean($Value);
 			$SystemD = $Value
+		}elsif ($Key eq 'KernBlacklist'){
+			Boolean($Value);
+			$KernBlacklist = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -243,6 +246,9 @@ if (-f -r -T $ConfigFile){
 
 		# If enabled, check for SystemD security tweaks and opimizations.
 		SystemD=true
+
+		# ...
+		KernBlacklist=true
 	} =~ tr/\t//dr);
 
 	close($FH);
@@ -470,7 +476,7 @@ if ($HardAPT eq 'true'){
 
 	close($FH);
 
-	foreach (
+	foreach ( # [TARGET_VALUE] [KEY]
 		'false|APT::Get::AllowUnauthenticated',
 		'false|Acquire::http::AllowRedirect',
 		'false|APT::Install-Suggests',
@@ -515,7 +521,7 @@ if ($SSHServer eq 'true'){
 
 	close($FH);
 
-	foreach (
+	foreach ( # [TARGET_VALUE] [KEY]
 		'no|X11Forwarding',
 		'no|PasswordAuthentication',
 		'no|PermitEmptyPasswords',
@@ -598,8 +604,9 @@ if ($SystemD eq 'true'){
 
 	close($FH);
 
-	foreach (
+	foreach ( # [TARGET_VALUE] [KEY]
 		'1024|DefaultLimitNPROC',
+		'1024|DefaultLimitNOFILE',
 		'no|CrashShell',
 		'no|DumpCore'
 	){
@@ -613,6 +620,17 @@ if ($SystemD eq 'true'){
 			Alert(3421, "SystemD key '$Key' assigned '$Settings{$Key}'.")
 		}
 	}
+}
+
+#-------------------------------------------------------Kernel Module Blacklist
+
+if ($KernBlacklist eq 'true'){
+	#TODO: Just a placeholder. Put this in the right place.
+	# Avoids potential vulnerabilities, regarding CVE-2017-5689. There's a good
+	# chance you don't need these modules anyway, but if you do, and have
+	# mitigated any risk as a result of this CVE or similar, you can disable
+	# this test.
+
 }
 
 #------------------------------------------------------------------------Finish
