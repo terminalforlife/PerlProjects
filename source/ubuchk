@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 16:35:01 GMT 2020
+# Last Change       - Wed  5 Feb 16:37:56 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -366,6 +366,8 @@ sub FileChk{ # Usage: [FILE]
 	FErr(1, __LINE__, "File '$_[0]' not found.") unless -f $_[0];
 	FErr(1, __LINE__, "File '$_[0]' unreadable.") unless -r $_[0];
 	FErr(1, __LINE__, "File '$_[0]' is binary.") if -B $_[0];
+
+	Info("Checking '$_[0]' file.")
 }
 
 sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
@@ -502,8 +504,6 @@ if ($HardAPT eq 'true'){
 	FileChk($VendorFile);
 	open(my $FH, '<', $VendorFile);
 
-	Info("Checking '$VendorFile' file.");
-
 	my %Settings;
 	while (<$FH>){
 		chomp();
@@ -542,8 +542,6 @@ if ($HardAPT eq 'true'){
 if ($SSHServer eq 'true'){
 	FileChk($SSHDConfig);
 	open(my $FH, '<', $SSHDConfig);
-
-	Info("Checking '$SSHDConfig' file.");
 
 	my %Settings;
 	while (<$FH>){
@@ -624,8 +622,6 @@ if ($SystemD eq 'true'){
 
 	FileChk($SDConfig);
 	open(my $FH, '<', $SDConfig);
-
-	Info("Checking '$SDConfig' file.");
 
 	my %Settings;
 	while (<$FH>){
