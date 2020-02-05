@@ -31,7 +31,15 @@ Block SYN attacks.
 Ignore pings.
 :9623
 Restrict what users can garner from the kernel log.
-:8560,1443
+:8560
+Mentioned over at the kernel hardening security section of Arch Wikki:
+
+"Setting kernel.kptr_restrict to 1 will hide kernel symbol addresses in /proc/kallsyms from regular users without CAP_SYSLOG, making it more difficult for kernel exploits to resolve addresses/symbols dynamically. This will not help that much on a pre-compiled Arch Linux kernel, since a determined attacker could just download the kernel package and get the symbols manually from there, but if you are compiling your own kernel, this can help mitigating local root exploits. This will break some perf commands when used by non-root users (but many perf features require root access anyway). See FS#34323 for more information.
+
+Setting kernel.kptr_restrict to 2 will hide kernel symbol addresses in /proc/kallsyms regardless of privileges."
+
+  -- quoted as of February 2nd, 2020, on wiki.archlinux.org
+:1443
 General system security.
 :7869
 The permissions may well be excessive for the given file. Typically, a `$PATH` executable (`/bin`, `/sbin`, etc) should be no higher than `755` (`rwxr-xr-x`) unless more advanced permissions are set, for which, as of 2020-02-04, UbuChk doesn't check.
