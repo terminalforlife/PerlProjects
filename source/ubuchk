@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 15:34:16 GMT 2020
+# Last Change       - Wed  5 Feb 16:11:08 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -51,7 +51,8 @@ sub Usage{
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
-	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs
+	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
+	@IgnoreKMs
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -175,6 +176,8 @@ if (-f -r -T $ConfigFile){
 			$KernMods = $Value
 		}elsif ($Key eq 'CustomKMs'){
 			push(@CustomKMs, $Value)
+		}elsif ($Key eq 'IgnoreKMs'){
+			push(@IgnoreKMs, $Value)
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -252,6 +255,11 @@ if (-f -r -T $ConfigFile){
 		# If enabled, a check will take place for various kernel modules, which
 		# may be considered a security vulnerability or as typically unneeded.
 		KernMods=true
+
+		# Ignore kernel modules checked internally by $TFL::PROGNAME with this key.
+		# The module below is ignored by default, mostly as an example, but
+		# there are also a surprising number of gamers moving over to Linux.
+		IgnoreKMs=joydev
 
 		# Below, you may wish to specify your own modules for which to check.
 		# This key can be used multiple times, as one module per value.
@@ -661,7 +669,7 @@ if ($KernMods eq 'true'){
 		my ($AlertID, $Module) = split('\|');
 
 		Alert($AlertID, "Module '$Module' discovered and live.")
-			if grep(/^$Module$/, @Modules)
+			if grep(/^$Module$/, @Modules) and not grep(/^$Module$/, @IgnoreKMs)
 	}
 
 	foreach my $Mod (@CustomKMs){
