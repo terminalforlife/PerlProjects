@@ -1,3 +1,36 @@
 # Alert database handled by `ubuchk-index`, associated with UbuChk.
 
+:1491
+Assume we're not running on a server.
+:8852,2847
+Log martians.
+:7512,1821
+Protect against IP spoofing.
+:1211,2916,9191,2529,6576,8963,6279,1291
+Not a router. Also ignores ICMP redirects.
+:9222,2125,5668,1090
+Block SYN attacks.
+:5434
+Ignore pings.
+:9623
+Restrict what users can garner from the kernel log.
+:8560,1443
+General system security.
+:7869
+The permissions may well be excessive for the given file. Typically, a `$PATH` executable (`/bin`, `/sbin`, etc) should be no higher than `755` (`rwxr-xr-x`) unless more advanced permissions are set, for which, as of 2020-02-04, UbuChk doesn't check.
+:6005,3579
+If a `$PATH` executable is owned by a standard user or in such a group, chances are it's a mistake and/or security issue, therefore should probably be rectified. These files are usually, but certainly not always, owned by root (`0`) and part of the root group (`0`).
+:6712
+By default, in most Debian- and Ubuntu-based distributions of Linux, when a package is simply removed (even with `[--]autoremove`) global configuration and other associated files remain. This is observed when running `dpkg -l` in a terminal and looking for packages with a status of `rc`.
 
+There may be situations in which you wish to keep the old configurations left by an once-removed packages, such as if you plan to eventually re-install the package.
+:6131,6221
+Refer to the man pages apt.conf(5), apt_preferences(5), and apt(8) for further information on setting special configuration keys for APT.
+:7541,6542
+X11Forwarding -- While incredibly useful, it's often recommended to disabled it, due to security concerns.
+
+PasswordAuthentication, PermitEmptyPasswords -- A must-have during setup, and for otherwise gaining access when keys aren't working, but keep in mind that this is nowhere near as safe as using cryptographic keys. Disables "tunneled clear text passwords", as it says in the default `sshd_config`.
+:5656
+There are a number of packages often made readily available in Ubuntu-based distributions which aren't required by most people, this alert simply means you've found one or more of these packages.
+
+To find out about a given package, open up a terminal and run `apt-cache show PKG`, where 'PKG' is the package name about which you which to learn.
