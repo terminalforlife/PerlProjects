@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 17:37:06 GMT 2020
+# Last Change       - Wed  5 Feb 17:42:55 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -41,6 +41,7 @@ sub Usage{
 		            --is-ubuntu|-U          - Execute as though in Ubuntu.
 		            --query|-Q N            - Read about alert ID number N.
 		            --skip=N[,N ...]        - Skip one or more N alerts, by ID.
+		            --summary|-S            - Conclude with a brief summary.
 		            --verbose|-V            - Execute checks verbosely.
 
 		NOTE:       A valid alert ID is 4 digits, IE: 5248
@@ -106,6 +107,8 @@ while (defined($ARGV[0])){
 		$IsUbuntu = 'true'
 	}elsif($ARGV[0] =~ '^(--verbose|-V)$'){
 		$Verbose = 'true'
+	}elsif($ARGV[0] =~ '^(--summary|-S)$'){
+		$ShowSummary = 'true'
 	}elsif ($ARGV[0] =~ '^-'){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
@@ -196,7 +199,7 @@ if (-f -r -T $ConfigFile){
 			push(@SkipIDs, split(',', $Value))
 		}elsif ($Key eq 'ShowSummary'){
 			Boolean($Value);
-			$ShowSummary = $Value
+			$ShowSummary = $Value unless $ShowSummary eq 'true'
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -708,7 +711,7 @@ if ($KernMods eq 'true'){
 	}
 }
 
-#------------------------------------------------------------------------Finish
+#--------------------------------------------------------------Finish & Summary
 
 Info("Done.");
 
