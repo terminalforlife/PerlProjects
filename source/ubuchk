@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 02:58:20 GMT 2020
+# Last Change       - Wed  5 Feb 02:59:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -77,7 +77,8 @@ while (defined($ARGV[0])){
 	}elsif($ARGV[0] =~ '^(--query|-Q)$'){
 		shift();
 
-		Err(1, "Invalid alert ID.") unless $ARGV[0] =~ '^[0-9]{4}$';
+		FErr(1, __LINE__, "Invalid alert ID.")
+			unless $ARGV[0] =~ '^[0-9]{4}$';
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
