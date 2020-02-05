@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 04:13:52 GMT 2020
+# Last Change       - Wed  5 Feb 04:37:04 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -258,7 +258,18 @@ if ($Query eq 'true'){
 
 	my $Database = '/usr/share/ubuchk/ubuchk-db';
 
-	FErr(1, __LINE__, "File '$Database' not found.") unless -f $Database;
+	#TODO: Update this for master use, when released to the wild.
+
+	unless (-f $Database){
+		if (DepChk(':', 'cito') == 0){
+			FErr(0, __LINE__, "File '$Database' not found -- run:") unless -f $Database;
+			print(STDERR "cito -r terminalforlife PerlProjects ubuchk_project source/ubuchk-db\n");
+			exit(1)
+		}else{
+			FErr(1, __LINE__, "File '$Database' not found")
+		}
+	}
+
 	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
 
 	open(my $FH, '<', $Database);
@@ -284,7 +295,7 @@ if ($Query eq 'true'){
 
 	close($FH);
 
-	FErr(1, __LINE__, "Alert '$HelpAlertID' not found.")
+	FErr(1, __LINE__, "Alert '$HelpAlertID' not found -- are we up-to-date?")
 		unless $Found eq 'true';
 
 	$Text::Wrap::columns = (GetTerminalSize())[0];
