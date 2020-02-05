@@ -2,7 +2,23 @@
 # Alert database handled by `ubuchk-index`, associated with UbuChk.
 
 :1491
-Assume we're not running on a server.
+A brief explanation by this user may satisfy your curiosity for now:
+
+"The Linux kernel provides a tweakable setting that controls how often the swap file is used, called swappiness.
+
+A swappiness setting of zero means that the disk will be avoided unless absolutely necessary (you run out of memory), while a swappiness setting of 100 means that programs will be swapped to disk almost instantly.
+
+Ubuntu system comes with a default of 60, meaning that the swap file will be used fairly often if the memory usage is around half of my RAM."
+
+  -- One Zero, February 13th, 2012, on askubuntu.com
+
+Or, if you prefer, this user goes in further detail:
+
+The vm.swappiness option is a modifier that changes the balance between swapping out file cache pages in favour of anonymous pages. The file cache is given an arbitrary priority value of 200 from which vm.swappiness modifier is deducted (file_prio=200-vm.swappiness). Anonymous pages, by default, start out with 60 (anon_prio=vm.swappiness). This means that, by default, the priority weights stand moderately in favour of anonymous pages (anon_prio=60, file_prio=200-60=140). The behaviour is defined in mm/vmscan.c in the kernel source tree.
+
+  -- Thomas Nyman, August 30th 2013, on unix.stackexchange.com
+
+In short, it's debatable whether there's any need to change the swappiness value, but YMMV. It's often concluded that servers are the better use-cases for swappiness 60 (usually the default in Ubuntu distributions), and that 10 is the better setting for typical desktop use. You'll find arguments for and against adjusting this value all over the Internet, so, as always, come to your own conclusion.
 :8852,2847
 Log martians.
 :7512,1821
