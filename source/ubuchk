@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue  4 Feb 23:28:44 GMT 2020
+# Last Change       - Wed  5 Feb 00:13:09 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use TFL 'FErr', 'Boolean';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-04';
+my $CurVer = '2020-02-05';
 
 sub Usage{
 	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
@@ -257,18 +257,11 @@ if ($KernParams eq 'true'){
 	my ($Value, $AlertID, $GoodValue, $Path, $ShowKey);
 
 	foreach ( # [ALERT_ID] [DESIRED_VALUE] [KEY_PATH]
-		# Assume we're not running on a server.
 		'1491:10:/proc/sys/vm/swappiness',
-
-		# Log martians.
 		'8852:1:/proc/sys/net/ipv4/conf/all/log_martians',
 		'2847:1:/proc/sys/net/ipv4/icmp_ignore_bogus_error_responses',
-
-		# Protects against IP spoofing.
 		'7512:1:/proc/sys/net/ipv4/conf/all/rp_filter',
 		'1821:1:/proc/sys/net/ipv4/conf/default/rp_filter',
-
-		# Not a router. Also ignores ICMP redirects.
 		'1211:0:/proc/sys/net/ipv4/conf/all/accept_redirects',
 		'2916:0:/proc/sys/net/ipv6/conf/all/accept_redirects',
 		'9191:0:/proc/sys/net/ipv4/conf/all/send_redirects',
@@ -277,20 +270,12 @@ if ($KernParams eq 'true'){
 		'8963:0:/proc/sys/net/ipv6/conf/all/accept_source_route',
 		'6279:0:/proc/sys/net/ipv4/conf/default/accept_source_route',
 		'1291:0:/proc/sys/net/ipv6/conf/default/accept_source_route',
-
-		# Block SYN attacks.
 		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
 		'2125:2048:/proc/sys/net/ipv4/tcp_max_syn_backlog',
 		'5668:2:/proc/sys/net/ipv4/tcp_synack_retries',
 		'1090:5:/proc/sys/net/ipv4/tcp_syn_retries',
-
-		# Ignore pings.
 		'5434:1:/proc/sys/net/ipv4/icmp_echo_ignore_all',
-
-		# Restrict what users can garner from the kernel log.
 		'9623:1:/proc/sys/kernel/dmesg_restrict',
-
-		# General system security.
 		'8560:1:/proc/sys/kernel/kptr_restrict',
 		'1443:1:/proc/sys/kernel/yama/ptrace_scope'
 	){
@@ -388,7 +373,7 @@ if ($HardAPT eq 'true'){
 		unless (exists($Settings{$Key})){
 			Alert(6131, "APT key '$Key' not assigned.")
 		}elsif ($Settings{$Key} ne $Target){
-			Alert(6131, "APT key '$Key' assigned '$Settings{$Key}'.")
+			Alert(6221, "APT key '$Key' assigned '$Settings{$Key}'.")
 		}
 	}
 }
@@ -435,7 +420,7 @@ if ($SSHServer eq 'true'){
 		unless (exists($Settings{$Key})){
 			Alert(7541, "SSH daemon key '$Key' not assigned.")
 		}elsif ($Settings{$Key} ne $Target){
-			Alert(7541, "SSH daemon key '$Key' assigned '$Settings{$Key}'.")
+			Alert(6542, "SSH daemon key '$Key' assigned '$Settings{$Key}'.")
 		}
 	}
 
@@ -443,7 +428,7 @@ if ($SSHServer eq 'true'){
 	unless (exists($Settings{'Port'})){
 		Alert(7541, "SSH daemon key 'Port' not assigned.")
 	}elsif ($Settings{'Port'} eq 22){
-		Alert(7541, "SSH daemon key 'Port' assigned '$Settings{Port}'.")
+		Alert(6542, "SSH daemon key 'Port' assigned '$Settings{Port}'.")
 	}
 }
 
