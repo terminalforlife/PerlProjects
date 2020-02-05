@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 16:45:42 GMT 2020
+# Last Change       - Wed  5 Feb 17:37:06 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -56,7 +56,7 @@ my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
-	@SkipKMs, @SkipIDs
+	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -194,6 +194,9 @@ if (-f -r -T $ConfigFile){
 			push(@SkipKMs, $Value)
 		}elsif ($Key eq 'SkipIDs'){
 			push(@SkipIDs, split(',', $Value))
+		}elsif ($Key eq 'ShowSummary'){
+			Boolean($Value);
+			$ShowSummary = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -209,6 +212,9 @@ if (-f -r -T $ConfigFile){
 		# thereon, an error will display, were it not detected. This can can be
 		# overridden by enabling this key, like the `--is-ubuntu-|U` option.
 		IsUbuntu=false
+
+		# Display a brief summary just before $TFL::PROGNAME closes.
+		ShowSummary=true
 
 		# Skip (ignore) one or more alert IDs. This key can be provided any
 		# number of times, but unlike other similar keys, you may provide a
@@ -362,7 +368,11 @@ sub Info{ # Usage: [STRING]
 }
 
 sub Alert{ # Usage: [ALERT_ID] [STRING]
-	printf("[A%0.4d]: %s\n", $_[0], $_[1]) unless grep(/^$_[0]$/, @SkipIDs)
+	unless (grep(/^$_[0]$/, @SkipIDs)){
+		$AlertCount++;
+
+		printf("[A%0.4d]: %s\n", $_[0], $_[1])
+	}
 }
 
 sub FileChk{ # Usage: [FILE]
@@ -700,6 +710,25 @@ if ($KernMods eq 'true'){
 
 #------------------------------------------------------------------------Finish
 
-#TODO: Write some sort of an optional summary feature here.
-
 Info("Done.");
+
+# Only show the summary if set to and actually have alerts. This should be
+# particularly useful if the user logs UbuChk's output.
+exit(0) unless $AlertCount > 0 and $ShowSummary eq 'true';
+
+my $Time = localtime();
+my $HostNameFile = '/etc/hostname';
+
+FileChk($HostNameFile);
+open(my $FH, '<', $HostNameFile);
+chomp(my $Host = <$FH>);
+close($FH);
+
+print(qq{
+	  Timestamp: $Time
+	   Hostname: $Host
+	   Username: $ENV{USER}
+	     UserID: $<
+	     Alerts: $AlertCount
+
+} =~ tr/\t//dr)
