@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 16:32:04 GMT 2020
+# Last Change       - Wed  5 Feb 16:35:01 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -362,6 +362,12 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 	printf("[A%0.4d]: %s\n", $_[0], $_[1]) unless grep(/^$_[0]$/, @SkipIDs)
 }
 
+sub FileChk{ # Usage: [FILE]
+	FErr(1, __LINE__, "File '$_[0]' not found.") unless -f $_[0];
+	FErr(1, __LINE__, "File '$_[0]' unreadable.") unless -r $_[0];
+	FErr(1, __LINE__, "File '$_[0]' is binary.") if -B $_[0];
+}
+
 sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 	my $DpkgStatus = '/var/lib/dpkg/status';
 
@@ -493,10 +499,7 @@ if ($PurgeChk eq 'true'){
 if ($HardAPT eq 'true'){
 	my $VendorFile = '/etc/apt/apt.conf.d/01-vendor-ubuntu';
 
-	FErr(1, __LINE__, "File '$VendorFile' not found.") unless -f $VendorFile;
-	FErr(1, __LINE__, "File '$VendorFile' unreadable.") unless -r $VendorFile;
-	FErr(1, __LINE__, "File '$VendorFile' is binary.") if -B $VendorFile;
-
+	FileChk($VendorFile);
 	open(my $FH, '<', $VendorFile);
 
 	Info("Checking '$VendorFile' file.");
@@ -537,10 +540,7 @@ if ($HardAPT eq 'true'){
 #-------------------------------------------------------------SSH Server Checks
 
 if ($SSHServer eq 'true'){
-	FErr(1, __LINE__, "File '$SSHDConfig' not found.") unless -f $SSHDConfig;
-	FErr(1, __LINE__, "File '$SSHDConfig' unreadable.") unless -r $SSHDConfig;
-	FErr(1, __LINE__, "File '$SSHDConfig' is binary.") if -B $SSHDConfig;
-
+	FileChk($SSHDConfig);
 	open(my $FH, '<', $SSHDConfig);
 
 	Info("Checking '$SSHDConfig' file.");
@@ -622,10 +622,7 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 if ($SystemD eq 'true'){
 	my $SDConfig = '/etc/systemd/system.conf';
 
-	FErr(1, __LINE__, "File '$SDConfig' not found.") unless -f $SDConfig;
-	FErr(1, __LINE__, "File '$SDConfig' unreadable.") unless -r $SDConfig;
-	FErr(1, __LINE__, "File '$SDConfig' is binary.") if -B $SDConfig;
-
+	FileChk($SDConfig);
 	open(my $FH, '<', $SDConfig);
 
 	Info("Checking '$SDConfig' file.");
@@ -667,10 +664,7 @@ if ($SystemD eq 'true'){
 if ($KernMods eq 'true'){
 	my $ProcMods = '/proc/modules';
 
-	FErr(1, __LINE__, "File '$ProcMods' not found.") unless -f $ProcMods;
-	FErr(1, __LINE__, "File '$ProcMods' unreadable.") unless -r $ProcMods;
-	FErr(1, __LINE__, "File '$ProcMods' is binary.") if -B $ProcMods;
-
+	FileChk($ProcMods);
 	open(my $FH, '<', $ProcMods);
 
 	my @Modules;
