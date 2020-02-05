@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 02:41:09 GMT 2020
+# Last Change       - Wed  5 Feb 02:52:28 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -227,9 +227,9 @@ if (-f -r -T $ConfigFile){
 		UnwantedPKGs=virtualbox-guest-dkms:all
 		UnwantedPKGs=virtualbox-guest-utils:all
 
-		# If enabled, perform various checks for the IP Tables front-end, -
-		# Uncomplicated FireWall (UFW). If it's determined that UFW is not
-		# installed, via APT packagement, then this check will be skipped.
+		# If enabled, check that the Uncomplicated FireWall (UFW) service
+		# (unit) is active. If the UFW executable is not found in PATH, then
+		# this check will be skipped.
 		Firewall=true
 	} =~ tr/\t//dr);
 
@@ -542,14 +542,23 @@ if (@UnwantedPKGs > 0){
 	}
 }
 
-#-----------------------------------------------------------UFW Firewall Checks
+#------------------------------------------------------------UFW Firewall Check
 
+#TODO: Find a way to check this without the use of `systemctl` executable.
 if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 	Info("Found the 'ufw' executable in PATH.");
 
 	if (DepChk(':', 'systemctl') == 0){
 		Info("Found 'systemctl' executable in PATH.");
 
+		Info('Finding out if UFW unit is active.');
+
+		chomp(my $Result = `systemctl is-active ufw`);
+		unless ($Result eq 'active'){
+			Alert(5541, 'The UFW service is inactive.')
+		}else{
+			Info('Active UFW service detected.')
+		}
 	}else{
 		FErr(1, __LINE__, "Dependency 'systemctl' not met.")
 	}
