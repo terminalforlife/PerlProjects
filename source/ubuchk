@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu  6 Feb 03:22:52 GMT 2020
+# Last Change       - Thu  6 Feb 03:50:51 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -411,7 +411,8 @@ if ($PathPerms eq 'true'){
 		Info("Looking in '$_' directory.");
 
 		foreach (glob("$_/*")){
-			Info("Checking '$_' file.");
+			# This is a little excessive.
+			#Info("Checking '$_' file.");
 
 			my $Perms = sprintf('%04o', (stat($_))[2] & 07777);
 			my ($Owner, $Group) = (stat($_))[4,5];
