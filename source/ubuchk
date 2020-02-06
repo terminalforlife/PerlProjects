@@ -3,18 +3,11 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu  6 Feb 04:02:19 GMT 2020
+# Last Change       - Thu  6 Feb 19:09:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # A work-in-progress Perl rewrite and overhaul of `ubuntu-syschk`.
-#
-# Dependencies:
-#
-#   libterm-readkey-perl (>= 2.33-1build1)
-#   libtext-wrapi18n-perl (>= 0.06-7.1)
-#   libtfl-perl (>= 2020-01-09)
-#   perl (>= 5.22.1-9)
 #
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission checks for ~/.ssh and contents.
@@ -26,6 +19,13 @@
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Have a grep check for the SystemD section, to ignore certain keys.
 #TODO: Somehow handle the first digit in `stat()` mode.
+#
+# Dependencies:
+#
+#   libterm-readkey-perl (>= 2.33-1build1)
+#   libtext-wrapi18n-perl (>= 0.06-7.1)
+#   libtfl-perl (>= 2020-01-09)
+#   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
 use strict;
@@ -80,7 +80,7 @@ my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
-	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount
+	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -151,7 +151,10 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 	unless (grep(/^$_[0]$/, @SkipIDs)){
 		$AlertCount++;
 
-		printf("[A%0.4d]: %s\n", $_[0], $_[1])
+		printf("[A%0.4d]: %s\n", $_[0], $_[1]);
+
+		printf("       + %s\n", $_[2])
+			if $Recommend eq 'true' and length($_[2]) > 0
 	}
 }
 
@@ -246,6 +249,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'ShowSummary'){
 			Boolean($Value);
 			$ShowSummary = $Value unless $ShowSummary eq 'true'
+		}elsif ($Key eq 'Recommend'){
+			Boolean($Value);
+			$Recommend = $Value
 		}else{
 			FErr(1, __LINE__, "Invalid key '$Key' detected.")
 		}
@@ -407,8 +413,11 @@ if ($KernParams eq 'true'){
 
 		Info("File '$Path' is '$Value'.");
 
-		Alert($AlertID, "Key '$ShowKey' assigned '$Value'.")
-			if $Value != $GoodValue and not grep(/^$ShowKey$/, @SkipKP)
+		Alert(
+			$AlertID,
+			"Key '$ShowKey' assigned '$Value'.",
+			"Recommended value is '$GoodValue'."
+		) if $Value != $GoodValue and not grep(/^$ShowKey$/, @SkipKP)
 	}
 }
 
@@ -429,8 +438,11 @@ if ($PathPerms eq 'true'){
 			# This is a little excessive, too.
 			#Info("File is '$Perms' and '$Owner:$Group'.");
 
-			Alert(7869, "File '$_' permits '$Perms'.")
-				unless substr($Perms, 1) <= 755;
+			Alert(
+				7869,
+				"File '$_' permits '$Perms'.",
+				"Recommended permissions are '755'."
+			) unless substr($Perms, 1) <= 755;
 
 			# These executables should not be owned by a standard user, nor
 			# should they be in such a group. <1000 is for system users/groups.
@@ -438,9 +450,17 @@ if ($PathPerms eq 'true'){
 			# There are exceptions, however, such as the user having his or her
 			# own `bin` directory in their `/home` directory.
 			if ($Owner >= 1000){
-				Alert(6005, "File '$_' owned by '$Owner'.")
+				Alert(
+					6005,
+					"File '$_' owned by '$Owner'.",
+					"Recommended owner is '0' ('root')."
+				)
 			}elsif ($Group >= 1000){
-				Alert(3597, "File '$_' in group '$Group'.")
+				Alert(
+					3597,
+					"File '$_' in group '$Group'.",
+					"Recommended group is '0' ('root')."
+				)
 			}
 		}
 	}
@@ -451,8 +471,11 @@ if ($PathPerms eq 'true'){
 if ($PurgeChk eq 'true'){
 	Info("Looking for unwanted packages.");
 
-	Alert(6712, "Package '$_' wasn't purged.")
-		foreach sort(ParseDpkgStatus('deinstallokconfig-files'))
+	Alert(
+		6712,
+		"Package '$_' wasn't purged.",
+		"Suggested action is to purge the package."
+	) foreach sort(ParseDpkgStatus('deinstallokconfig-files'))
 }
 
 #-----------------------------------------------------------APT Security Tweaks
@@ -489,9 +512,17 @@ if ($HardAPT eq 'true'){
 		next if grep(/^$Key$/, @SkipAPT);
 
 		unless (exists($Settings{$Key})){
-			Alert(6131, "APT key '$Key' not assigned.")
+			Alert(
+				6131,
+				"APT key '$Key' not assigned.",
+				"Recommended action is to assign it '$Target'."
+			)
 		}elsif ($Settings{$Key} ne $Target){
-			Alert(6221, "APT key '$Key' assigned '$Settings{$Key}'.")
+			Alert(
+				6221,
+				"APT key '$Key' assigned '$Settings{$Key}'.",
+				"Recommended value is '$Target'."
+			)
 		}
 	}
 }
@@ -528,17 +559,33 @@ if ($SSHServer eq 'true'){
 		next if grep(/^$Key$/, @SkipAPT);
 
 		unless (exists($Settings{$Key})){
-			Alert(7541, "SSH daemon key '$Key' not assigned.")
+			Alert(
+				7541,
+				"SSH daemon key '$Key' not assigned.",
+				"Recommended action is to assign it '$Target'."
+			)
 		}elsif ($Settings{$Key} ne $Target){
-			Alert(6542, "SSH daemon key '$Key' assigned '$Settings{$Key}'.")
+			Alert(
+				6542,
+				"SSH daemon key '$Key' assigned '$Settings{$Key}'.",
+				"Recommended value is '$Target'."
+			)
 		}
 	}
 
 	# Ordinarily, you shouldn't use the commonplace `22` port.
 	unless (exists($Settings{'Port'})){
-		Alert(7541, "SSH daemon key 'Port' not assigned.")
+		Alert(
+			7541,
+			"SSH daemon key 'Port' not assigned.",
+			"Recommended action is NOT to assign it '22'."
+		)
 	}elsif ($Settings{'Port'} eq 22){
-		Alert(6542, "SSH daemon key 'Port' assigned '$Settings{Port}'.")
+		Alert(
+			6542,
+			"SSH daemon key 'Port' assigned '$Settings{Port}'.",
+			"Recommended value is one other than '22'."
+		)
 	}
 }
 
@@ -548,8 +595,11 @@ if (@UnwantedPKGs > 0){
 	foreach my $CurPKG (@UnwantedPKGs){
 		Info("Looking for '$CurPKG' package.");
 
-		Alert(5656, "Package '$CurPKG' installed.")
-			if grep(/^$CurPKG$/, ParseDpkgStatus('installokinstalled'))
+		Alert(
+			5656,
+			"Package '$CurPKG' installed.",
+			"Recommended action is to uninstall the package."
+		) if grep(/^$CurPKG$/, ParseDpkgStatus('installokinstalled'))
 	}
 }
 
@@ -564,7 +614,11 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 
 		chomp(my $Result = `systemctl is-active ufw 2> /dev/null`);
 		unless ($Result eq 'active'){
-			Alert(5541, 'The UFW service is inactive.')
+			Alert(
+				5541,
+				'The UFW service is inactive.',
+				"Recommended action is to enable the service, ASAP."
+			)
 		}else{
 			Info('Active UFW service detected.')
 		}
@@ -604,9 +658,17 @@ if ($SystemD eq 'true'){
 		my ($Target, $Key) = split('\|');
 
 		unless (exists($Settings{$Key})){
-			Alert(5754, "SystemD key '$Key' not assigned.")
+			Alert(
+				5754,
+				"SystemD key '$Key' not assigned.",
+				"Recommended action is to assign it '$Target'."
+			)
 		}elsif ($Settings{$Key} ne $Target){
-			Alert(3421, "SystemD key '$Key' assigned '$Settings{$Key}'.")
+			Alert(
+				3421,
+				"SystemD key '$Key' assigned '$Settings{$Key}'.",
+				"Recommended value is '$Target'."
+			)
 		}
 	}
 }
@@ -641,13 +703,19 @@ if ($KernMods eq 'true'){
 
 		Info("Module '$Module' not found.");
 
-		Alert($AlertID, "Module '$Module' discovered and live.")
-			if grep(/^$Module$/, @Modules) and not grep(/^$Module$/, @SkipKMs)
+		Alert(
+			$AlertID,
+			"Module '$Module' discovered and live.",
+			"Recommended action is to blacklist the module."
+		) if grep(/^$Module$/, @Modules) and not grep(/^$Module$/, @SkipKMs)
 	}
 
 	foreach my $Mod (@CustomKMs){
-		Alert(8189, "Module '$Mod' discovered and live.")
-			if grep(/^$Mod$/, @Modules)
+		Alert(
+			8189,
+			"Module '$Mod' discovered and live.",
+			"Recommended action is to blacklist the module."
+		) if grep(/^$Mod$/, @Modules)
 	}
 }
 
