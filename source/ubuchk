@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu  6 Feb 03:57:38 GMT 2020
+# Last Change       - Thu  6 Feb 04:02:19 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,13 +16,17 @@
 #   libtfl-perl (>= 2020-01-09)
 #   perl (>= 5.22.1-9)
 #
+#TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission checks for ~/.ssh and contents.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
+#TODO: Add option to automatically display database entries for alerts.
+#TODO: Add permission and ownership check for directories like `/boot`.
 #TODO: Add update feature, because it's important to keep this updated.
+#TODO: Check filesystem sizes (akin to `df`, but pure-Perl).
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Have a grep check for the SystemD section, to ignore certain keys.
 #TODO: Somehow handle the first digit in `stat()` mode.
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
