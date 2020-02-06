@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu  6 Feb 03:52:16 GMT 2020
+# Last Change       - Thu  6 Feb 03:57:38 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,9 +15,14 @@
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-09)
 #   perl (>= 5.22.1-9)
-#------------------------------------------------------------------------------
-
+#
+#TODO: Add SSH permission checks for ~/.ssh and contents.
+#TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add update feature, because it's important to keep this updated.
+#TODO: Check for UFW service without the use of `systemctl` executable.
+#TODO: Have a grep check for the SystemD section, to ignore certain keys.
+#TODO: Somehow handle the first digit in `stat()` mode.
+#----------------------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -420,7 +425,6 @@ if ($PathPerms eq 'true'){
 			# This is a little excessive, too.
 			#Info("File is '$Perms' and '$Owner:$Group'.");
 
-			#TODO: Does not take into account the first digit.
 			Alert(7869, "File '$_' permits '$Perms'.")
 				unless substr($Perms, 1) <= 755;
 
@@ -429,7 +433,6 @@ if ($PathPerms eq 'true'){
 			# A stricter test (make optional?) would be to flag all non-0s.
 			# There are exceptions, however, such as the user having his or her
 			# own `bin` directory in their `/home` directory.
-			#TODO: Add a stricter version of this, for the more paranoid.
 			if ($Owner >= 1000){
 				Alert(6005, "File '$_' owned by '$Owner'.")
 			}elsif ($Group >= 1000){
@@ -548,7 +551,6 @@ if (@UnwantedPKGs > 0){
 
 #------------------------------------------------------------UFW Firewall Check
 
-#TODO: Find a way to check this without the use of `systemctl` executable.
 if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 	Info("Found the 'ufw' executable in PATH.");
 
@@ -596,8 +598,6 @@ if ($SystemD eq 'true'){
 		'no|DumpCore'
 	){
 		my ($Target, $Key) = split('\|');
-
-		#TODO: Have a grep check here to ignore certain keys.
 
 		unless (exists($Settings{$Key})){
 			Alert(5754, "SystemD key '$Key' not assigned.")
