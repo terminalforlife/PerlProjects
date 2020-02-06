@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  5 Feb 18:53:59 GMT 2020
+# Last Change       - Thu  6 Feb 02:16:11 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-05';
+my $CurVer = '2020-02-06';
 
 my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/$TFL::PROGNAME.conf";
 
@@ -132,32 +132,6 @@ while (defined($ARGV[0])){
 	shift()
 }
 
-unless ($IsUbuntu eq 'true'){
-	my $OSRelease = '/etc/os-release';
-
-	FErr(1, __LINE__, "File '$OSRelease' not found.") unless -f $OSRelease;
-	FErr(1, __LINE__, "File '$OSRelease' unreadable.") unless -r $OSRelease;
-	FErr(1, __LINE__, "File '$OSRelease' is binary.") if -B $OSRelease;
-
-	open(my $FH, '<', $OSRelease);
-
-	my ($LSB, $Found);
-	while (<$FH>){
-		chomp();
-		next if /(^$|^#)/;
-		next unless /^ID=ubuntu$/;
-
-		$Found = 'true';
-
-		last
-	}
-
-	close($FH);
-
-	FErr(1, __LINE__, "Your distribution is not supported.")
-		unless $Found eq 'true'
-}
-
 #-----------------------------------------------------Miscellaneous Subroutines
 
 sub Info{ # Usage: [STRING]
@@ -178,6 +152,31 @@ sub FileChk{ # Usage: [FILE]
 	FErr(1, __LINE__, "File '$_[0]' is binary.") if -B $_[0];
 
 	Info("Checking '$_[0]' file.")
+}
+
+#---------------------------------------------------------------------LSB Check
+
+unless ($IsUbuntu eq 'true'){
+	my $OSRelease = '/etc/os-release';
+
+	FileChk($OSRelease);
+	open(my $FH, '<', $OSRelease);
+
+	my ($LSB, $Found);
+	while (<$FH>){
+		chomp();
+		next if /(^$|^#)/;
+		next unless /^ID=ubuntu$/;
+
+		$Found = 'true';
+
+		last
+	}
+
+	close($FH);
+
+	FErr(1, __LINE__, "Your distribution is not supported.")
+		unless $Found eq 'true'
 }
 
 #-------------------------------------Configuration File Parsing and Generation
@@ -327,11 +326,7 @@ if ($Query eq 'true'){
 sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 	my $DpkgStatus = '/var/lib/dpkg/status';
 
-	# These are unlikely in an Ubuntu installation, but just in-case.
-	FErr(1, __LINE__, "File '$DpkgStatus' not found.") unless -f $DpkgStatus;
-	FErr(1, __LINE__, "File '$DpkgStatus' unreadable.") unless -r $DpkgStatus;
-	FErr(1, __LINE__, "File '$DpkgStatus' is binary.") if -B $DpkgStatus;
-
+	FileChk($DpkgStatus);
 	open(my $FH, '<', $DpkgStatus);
 
 	my ($Package, $Arch, $Status, @Packages);
