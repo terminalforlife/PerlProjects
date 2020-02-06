@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu  6 Feb 02:16:11 GMT 2020
+# Last Change       - Thu  6 Feb 03:22:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -360,6 +360,7 @@ if ($KernParams eq 'true'){
 	my ($Value, $AlertID, $GoodValue, $Path, $ShowKey);
 
 	foreach ( # [ALERT_ID] [DESIRED_VALUE] [KEY_PATH]
+		'0913:1:/proc/sys/kernel/ctrl-alt-del',
 		'1090:5:/proc/sys/net/ipv4/tcp_syn_retries',
 		'1211:0:/proc/sys/net/ipv4/conf/all/accept_redirects',
 		'1291:0:/proc/sys/net/ipv6/conf/default/accept_source_route',

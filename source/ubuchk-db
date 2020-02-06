@@ -89,3 +89,13 @@ If you're a gamer, this might be useful, but for the rest of us, you needn't hav
 If you use a mouse via PS/2 ports, then you'll need this module, but in these modern times, the likelihood is probably not too high.
 :8189
 You've specified your own module(s) of which to check the existance and live status.
+:0913
+To disable the ability to restart the machine with just Ctrl + Alt + Del, akin to the old behavior within Windows, either run `sysctl -w kernel.ctrl-alt-del=1` or add `kernel.ctrl-alt-del=1` to `/etc/sysctl.conf`.
+
+"It always a good practice to disable reboot of your Linux servers using the shortcut keys “Ctrl-Alt-Delete”. There are some scenarios where someone physically access your Ubuntu and Debian servers and without logging into your server he/she can reboot it using the keys “Ctrl-Alt-Delete”. In case of virtual machines if any one get the console then it can also be rebooted via shortcut keys. So to avoid these conditions and accidental reboots, one should always disable reboot via shortcut keys “Ctrl-Alt-Delete”."
+
+  -- Pradeep Antil, March 17th, 2019, on linuxbuzz.com
+
+"In Linux , It’s a security concern for us  to allow anyone  to reboot the server using  Ctrl-Alt-Del keys. It is always recommended in production boxes that one should disable reboot using Ctrl-Alt-Del keys."
+
+  -- Pradeep Kumar, August 17th, 2014, linuxtechi.com
