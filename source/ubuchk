@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 16:41:02 GMT 2020
+# Last Change       - Fri  7 Feb 16:47:38 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -700,9 +700,9 @@ if (@UnwantedPKGs > 0){
 
 		Alert(
 			5656,
-			"Package '$CurPKG' installed.",
-			"Recommended action is to uninstall the package."
-		) if grep(/^$CurPKG$/, ParseDpkgStatus('installokinstalled'))
+			"Package(s) matching '$CurPKG' installed.",
+			"Suggested action is to uninstall the package(s)."
+		) if grep(/$CurPKG/, ParseDpkgStatus('installokinstalled'))
 	}
 }
 
