@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 16:00:41 GMT 2020
+# Last Change       - Fri  7 Feb 16:26:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,7 +12,6 @@
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
-#TODO: Add option to automatically display database entries for alerts.
 #TODO: Add permission and ownership check for directories like `/boot`.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check filesystem sizes (akin to `df`, but pure-Perl).
@@ -82,7 +81,7 @@ my (
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
-	$DiskSpace, @ShownAlerts, $AutoQuery
+	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -215,8 +214,15 @@ sub QueryAlert{
 
 	$Text::Wrap::columns = (GetTerminalSize())[0];
 
-	print("Alert #$HelpAlertID:\n");
-	print(wrap("\n  ", '  ', "$_\n")) foreach @Body;
+	# Corects formatting when `AutoQuery` is or isn't used.
+	unless (length($_[1]) > 0){
+		print("Alert #$HelpAlertID:\n");
+		print(wrap("  ", '  ', "\n$_\n")) foreach @Body
+	}else{
+		print(
+			wrap("\n" . " " x $QueryIndent, ' ' x $QueryIndent, "$_\n")
+		) foreach @Body
+	}
 
 	exit($_[0]) if $_[0] > 0
 }
@@ -372,6 +378,15 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'AutoQuery'){
 			Boolean($Value);
 			$AutoQuery = $Value
+		}elsif ($Key eq 'QueryIndent'){
+			if ($Value =~ /^[0-9]+$/){
+				FErr(1, __LINE__, "Key '$Key' out of bounds -- valid: '0-9'")
+					unless $Value > 0 and $Value < 9;
+
+				$QueryIndent = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
