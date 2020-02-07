@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 16:34:28 GMT 2020
+# Last Change       - Fri  7 Feb 16:41:02 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -212,16 +212,20 @@ sub QueryAlert{
 	FErr(1, __LINE__, "Alert '$HelpAlertID' not found -- are we up-to-date?")
 		unless $Found eq 'true';
 
-	$Text::Wrap::columns = (GetTerminalSize())[0];
+	$Text::Wrap::columns = (GetTerminalSize())[0] - 1;
 
-	# Corects formatting when `AutoQuery` is or isn't used.
+	# Corrects formatting when `AutoQuery` is or isn't used.
 	unless (length($_[1]) > 0){
 		print("Alert #$HelpAlertID:\n");
 		print(wrap("  ", '  ', "\n$_\n")) foreach @Body
 	}else{
-		print(
-			wrap("\n" . " " x $QueryIndent, ' ' x $QueryIndent, "$_\n")
-		) foreach @Body
+		foreach (@Body){
+			# Ensures paragraphing works properly. The database must have a
+			# single period (`.`) on an otherwise empty line, for this to work.
+			print("\n") and next if $_ eq '.';
+
+			print(wrap(" " x $QueryIndent, ' ' x $QueryIndent, "$_\n"));
+		}
 	}
 
 	exit($_[0]) if $_[0] > 0

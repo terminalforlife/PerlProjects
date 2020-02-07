@@ -3,21 +3,21 @@
 
 :1491
 A brief explanation by this user may satisfy your curiosity for now:
-
+.
 "The Linux kernel provides a tweakable setting that controls how often the swap file is used, called swappiness.
-
+.
 A swappiness setting of zero means that the disk will be avoided unless absolutely necessary (you run out of memory), while a swappiness setting of 100 means that programs will be swapped to disk almost instantly.
-
+.
 Ubuntu system comes with a default of 60, meaning that the swap file will be used fairly often if the memory usage is around half of my RAM."
-
+.
   -- One Zero, February 13th, 2012, on askubuntu.com
-
+.
 Or, if you prefer, this user goes in further detail:
-
+.
 "The vm.swappiness option is a modifier that changes the balance between swapping out file cache pages in favour of anonymous pages. The file cache is given an arbitrary priority value of 200 from which vm.swappiness modifier is deducted (file_prio=200-vm.swappiness). Anonymous pages, by default, start out with 60 (anon_prio=vm.swappiness). This means that, by default, the priority weights stand moderately in favour of anonymous pages (anon_prio=60, file_prio=200-60=140). The behaviour is defined in mm/vmscan.c in the kernel source tree."
-
+.
   -- Thomas Nyman, August 30th 2013, on unix.stackexchange.com
-
+.
 In short, it's debatable whether there's any need to change the swappiness value, but YMMV. It's often concluded that servers are the better use-cases for swappiness 60 (usually the default in Ubuntu distributions), and that 10 is the better setting for typical desktop use. You'll find arguments for and against adjusting this value all over the Internet, so, as always, come to your own conclusion.
 :8852,2847
 Log martians.
@@ -33,11 +33,11 @@ Ignore pings.
 Restrict what users can garner from the kernel log.
 :8560
 Mentioned over at the kernel hardening security section of Arch Wikki:
-
+.
 "Setting kernel.kptr_restrict to 1 will hide kernel symbol addresses in /proc/kallsyms from regular users without CAP_SYSLOG, making it more difficult for kernel exploits to resolve addresses/symbols dynamically. This will not help that much on a pre-compiled Arch Linux kernel, since a determined attacker could just download the kernel package and get the symbols manually from there, but if you are compiling your own kernel, this can help mitigating local root exploits. This will break some perf commands when used by non-root users (but many perf features require root access anyway).
-
+.
 Setting kernel.kptr_restrict to 2 will hide kernel symbol addresses in /proc/kallsyms regardless of privileges."
-
+.
   -- quoted as of February 2nd, 2020, on wiki.archlinux.org
 :1443
 General system security.
@@ -47,41 +47,41 @@ The permissions may well be excessive for the given file. Typically, a `$PATH` e
 If a `$PATH` executable is owned by a standard user or in such a group, chances are it's a mistake and/or security issue, therefore should probably be rectified. These files are usually, but certainly not always, owned by root (`0`) and part of the root group (`0`).
 :6712
 By default, in most Debian- and Ubuntu-based distributions of Linux, when a package is simply removed (even with `[--]autoremove`) global configuration and other associated files remain. This is observed when running `dpkg -l` in a terminal and looking for packages with a status of `rc`.
-
+.
 There may be situations in which you wish to keep the old configurations left by once-removed packages, such as if you plan to eventually re-install the package.
 :6131,6132,6133,6134,6135,6136,6137,6138
 Refer to the man pages apt.conf(5), apt_preferences(5), and apt(8) for further information on setting special configuration keys for APT.
 :6998,6997,6996,6995,6994,6993
 X11Forwarding -- While incredibly useful, it's often recommended to disabled it, due to security concerns.
-
+.
 PasswordAuthentication, PermitEmptyPasswords -- A must-have during setup, and for otherwise gaining access when keys aren't working, but keep in mind that this is nowhere near as safe as using cryptographic keys. Disables "tunneled clear text passwords", as it says in the default `sshd_config`.
 :5656
 There are a number of packages often made readily available in Ubuntu-based distributions which aren't required by most people, this alert simply means you've found one or more of these packages.
-
+.
 To find out about a given package, open up a terminal and run `apt-cache show PKG`, where 'PKG' is the package name about which you which to learn.
 :5541
 The Uncomplicated FireWall, the front-end to `iptables` is disabled (as it usually is by default), but this doesn't necessarily mean that you're now rendered super-vulnerable to every whack-job with a computer and a grudge to bear, but you are probably best to enable it, just in-case.
-
+.
 This poster says it aptly:
-
+.
 "Out of the box, Ubuntu ships with no TCP or UDP ports open, hence the belief that there's no reason to run Uncomplicated Firewall (ufw) by default. I agree, though, that having ufw disabled is a strange decision. My reasoning being that inexperienced users are feasibly going to install things like Samba, Apache and such like as they experiment with the system put before them. If they don't understand the implications of this, they will expose themselves to malicious bevaviour on the internet.
-
+.
 Example - I've got my laptop configured with Samba which is fine in my home network protected with WPA2. But if I take my laptop to a Starbucks, I might not think anything of it, but that laptop is now advertising my shares to all and sundry. With a firewall, I can restrict my samba ports to only my home server or peer devices. No need to worry as much now about who might be trying to connect to my laptop. Same goes for VNC, SSH, or a huge number of other useful services my laptop might be running, or trying to connect to.
-
+.
 Ubuntu takes a very on/off approach to certain elements of security, a philosophy I can't agree with. Security might be technically on or off, but by layering elements of security over one another, you end up with a better system. Sure, Ubuntu's security is good enough for a large number of use cases, but not all.
-
+.
 Bottom line, run ufw. Better safe than sorry."
-
+.
   -- Scaine, January 22nd, 2011, on askubuntu.com
 :1411,1412,1413,1414,1415,1416,1417,14148
 Refer to systemd-system.conf(5) and systemd(1) for in-depth information.
-
+.
 Apparently, it's recommended, for security, to set `DefaultLimitNPROC` to `1024`, `DefaultLimitNOFILE` to `1024`, CrashShell to `no`, and DumpCore to `no`. (citation needed)
 :1274,1275,1276
 Presents potential vulnerabilities, regarding the old CVE-2017-5689, which may or may not have actually been (successfully) patched on your installation. There's a good chance you don't need these modules anyway, but if you do, and have otherwise mitigated any risk as a result of this CVE or similar, you can disable this test.
-
+.
 "An unprivileged network attacker could gain system privileges to provisioned Intel manageability SKUs: Intel Active Management Technology (AMT) and Intel Standard Manageability (ISM). An unprivileged local attacker could provision manageability features gaining unprivileged network or local system privileges on Intel manageability SKUs: Intel Active Management Technology (AMT), Intel Standard Manageability (ISM), and Intel Small Business Technology (SBT)."
-
+.
   -- Published May 2nd, 2017, on cvedetails.com
 :7416
 If you're a gamer, this might be useful, but for the rest of us, you needn't have this module loaded up every time you boot into Linux.
@@ -91,17 +91,17 @@ If you use a mouse via PS/2 ports, then you'll need this module, but in these mo
 You've specified your own module(s) of which to check the existance and live status.
 :0913
 To disable the ability to restart the machine with just Ctrl + Alt + Del, akin to the old behavior within Windows, either run `sysctl -w kernel.ctrl-alt-del=1` or add `kernel.ctrl-alt-del=1` to `/etc/sysctl.conf`.
-
+.
 "It always a good practice to disable reboot of your Linux servers using the shortcut keys “Ctrl-Alt-Delete”. There are some scenarios where someone physically access your Ubuntu and Debian servers and without logging into your server he/she can reboot it using the keys “Ctrl-Alt-Delete”. In case of virtual machines if any one get the console then it can also be rebooted via shortcut keys. So to avoid these conditions and accidental reboots, one should always disable reboot via shortcut keys “Ctrl-Alt-Delete”."
-
+.
   -- Pradeep Antil, March 17th, 2019, on linuxbuzz.com
-
+.
 "In Linux , It’s a security concern for us  to allow anyone  to reboot the server using  Ctrl-Alt-Del keys. It is always recommended in production boxes that one should disable reboot using Ctrl-Alt-Del keys."
-
+.
   -- Pradeep Kumar, August 17th, 2014, linuxtechi.com
 :5431,5438,5439
 It's recommended for the `~/.ssh` directory itself have permissions of no more than `700` (`rwx------`) in order to protect your files within it, as these are very sensitive. SSH even goes so far as to sometimes refuse execution if the permissions are too open. Ownership is also a concern, with ownership and group access best left to the user and his or her own group.
-
+.
 "It [SSH] protects user keys by enforcing rwx------ on $HOME/.ssh and ensuring only the owner has write permissions to $HOME. If a user other than the respective owner has write permission on the $HOME directory, they could maliciously modify the permissions on $HOME/.ssh, potentially hijacking the user keys, known_hosts, or something similar."
-
+.
   -- George MGeorge M, April 23rd, 2012, on unix.stackexchange.com
