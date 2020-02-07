@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 23:17:23 GMT 2020
+# Last Change       - Fri  7 Feb 23:20:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,7 +24,6 @@
 # Bugs:
 #
 #TODO: Fix `IsUbuntu` key not working, despite being set to `true`.
-#TODO: Fix line spacing when `Summary` is enabled but `Recommend` isn't.
 #
 # Dependencies:
 #
@@ -246,8 +245,12 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 
 		printf("[A%0.4d]: %s\n", $_[0], $_[1]);
 
-		printf("       + %s\n\n", $_[2])
-			if $Recommend eq 'true' and length($_[2]) > 0;
+		if ($Recommend eq 'true' and length($_[2]) > 0){
+			printf("       + %s\n\n", $_[2])
+		}else{
+			# This is needed to maintain the empty line.
+			printf("\n")
+		}
 
 		if ($AutoQuery eq 'true'){
 			# Don't want to keep showing the same query.
