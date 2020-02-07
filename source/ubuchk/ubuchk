@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 23:35:39 GMT 2020
+# Last Change       - Fri  7 Feb 23:47:36 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,6 +24,7 @@
 # Bugs:
 #
 #TODO: Fix `IsUbuntu` key not working, despite being set to `true`.
+#TODO: Fix the Cito line still showing, even with a fresh install.
 #
 # Dependencies:
 #
