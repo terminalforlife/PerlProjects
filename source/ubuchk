@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 02:01:16 GMT 2020
+# Last Change       - Fri  7 Feb 04:06:34 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,6 +22,7 @@
 #
 # Dependencies:
 #
+#   libnumber-bytes-human-perl (>= 0.09-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-09)
@@ -80,7 +81,8 @@ my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
-	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient
+	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
+	$DiskSpace
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -253,6 +255,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'Recommend'){
 			Boolean($Value);
 			$Recommend = $Value
+		}elsif ($Key eq 'DiskSpace'){
+			Boolean($Value);
+			$DiskSpace = $Value
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -782,6 +787,79 @@ if ($KernMods eq 'true'){
 			"Module '$Mod' discovered and live.",
 			"Recommended action is to blacklist the module."
 		) if grep(/^$Mod$/, @Modules)
+	}
+}
+
+#--------------------------------------------------------Check Filesystem Sizes
+
+if ($DiskSpace eq 'true'){
+	my $MountFile = '/proc/mounts';
+
+	unless (-f $MountFile){
+		FErr(0, __LINE__, "File '$MountFile' not found.") unless -f $MountFile;
+	}else{
+		FileChk($MountFile);
+		open(my $FH, '<', $MountFile);
+
+		my @MountPoints;
+		while (<$FH>){
+			chomp(my @Arr = split(' '));
+			push(@MountPoints, $Arr[0]) if /^\//
+		}
+
+		close($FH);
+
+		use Number::Bytes::Human 'format_bytes';
+
+		my %Parts;
+		foreach my $Mount (sort(@MountPoints)){
+			my $BaseDevice = ($Mount =~ m{(?:.*/)(.*[^0-9]+)})[0];
+			my $Device = ($Mount =~ m{(.*[^0-9]+)})[0];
+			my $BlkDir = "/sys/block/$BaseDevice";
+
+			if (-d $BlkDir){
+				Info("Looking inside '$Device' block device.");
+
+				foreach (glob("$BlkDir/$BaseDevice*")){
+					my $SizeFile = "$_/size";
+					my $Sectors;
+
+					if (-f $SizeFile){
+						FileChk($SizeFile);
+						open(my $FH, '<', $SizeFile);
+						chomp($Sectors = <$FH>);
+						close($FH)
+					}else{
+						FErr(0, __LINE__, "Unable to count partition '$Mount' sectors.");
+						last
+					}
+
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+# You were here.
+#
+# Need to fill the hash. Got the total size of each partition, in human output.
+# Now I just need the space used, somehow; hopefully I don't have to count it
+# myself, for each file, using stat; that would be painful.
+#
+# I could just use a module for this, but I'm trying to do as much as I can
+# with just Perl, to avoid dependencies and because it's educational & fun!
+#
+# Once I've got the used space sorted, I then need to do some arithmetic to get
+# the percentage remaining, as an integer, and then, finally, have that value
+# checked for the maximum allowed, before an alert ocurrs; this will be a key
+# in the configuration file, which will be awesome.
+#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+					my $PartName = $_ =~ s|^/sys/block/.*/(.*)|/dev/$1|r;
+					my $SizeHuman = format_bytes($Sectors * 512);
+					$Parts{$PartName}{'Total'} = $SizeHuman
+				}
+			}else{
+				FErr(0, __LINE__, "Unable to access '$Device' block device.")
+			}
+		}
+
+		print("$Parts{'/dev/sda1'}{Total}\n")
 	}
 }
 
