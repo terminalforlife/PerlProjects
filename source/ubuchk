@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 16:26:42 GMT 2020
+# Last Change       - Fri  7 Feb 16:34:28 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -380,8 +380,9 @@ if (-f -r -T $ConfigFile){
 			$AutoQuery = $Value
 		}elsif ($Key eq 'QueryIndent'){
 			if ($Value =~ /^[0-9]+$/){
-				FErr(1, __LINE__, "Key '$Key' out of bounds -- valid: '0-9'")
-					unless $Value > 0 and $Value < 9;
+				# Default value and its bounds are mentioned in the config.
+				FErr(1, __LINE__, "Key '$Key' out of bounds.")
+					unless $Value > 0 and $Value <= 9;
 
 				$QueryIndent = $Value
 			}else{
