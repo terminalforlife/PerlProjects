@@ -3,14 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu  6 Feb 19:09:03 GMT 2020
+# Last Change       - Fri  7 Feb 02:01:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # A work-in-progress Perl rewrite and overhaul of `ubuntu-syschk`.
 #
 #TODO: Add ANSI color support and configuration items for it.
-#TODO: Add SSH permission checks for ~/.ssh and contents.
+#TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add option to automatically display database entries for alerts.
 #TODO: Add permission and ownership check for directories like `/boot`.
@@ -35,7 +35,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-06';
+my $CurVer = '2020-02-07';
 
 my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/$TFL::PROGNAME.conf";
 
@@ -78,9 +78,9 @@ sub Usage{
 
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
-	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
+	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
-	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend
+	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -159,7 +159,6 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 }
 
 sub FileChk{ # Usage: [FILE]
-	FErr(1, __LINE__, "File '$_[0]' not found.") unless -f $_[0];
 	FErr(1, __LINE__, "File '$_[0]' unreadable.") unless -r $_[0];
 	FErr(1, __LINE__, "File '$_[0]' is binary.") if -B $_[0];
 
@@ -196,6 +195,8 @@ unless ($IsUbuntu eq 'true'){
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
 
 if (-f -r -T $ConfigFile){
+	my $InvalidKeyCount;
+
 	open(my $FH, '<', $ConfigFile);
 
 	while (<$FH>){
@@ -223,9 +224,9 @@ if (-f -r -T $ConfigFile){
 			$HardAPT = $Value
 		}elsif ($Key eq 'SSHDConfig'){
 			$SSHDConfig = $Value
-		}elsif ($Key eq 'SSHServer'){
+		}elsif ($Key eq 'SSHSerCli'){
 			Boolean($Value);
-			$SSHServer = $Value
+			$SSHSerCli = $Value
 		}elsif ($Key eq 'UnwantedPKGs'){
 			push(@UnwantedPKGs, $Value)
 		}elsif ($Key eq 'Verbose'){
@@ -253,11 +254,15 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$Recommend = $Value
 		}else{
-			FErr(1, __LINE__, "Invalid key '$Key' detected.")
+			FErr(0, __LINE__, "Invalid key '$Key' detected.");
+
+			$InvalidKeyCount++
 		}
 	}
 
-	close($FH)
+	close($FH);
+
+	exit(1) if $InvalidKeyCount > 0
 }else{
 	use File::Copy 'copy';
 
@@ -341,32 +346,38 @@ if ($Query eq 'true'){
 sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 	my $DpkgStatus = '/var/lib/dpkg/status';
 
-	FileChk($DpkgStatus);
-	open(my $FH, '<', $DpkgStatus);
+	unless (-f $DpkgStatus){
+		FErr(0, __LINE__, "File '$DpkgStatus' not found.")
+	}else{
+		FileChk($DpkgStatus);
+		open(my $FH, '<', $DpkgStatus);
 
-	my ($Package, $Arch, $Status, @Packages);
-	while (<$FH>){
-		chomp();
-		next if /^$/;
+		my ($Package, $Arch, $Status, @Packages);
+		while (<$FH>){
+			chomp();
+			next if /^$/;
 
-		my ($Key, $Value) = split(':');
+			my ($Key, $Value) = split(':');
 
-		if ($Key eq 'Package'){
-			$Package = $Value =~ tr/ //dr;
-		}elsif ($Key eq 'Status'){
-			$Status = $Value =~ tr/ //dr;
-		}elsif ($Key eq 'Architecture'){
-			$Arch = $Value =~ tr/ //dr;
+			if ($Key eq 'Package'){
+				$Package = $Value =~ tr/ //dr;
+			}elsif ($Key eq 'Status'){
+				$Status = $Value =~ tr/ //dr;
+			}elsif ($Key eq 'Architecture'){
+				$Arch = $Value =~ tr/ //dr;
 
-			next unless $Status eq $_[0];
+				next unless $Status eq $_[0];
 
-			push(@Packages, "$Package:$Arch")
+				push(@Packages, "$Package:$Arch")
+			}
 		}
+
+		close($FH);
+
+		Info("Finished with '$DpkgStatus' file.");
+
+		return(sort(@Packages))
 	}
-
-	close($FH);
-
-	return(sort(@Packages))
 }
 
 #-------------------------------------------------------------Kernel Parameters
@@ -403,15 +414,22 @@ if ($KernParams eq 'true'){
 
 		Info("Checking '$ShowKey' parameter.");
 
-		if (-f -r -T $Path){
+		if (-f $Path){
+			unless (-r -T $Path){
+				FErr(0, __LINE__, "Unable to determine '$ShowKey' parameter.");
+				next
+			}
+
 			open(my $FH, '<', $Path);
 			chomp($Value = <$FH>);
 			close($FH)
 		}else{
+			Info("Parameter '$ShowKey' unavailable.");
+
 			next
 		}
 
-		Info("File '$Path' is '$Value'.");
+		Info("Parameter '$ShowKey' is '$Value'.");
 
 		Alert(
 			$AlertID,
@@ -432,36 +450,34 @@ if ($PathPerms eq 'true'){
 			# This is a little excessive.
 			#Info("Checking '$_' file.");
 
-			my $Perms = sprintf('%04o', (stat($_))[2] & 07777);
-			my ($Owner, $Group) = (stat($_))[4,5];
+			my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
+			$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
 			# This is a little excessive, too.
-			#Info("File is '$Perms' and '$Owner:$Group'.");
+			#Info("File is '$Mode' and '$Owner:$Group'.");
 
 			Alert(
 				7869,
-				"File '$_' permits '$Perms'.",
+				"File '$_' permits '$Mode'.",
 				"Recommended permissions are '755'."
-			) unless substr($Perms, 1) <= 755;
+			) unless substr($Mode, 1) <= 755;
 
 			# These executables should not be owned by a standard user, nor
 			# should they be in such a group. <1000 is for system users/groups.
 			# A stricter test (make optional?) would be to flag all non-0s.
 			# There are exceptions, however, such as the user having his or her
 			# own `bin` directory in their `/home` directory.
-			if ($Owner >= 1000){
-				Alert(
-					6005,
-					"File '$_' owned by '$Owner'.",
-					"Recommended owner is '0' ('root')."
-				)
-			}elsif ($Group >= 1000){
-				Alert(
-					3597,
-					"File '$_' in group '$Group'.",
-					"Recommended group is '0' ('root')."
-				)
-			}
+			Alert(
+				6005,
+				"File '$_' owned by '$Owner'.",
+				"Recommended owner is '0' ('root')."
+			) if $Owner >= 1000;
+
+			Alert(
+				3597,
+				"File '$_' in group '$Group'.",
+				"Recommended group is '0' ('root')."
+			) if $Group >= 1000
 		}
 	}
 }
@@ -469,13 +485,17 @@ if ($PathPerms eq 'true'){
 #-----------------------------------------------------Packages Yet to Be Purged
 
 if ($PurgeChk eq 'true'){
-	Info("Looking for unwanted packages.");
+	Info("Looking for old package remains.");
+
+	my @Data = ParseDpkgStatus('deinstallokconfig-files');
 
 	Alert(
 		6712,
 		"Package '$_' wasn't purged.",
 		"Suggested action is to purge the package."
-	) foreach sort(ParseDpkgStatus('deinstallokconfig-files'))
+	) foreach sort(@Data);
+
+	Info('No packages were found unpurged.') if @Data == 0
 }
 
 #-----------------------------------------------------------APT Security Tweaks
@@ -483,109 +503,148 @@ if ($PurgeChk eq 'true'){
 if ($HardAPT eq 'true'){
 	my $VendorFile = '/etc/apt/apt.conf.d/01-vendor-ubuntu';
 
-	FileChk($VendorFile);
-	open(my $FH, '<', $VendorFile);
+	unless (-f $VendorFile){
+		Alert(
+			5411,
+			"File '$VendorFile' not found.",
+			"Create the file in question, then re-run UbuChk."
+		)
+	}else{
+		FileChk($VendorFile);
+		open(my $FH, '<', $VendorFile);
 
-	my %Settings;
-	while (<$FH>){
-		chomp();
-		next if /(^#|^$)/;
+		my %Settings;
+		while (<$FH>){
+			chomp();
+			next if /(^#|^$)/;
 
-		my ($Key, $Value) = split(' ');
-		$Value = $Value =~ tr/"';//dr;
+			my ($Key, $Value) = split(' ');
+			$Value = $Value =~ tr/"';//dr;
 
-		Info("Key '$Key' is '$Value'.");
+			Info("Key '$Key' is '$Value'.");
 
-		$Settings{$Key} = $Value
-	}
+			$Settings{$Key} = $Value
+		}
 
-	close($FH);
+		close($FH);
 
-	foreach ( # [TARGET_VALUE] [KEY]
-		'false|APT::Get::AllowUnauthenticated',
-		'false|Acquire::http::AllowRedirect',
-		'false|APT::Install-Suggests',
-		'false|APT::Install-Recommends'
-	){
-		my ($Target, $Key) = split('\|');
+		foreach ( # [TARGET_VALUE] [KEY]
+			'6135|6131|false|APT::Get::AllowUnauthenticated',
+			'6136|6132|false|Acquire::http::AllowRedirect',
+			'6137|6133|false|APT::Install-Suggests',
+			'6138|6134|false|APT::Install-Recommends'
+		){
+			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 
-		next if grep(/^$Key$/, @SkipAPT);
+			next if grep(/^$Key$/, @SkipAPT);
 
-		unless (exists($Settings{$Key})){
-			Alert(
-				6131,
-				"APT key '$Key' not assigned.",
-				"Recommended action is to assign it '$Target'."
-			)
-		}elsif ($Settings{$Key} ne $Target){
-			Alert(
-				6221,
-				"APT key '$Key' assigned '$Settings{$Key}'.",
-				"Recommended value is '$Target'."
-			)
+			unless (exists($Settings{$Key})){
+				Alert(
+					$AlertID1,
+					"APT key '$Key' not assigned.",
+					"Recommended action is to assign it '$Target'."
+				)
+			}elsif ($Settings{$Key} ne $Target){
+				Alert(
+					$AlertID2,
+					"APT key '$Key' assigned '$Settings{$Key}'.",
+					"Recommended value is '$Target'."
+				)
+			}
 		}
 	}
 }
 
-#-------------------------------------------------------------SSH Server Checks
+#----------------------------------------------------SSH Client & Server Checks
 
-if ($SSHServer eq 'true'){
-	FileChk($SSHDConfig);
-	open(my $FH, '<', $SSHDConfig);
+if ($SSHSerCli eq 'true'){
+	my $SSHDir = "$ENV{HOME}/.ssh";
 
-	my %Settings;
-	while (<$FH>){
-		chomp();
-		next if /(^#|^$)/;
+	if (-d $SSHDir){
+		FErr(1, __LINE__, "Directory '$SSHDir' unreadable.") unless -r $SSHDir;
+		FErr(1, __LINE__, "Directory '$SSHDir' is binary.") unless -x $SSHDir;
 
-		print("$_\n");
+		my ($Mode, $Owner, $Group) = (stat($SSHDir))[2,4,5];
+		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
-		my ($Key, $Value) = split(' ');
+		Alert(
+			5431,
+			"Directory '$SSHDir' is mode '$Mode'.",
+			"Recommended permissions are '700'."
+		) unless $Mode == 700;
 
-		Info("Key '$Key' is '$Value'.");
+		Alert(
+			5438,
+			"Directory '$SSHDir' is owned by '$Owner'.",
+			"Recommended owner is your UID ('$<')."
+		) unless $Owner == $<;
 
-		$Settings{$Key} = $Value
+		Alert(
+			5439,
+			"Directory '$SSHDir' is in group '$Group'.",
+			"Recommended group is your GID ('$(')."
+		) unless $Group == $(;
 	}
 
-	close($FH);
+	if (-f $SSHDConfig){
+		FErr(1, __LINE__, "File '$SSHDConfig' unreadable.") unless -r $SSHDConfig;
+		FErr(1, __LINE__, "File '$SSHDConfig' is binary.") if -B $SSHDConfig;
 
-	foreach ( # [TARGET_VALUE] [KEY]
-		'no|X11Forwarding',
-		'no|PasswordAuthentication',
-		'no|PermitEmptyPasswords',
-	){
-		my ($Target, $Key) = split('\|');
+		FileChk($SSHDConfig);
+		open(my $FH, '<', $SSHDConfig);
 
-		next if grep(/^$Key$/, @SkipAPT);
+		my %Settings;
+		while (<$FH>){
+			chomp();
+			next if /(^#|^$)/;
 
-		unless (exists($Settings{$Key})){
+			my ($Key, $Value) = split(' ');
+
+			Info("Key '$Key' is '$Value'.");
+
+			$Settings{$Key} = $Value
+		}
+
+		close($FH);
+
+		foreach ( # [TARGET_VALUE] [KEY]
+			'6998|6995|no|X11Forwarding',
+			'6997|6994|no|PasswordAuthentication',
+			'6996|6993|no|PermitEmptyPasswords',
+		){
+			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
+
+			next if grep(/^$Key$/, @SkipAPT);
+
+			unless (exists($Settings{$Key})){
+				Alert(
+					$AlertID1,
+					"SSH daemon key '$Key' not assigned.",
+					"Recommended action is to assign it '$Target'."
+				)
+			}elsif ($Settings{$Key} ne $Target){
+				Alert(
+					$AlertID1,
+					"SSH daemon key '$Key' assigned '$Settings{$Key}'.",
+					"Recommended value is '$Target'."
+				)
+			}
+		}
+
+		# Ordinarily, you shouldn't use the commonplace `22` port.
+		unless (exists($Settings{'Port'})){
 			Alert(
 				7541,
-				"SSH daemon key '$Key' not assigned.",
-				"Recommended action is to assign it '$Target'."
+				"SSH daemon key 'Port' not assigned.",
+				"Recommended action is NOT to assign it '22'."
 			)
-		}elsif ($Settings{$Key} ne $Target){
+		}elsif ($Settings{'Port'} eq 22){
 			Alert(
 				6542,
-				"SSH daemon key '$Key' assigned '$Settings{$Key}'.",
-				"Recommended value is '$Target'."
+				"SSH daemon key 'Port' assigned '$Settings{Port}'.",
+				"Recommended value is one other than '22'."
 			)
 		}
-	}
-
-	# Ordinarily, you shouldn't use the commonplace `22` port.
-	unless (exists($Settings{'Port'})){
-		Alert(
-			7541,
-			"SSH daemon key 'Port' not assigned.",
-			"Recommended action is NOT to assign it '22'."
-		)
-	}elsif ($Settings{'Port'} eq 22){
-		Alert(
-			6542,
-			"SSH daemon key 'Port' assigned '$Settings{Port}'.",
-			"Recommended value is one other than '22'."
-		)
 	}
 }
 
@@ -650,22 +709,22 @@ if ($SystemD eq 'true'){
 	close($FH);
 
 	foreach ( # [TARGET_VALUE] [KEY]
-		'1024|DefaultLimitNPROC',
-		'1024|DefaultLimitNOFILE',
-		'no|CrashShell',
-		'no|DumpCore'
+		'1411|1415|1024|DefaultLimitNPROC',
+		'1412|1416|1024|DefaultLimitNOFILE',
+		'1413|1417|no|CrashShell',
+		'1414|1418|no|DumpCore'
 	){
-		my ($Target, $Key) = split('\|');
+		my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 
 		unless (exists($Settings{$Key})){
 			Alert(
-				5754,
+				$AlertID1,
 				"SystemD key '$Key' not assigned.",
 				"Recommended action is to assign it '$Target'."
 			)
 		}elsif ($Settings{$Key} ne $Target){
 			Alert(
-				3421,
+				$AlertID2,
 				"SystemD key '$Key' assigned '$Settings{$Key}'.",
 				"Recommended value is '$Target'."
 			)
@@ -694,20 +753,27 @@ if ($KernMods eq 'true'){
 
 	foreach (
 		'1274|mei',
-		'1274|mei_me',
-		'1274|mei_wtk',
+		'1275|mei_me',
+		'1276|mei_wtk',
 		'7416|joydev',
 		'8471|psmouse'
 	){
 		my ($AlertID, $Module) = split('\|');
 
-		Info("Module '$Module' not found.");
+		if (grep(/^$Module$/, @Modules)){
+			unless (grep(/^$Module$/, @SkipKMs)){
+				Info("Module '$Module' found but ignored.");
+				next # <-- Skipping the below alert.
+			}
 
-		Alert(
-			$AlertID,
-			"Module '$Module' discovered and live.",
-			"Recommended action is to blacklist the module."
-		) if grep(/^$Module$/, @Modules) and not grep(/^$Module$/, @SkipKMs)
+			Alert(
+				$AlertID,
+				"Module '$Module' discovered and live.",
+				"Recommended action is to blacklist the module."
+			)
+		}else{
+			Info("Module '$Module' not found.")
+		}
 	}
 
 	foreach my $Mod (@CustomKMs){

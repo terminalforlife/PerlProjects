@@ -49,9 +49,9 @@ If a `$PATH` executable is owned by a standard user or in such a group, chances 
 By default, in most Debian- and Ubuntu-based distributions of Linux, when a package is simply removed (even with `[--]autoremove`) global configuration and other associated files remain. This is observed when running `dpkg -l` in a terminal and looking for packages with a status of `rc`.
 
 There may be situations in which you wish to keep the old configurations left by once-removed packages, such as if you plan to eventually re-install the package.
-:6131,6221
+:6131,6132,6133,6134,6135,6136,6137,6138
 Refer to the man pages apt.conf(5), apt_preferences(5), and apt(8) for further information on setting special configuration keys for APT.
-:7541,6542
+:6998,6997,6996,6995,6994,6993
 X11Forwarding -- While incredibly useful, it's often recommended to disabled it, due to security concerns.
 
 PasswordAuthentication, PermitEmptyPasswords -- A must-have during setup, and for otherwise gaining access when keys aren't working, but keep in mind that this is nowhere near as safe as using cryptographic keys. Disables "tunneled clear text passwords", as it says in the default `sshd_config`.
@@ -73,11 +73,11 @@ Ubuntu takes a very on/off approach to certain elements of security, a philosoph
 Bottom line, run ufw. Better safe than sorry."
 
   -- Scaine, January 22nd, 2011, on askubuntu.com
-:5754,3421
+:1411,1412,1413,1414,1415,1416,1417,14148
 Refer to systemd-system.conf(5) and systemd(1) for in-depth information.
 
 Apparently, it's recommended, for security, to set `DefaultLimitNPROC` to `1024`, `DefaultLimitNOFILE` to `1024`, CrashShell to `no`, and DumpCore to `no`. (citation needed)
-:1274
+:1274,1275,1276
 Presents potential vulnerabilities, regarding the old CVE-2017-5689, which may or may not have actually been (successfully) patched on your installation. There's a good chance you don't need these modules anyway, but if you do, and have otherwise mitigated any risk as a result of this CVE or similar, you can disable this test.
 
 "An unprivileged network attacker could gain system privileges to provisioned Intel manageability SKUs: Intel Active Management Technology (AMT) and Intel Standard Manageability (ISM). An unprivileged local attacker could provision manageability features gaining unprivileged network or local system privileges on Intel manageability SKUs: Intel Active Management Technology (AMT), Intel Standard Manageability (ISM), and Intel Small Business Technology (SBT)."
@@ -99,3 +99,9 @@ To disable the ability to restart the machine with just Ctrl + Alt + Del, akin t
 "In Linux , It’s a security concern for us  to allow anyone  to reboot the server using  Ctrl-Alt-Del keys. It is always recommended in production boxes that one should disable reboot using Ctrl-Alt-Del keys."
 
   -- Pradeep Kumar, August 17th, 2014, linuxtechi.com
+:5431,5438,5439
+It's recommended for the `~/.ssh` directory itself have permissions of no more than `700` (`rwx------`) in order to protect your files within it, as these are very sensitive. SSH even goes so far as to sometimes refuse execution if the permissions are too open. Ownership is also a concern, with ownership and group access best left to the user and his or her own group.
+
+"It [SSH] protects user keys by enforcing rwx------ on $HOME/.ssh and ensuring only the owner has write permissions to $HOME. If a user other than the respective owner has write permission on the $HOME directory, they could maliciously modify the permissions on $HOME/.ssh, potentially hijacking the user keys, known_hosts, or something similar."
+
+  -- George MGeorge M, April 23rd, 2012, on unix.stackexchange.com
