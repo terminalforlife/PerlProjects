@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk ($CurVer)
+# User configuration file for UbuChk (>= 2020-02-07)
 
 # Since we're intended for use on Ubuntu-based distributions, an error will
 # display, were it not detected. This can can be overridden by enabling this
