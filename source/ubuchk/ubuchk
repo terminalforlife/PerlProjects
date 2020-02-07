@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/ubuchk
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/ubuchk
+# Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 18:58:54 GMT 2020
+# Last Change       - Fri  7 Feb 21:13:59 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ no warnings 'uninitialized';
 
 my $CurVer = '2020-02-07';
 
-my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/$TFL::PROGNAME.conf";
+my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/config";
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -50,26 +50,16 @@ sub Usage{
 
 		OPTS:       --help|-h|-?            - Display this help information.
 		            --version|-v            - Output the version datestamp.
-		            --config PATH           - Override default file.
 		            --force-reset           - Force generation of config file.
 		            --is-ubuntu|-U          - Execute as though in Ubuntu.
 		            --query|-Q N            - Read about alert ID number N.
 		            --skip=N[,N ...]        - Skip one or more N alerts, by ID.
-		            --summary|-S            - Conclude with a brief summary.
 		            --verbose|-V            - Execute checks verbosely.
 
 		NOTE:       A valid alert ID is 4 digits, IE: 5248
 
 		EXAMPLE:    $TFL::PROGNAME -V --skip=5754,7416
 		            $TFL::PROGNAME -Q 8471
-
-		FILE:       The user's own configuration file:
-
-		              ~/.config/$TFL::PROGNAME/config
-
-		            The default configuration file:
-
-		              $DefaultConfigFile
 
 		SITE:       $Domain
 	} =~ tr/\t//dr)
@@ -167,7 +157,7 @@ sub QueryAlert{
 	use Term::ReadKey 'GetTerminalSize';
 	use Text::Wrap 'wrap';
 
-	my $Database = '/usr/share/ubuchk/ubuchk-db';
+	my $Database = '/usr/share/ubuchk/database';
 	$HelpAlertID = $_[1] if length($HelpAlertID) == 0;
 
 	unless (-f $Database){
@@ -177,7 +167,7 @@ sub QueryAlert{
 
 			print(
 				STDERR "cito -r terminalforlife PerlProjects " .
-				"ubuchk_project source/ubuchk-db\n"
+				"master source/ubuchk/database\n"
 			);
 
 			exit(1)
@@ -420,12 +410,16 @@ if (-f -r -T $ConfigFile){
 }else{
 	use File::Copy 'copy';
 
-	FileChk($DefaultConfigFile);
-	copy($DefaultConfigFile, $ConfigFile)
-		or FErr(1, __LINE__, "Failed to generate a configuration file.");
+	if (-f $DefaultConfigFile){
+		FileChk($DefaultConfigFile);
+		copy($DefaultConfigFile, $ConfigFile)
+			or FErr(1, __LINE__, "Failed to generate a configuration file.");
 
-	printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
-	exit(0)
+		printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
+		exit(0)
+	}else{
+		FErr(1, __LINE__, "File '/usr/share/$TFL::PROGNAME/config' not found.")
+	}
 }
 
 if (@SkipIDs > 0){

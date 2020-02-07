@@ -1,5 +1,5 @@
-#cito M:644 O:0 G:0 T:/usr/share/ubuchk/ubuchk-db
-# Alert database handled by `ubuchk-index`, associated with UbuChk.
+#cito M:644 O:0 G:0 T:/usr/share/ubuchk/database
+# Alert database handled by UbuChk.
 
 :1491
 A brief explanation by this user may satisfy your curiosity for now:
