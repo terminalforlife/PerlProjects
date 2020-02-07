@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 18:29:25 GMT 2020
+# Last Change       - Fri  7 Feb 18:42:33 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,6 @@
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add permission and ownership check for directories like `/boot`.
 #TODO: Add update feature, because it's important to keep this updated.
-#TODO: Check filesystem sizes (akin to `df`, but pure-Perl).
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Have a grep check for the SystemD section, to ignore certain keys.
 #TODO: Somehow handle the first digit in `stat()` mode.
@@ -157,6 +156,9 @@ sub FileChk{ # Usage: [FILE]
 	}
 
 	exit(1) if $Err > 0;
+
+	# Don't want the summary, if shown, to be cluttered here.
+	return if $_[0] eq '/etc/hostname';
 
 	Info("Checking '$_[0]' file.")
 }
@@ -847,7 +849,6 @@ if ($DiskSpace eq 'true'){
 	unless (-f $MountFile){
 		FErr(0, __LINE__, "File '$MountFile' not found.") unless -f $MountFile;
 	}else{
-		use Number::Bytes::Human 'format_bytes';
 		use Filesys::DiskSpace 'df';
 
 		FileChk($MountFile);
@@ -858,6 +859,9 @@ if ($DiskSpace eq 'true'){
 			chomp(my @Arr = split(' '));
 
 			if (/^\//){
+				# Excessive, perhaps.
+				#Info("Looking at '$Arr[0]' partition.");
+
 				$Mount = $Arr[1] =~ s/\\040/ /gr;
 				($Used, $Free) = (df($Mount))[2,3];
 				$Used = $Used * 1024;
@@ -865,10 +869,14 @@ if ($DiskSpace eq 'true'){
 				$Size = $Free + $Used;
 				$Perc = int(($Used / $Size) * 100);
 
-				Alert(4612,
-					"Partition '$Arr[0]' is $Perc% full.",
-					"Recommended action is to clear out junk."
-				) if $Perc >= $DSLimit
+				if ($Perc >= $DSLimit){
+					Alert(4612,
+						"Partition '$Arr[0]' is $Perc% full.",
+						"Recommended action is to clear out junk."
+					)
+				}else{
+					Info("Partition '$Arr[0]' is using $Perc% of space.");
+				}
 			}
 		}
 
@@ -878,7 +886,8 @@ if ($DiskSpace eq 'true'){
 
 #--------------------------------------------------------------Finish & Summary
 
-Info("Done.");
+# This verbosity message is a bit out of place otherwise.
+Info("Done.") unless $AlertCount > 0 and $ShowSummary eq 'true';
 
 # Only show the summary if set to and actually have alerts. This should be
 # particularly useful if the user logs UbuChk's output.
