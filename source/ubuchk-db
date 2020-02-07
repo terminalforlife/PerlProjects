@@ -105,3 +105,5 @@ It's recommended for the `~/.ssh` directory itself have permissions of no more t
 "It [SSH] protects user keys by enforcing rwx------ on $HOME/.ssh and ensuring only the owner has write permissions to $HOME. If a user other than the respective owner has write permission on the $HOME directory, they could maliciously modify the permissions on $HOME/.ssh, potentially hijacking the user keys, known_hosts, or something similar."
 .
   -- George MGeorge M, April 23rd, 2012, on unix.stackexchange.com
+:4612
+A disk is almost full. Hunt down some stuff you don't need, then remove it. You could also make a backup somewhere, then delete the backed-up files. There are many ways in which to save disk space, so you'll have plenty of options available to you. You could even resort to compression via archives, such as Tar, Zip, 7Zip, etc.
