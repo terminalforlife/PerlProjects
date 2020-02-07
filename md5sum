@@ -7,7 +7,7 @@ d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
 2be7935cd8dc0d2fe84ec8c1bf010fc7  source/ubuchk/config
 0f11f1c869b341d3299da6e41507235c  source/ubuchk/database
-1e6a06860464f108fb6ff9a96e8c0157  source/ubuchk/ubuchk
+fdf67e199a34d9dbf15c1414e8d72d7e  source/ubuchk/ubuchk
 d39cf3661b7f6513825ab0b07a583495  source/ubuchk/ubuchk.8.gz
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 2992bb26459073734e057cfdeab2ccd6  source/apt-undo-install
