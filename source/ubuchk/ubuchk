@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 23:20:31 GMT 2020
+# Last Change       - Fri  7 Feb 23:35:39 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -43,8 +43,6 @@ no warnings 'uninitialized';
 
 my $CurVer = '2020-02-07';
 
-my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/config";
-
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
 sub Usage{
@@ -77,11 +75,13 @@ my (
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
-	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit
+	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
 my $ConfigFile = "$MainDir/config";
+my $Database = '/usr/share/ubuchk/database';
+my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/config";
 
 mkdir($MainDir) unless -d $MainDir;
 
@@ -164,10 +164,17 @@ sub FileChk{ # Usage: [FILE]
 # alert is shown. Not sure why; something about changing a readonly variable.
 # This is usually not ideal, but at least when there are many alerts, the file
 # won't constantly be opened and processed.
-my $Database = '/usr/share/ubuchk/database';
-open(my $FH, '<', $Database);
-my @DBData = <$FH>;
-close($FH);
+if (-f $Database){
+	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
+
+	open(my $FH, '<', $Database);
+	@DBData = <$FH>;
+	close($FH);
+}else{
+	# Only error out here if queries are NOT completely disabled.
+	FErr(1, __LINE__, "File '$Database' not found.")
+		unless $AutoQuery ne 'true' and $Query ne 'true'
+}
 
 sub QueryAlert{
 	use Term::ReadKey 'GetTerminalSize';
@@ -175,24 +182,19 @@ sub QueryAlert{
 
 	$HelpAlertID = $_[1] if length($HelpAlertID) == 0;
 
-	unless (-f $Database){
-		if (DepChk(':', 'cito') == 0){
-			FErr(0, __LINE__, "File '$Database' not found -- run:")
-				unless -f $Database;
+	if (DepChk(':', 'cito') == 0){
+		FErr(0, __LINE__, "File '$Database' not found -- run:")
+			unless -f $Database;
 
-			print(
-				STDERR "cito -r terminalforlife PerlProjects " .
-				"master source/ubuchk/database\n"
-			);
+		print(
+			STDERR "cito -r terminalforlife PerlProjects " .
+			"master source/ubuchk/database\n"
+		);
 
-			exit(1)
-		}else{
-			FErr(1, __LINE__, "File '$Database' not found")
-		}
+		exit(1)
+	}else{
+		FErr(1, __LINE__, "File '$Database' not found")
 	}
-
-	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
-
 
 	my ($Found, @Body);
 	foreach (@DBData){
@@ -249,7 +251,7 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 			printf("       + %s\n\n", $_[2])
 		}else{
 			# This is needed to maintain the empty line.
-			printf("\n")
+			#printf("\n")
 		}
 
 		if ($AutoQuery eq 'true'){
@@ -911,9 +913,11 @@ my $Time = localtime();
 my $HostNameFile = '/etc/hostname';
 
 FileChk($HostNameFile);
-open($FH, '<', $HostNameFile);
+open(my $FH, '<', $HostNameFile);
 chomp(my $Host = <$FH>);
 close($FH);
+
+print("\n") if $Recommend ne 'true';
 
 print(qq{  Timestamp: $Time
 	   Hostname: $Host
