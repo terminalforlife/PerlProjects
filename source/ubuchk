@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 16:47:38 GMT 2020
+# Last Change       - Fri  7 Feb 16:55:02 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ sub QueryAlert{
 	use Text::Wrap 'wrap';
 
 	my $Database = '/usr/share/ubuchk/ubuchk-db';
-	my $HelpAlertID = $_[1] if length($HelpAlertID) == 0;
+	$HelpAlertID = $_[1] if length($HelpAlertID) == 0;
 
 	unless (-f $Database){
 		if (DepChk(':', 'cito') == 0){
@@ -228,7 +228,7 @@ sub QueryAlert{
 		}
 	}
 
-	exit($_[0]) if $_[0] > 0
+	exit($_[0]) unless $_[1] > 0
 }
 
 sub Alert{ # Usage: [ALERT_ID] [STRING]
