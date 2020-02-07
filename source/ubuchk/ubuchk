@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 22:37:47 GMT 2020
+# Last Change       - Fri  7 Feb 22:43:35 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 #TODO: Fix `IsUbuntu` key not working, despite being set to `true`.
 #TODO: Fix formatting error (with period) when manually querying (via OPT).
 #TODO: Add notes to applicable keys if REGEX is viable, like `UnwantedPKGs`.
+#TODO: Fix line spacing when `Summary` is enabled but `Recommend` isn't.
 #
 # Dependencies:
 #
