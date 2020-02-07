@@ -3,24 +3,28 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 22:43:35 GMT 2020
+# Last Change       - Fri  7 Feb 23:05:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # A work-in-progress Perl rewrite and overhaul of `ubuntu-syschk`.
 #
+# Features:
+#
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
+#TODO: Add notes to applicable keys if REGEX is viable, like `UnwantedPKGs`.
 #TODO: Add permission and ownership check for directories like `/boot`.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Have a grep check for the SystemD section, to ignore certain keys.
 #TODO: Somehow handle the first digit in `stat()` mode.
-#TODO: AutoQuery errors out when kernel parameters are alerted.
+#
+# Bugs:
+#
 #TODO: Fix `IsUbuntu` key not working, despite being set to `true`.
 #TODO: Fix formatting error (with period) when manually querying (via OPT).
-#TODO: Add notes to applicable keys if REGEX is viable, like `UnwantedPKGs`.
 #TODO: Fix line spacing when `Summary` is enabled but `Recommend` isn't.
 #
 # Dependencies:
@@ -158,11 +162,19 @@ sub FileChk{ # Usage: [FILE]
 	Info("Checking '$_[0]' file.")
 }
 
+# Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
+# alert is shown. Not sure why; something about changing a readonly variable.
+# This is usually not ideal, but at least when there are many alerts, the file
+# won't constantly be opened and processed.
+my $Database = '/usr/share/ubuchk/database';
+open(my $FH, '<', $Database);
+my @DBData = <$FH>;
+close($FH);
+
 sub QueryAlert{
 	use Term::ReadKey 'GetTerminalSize';
 	use Text::Wrap 'wrap';
 
-	my $Database = '/usr/share/ubuchk/database';
 	$HelpAlertID = $_[1] if length($HelpAlertID) == 0;
 
 	unless (-f $Database){
@@ -183,10 +195,9 @@ sub QueryAlert{
 
 	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
 
-	open(my $FH, '<', $Database);
 
 	my ($Found, @Body);
-	while (<$FH>){
+	foreach (@DBData){
 		chomp();
 
 		if (/^:[0-9,]+$/){
@@ -203,8 +214,6 @@ sub QueryAlert{
 			push(@Body, $_)
 		}
 	}
-
-	close($FH);
 
 	FErr(1, __LINE__, "Alert '$HelpAlertID' not found -- are we up-to-date?")
 		unless $Found eq 'true';
@@ -899,7 +908,7 @@ my $Time = localtime();
 my $HostNameFile = '/etc/hostname';
 
 FileChk($HostNameFile);
-open(my $FH, '<', $HostNameFile);
+open($FH, '<', $HostNameFile);
 chomp(my $Host = <$FH>);
 close($FH);
 
