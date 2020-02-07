@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/ubuchk
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/ubuchk/completions
+# Started On        - Fri  7 Feb 21:36:54 GMT 2020
+# Last Change       - Fri  7 Feb 21:37:27 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This is the bash completion script for UbuChk.
+#------------------------------------------------------------------------------
+
+_ubuchk(){
+	GetArgs(){
+		local IsOpts F1 F2 _
+		ubuchk -h | while read F1 F2 _; do
+			if [ "$F1" = 'OPTS:' ]; then
+				printf '%s ' "${F2//|/ }"
+				IsOpts='true'
+			elif [ "$IsOpts" = 'true' ]; then
+				case $F1 in
+					-*)
+						printf '%s ' "${F1//|/ }"
+						[ -z "$F1" ] && break ;;
+					*) continue ;;
+				esac
+			fi
+		done
+	}
+
+	COMPREPLY=(`compgen -W "$(GetArgs)" -- "$2"`)
+}
+
+complete -F _ubuchk ubuchk
