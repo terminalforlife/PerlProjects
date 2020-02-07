@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 23:05:46 GMT 2020
+# Last Change       - Fri  7 Feb 23:17:23 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,7 +24,6 @@
 # Bugs:
 #
 #TODO: Fix `IsUbuntu` key not working, despite being set to `true`.
-#TODO: Fix formatting error (with period) when manually querying (via OPT).
 #TODO: Fix line spacing when `Summary` is enabled but `Recommend` isn't.
 #
 # Dependencies:
@@ -220,16 +219,17 @@ sub QueryAlert{
 
 	$Text::Wrap::columns = (GetTerminalSize())[0] - 1;
 
-	# Corrects formatting when `AutoQuery` is or isn't used.
-	unless (length($_[1]) > 0){
-		print("Alert #$HelpAlertID:\n");
-		print(wrap("  ", '  ', "\n$_\n")) foreach @Body
-	}else{
-		foreach (@Body){
-			# Ensures paragraphing works properly. The database must have a
-			# single period (`.`) on an otherwise empty line, for this to work.
-			print("\n") and next if $_ eq '.';
+	print("Alert #$HelpAlertID:\n\n") unless length($_[1]) > 0;
 
+	foreach (@Body){
+		# Ensures paragraphing works properly. The database must have a
+		# single period (`.`) on an otherwise empty line, for this to work.
+		print("\n") and next if $_ eq '.';
+
+		# Corrects formatting when `AutoQuery` is or isn't used.
+		unless (length($_[1]) > 0){
+			print(wrap("  ", '  ', "$_\n"))
+		}else{
 			print(wrap(" " x $QueryIndent, ' ' x $QueryIndent, "$_\n"));
 		}
 	}
