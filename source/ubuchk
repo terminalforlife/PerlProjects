@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 16:55:02 GMT 2020
+# Last Change       - Fri  7 Feb 18:29:25 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ my (
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
-	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent
+	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -389,6 +389,16 @@ if (-f -r -T $ConfigFile){
 					unless $Value > 0 and $Value <= 9;
 
 				$QueryIndent = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
+		}elsif ($Key eq 'DSLimit'){
+			if ($Value =~ /^[0-9]+$/){
+				# Default value and its bounds are mentioned in the config.
+				FErr(1, __LINE__, "Key '$Key' out of bounds.")
+					unless $Value >= 10 and $Value <= 100;
+
+				$DSLimit = $Value
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
@@ -837,50 +847,32 @@ if ($DiskSpace eq 'true'){
 	unless (-f $MountFile){
 		FErr(0, __LINE__, "File '$MountFile' not found.") unless -f $MountFile;
 	}else{
+		use Number::Bytes::Human 'format_bytes';
+		use Filesys::DiskSpace 'df';
+
 		FileChk($MountFile);
 		open(my $FH, '<', $MountFile);
 
-		my @MountPoints;
+		my (@MountPoints, $Used, $Free, $Size, $Mount, $Perc);
 		while (<$FH>){
 			chomp(my @Arr = split(' '));
-			push(@MountPoints, $Arr[0]) if /^\//
+
+			if (/^\//){
+				$Mount = $Arr[1] =~ s/\\040/ /gr;
+				($Used, $Free) = (df($Mount))[2,3];
+				$Used = $Used * 1024;
+				$Free = $Free * 1024;
+				$Size = $Free + $Used;
+				$Perc = int(($Used / $Size) * 100);
+
+				Alert(4612,
+					"Partition '$Arr[0]' is $Perc% full.",
+					"Recommended action is to clear out junk."
+				) if $Perc >= $DSLimit
+			}
 		}
 
 		close($FH);
-
-		use Number::Bytes::Human 'format_bytes';
-
-		my %Parts;
-		foreach my $Mount (sort(@MountPoints)){
-			my $BaseDevice = ($Mount =~ m{(?:.*/)(.*[^0-9]+)})[0];
-			my $Device = ($Mount =~ m{(.*[^0-9]+)})[0];
-			my $BlkDir = "/sys/block/$BaseDevice";
-
-			if (-d $BlkDir){
-				Info("Looking inside '$Device' block device.");
-
-				foreach (glob("$BlkDir/$BaseDevice*")){
-					my $SizeFile = "$_/size";
-					my $Sectors;
-
-					if (-f $SizeFile){
-						FileChk($SizeFile);
-						open(my $FH, '<', $SizeFile);
-						chomp($Sectors = <$FH>);
-						close($FH)
-					}else{
-						FErr(0, __LINE__, "Unable to count partition '$Mount' sectors.");
-						last
-					}
-
-					my $PartName = $_ =~ s|^/sys/block/.*/(.*)|/dev/$1|r;
-					my $SizeHuman = format_bytes($Sectors * 512);
-					$Parts{$PartName}{'Total'} = $SizeHuman
-				}
-			}else{
-				FErr(0, __LINE__, "Unable to access '$Device' block device.")
-			}
-		}
 	}
 }
 
