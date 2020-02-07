@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
 # Started On        - Fri  7 Feb 21:36:54 GMT 2020
-# Last Change       - Fri  7 Feb 21:37:27 GMT 2020
+# Last Change       - Fri  7 Feb 21:43:22 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -19,6 +19,8 @@ _ubuchk(){
 				IsOpts='true'
 			elif [ "$IsOpts" = 'true' ]; then
 				case $F1 in
+					--skip=*)
+						printf -- '--skip= ' ;;
 					-*)
 						printf '%s ' "${F1//|/ }"
 						[ -z "$F1" ] && break ;;
@@ -27,7 +29,7 @@ _ubuchk(){
 			fi
 		done
 	}
-
+GetArgs
 	COMPREPLY=(`compgen -W "$(GetArgs)" -- "$2"`)
 }
 
