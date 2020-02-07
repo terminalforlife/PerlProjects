@@ -1,0 +1,98 @@
+.TH "UBUCHK" "8" "2020-02-07" "UbuChk 2020-02-07" "UbuChk"
+.\" disable justification (adjust text to left margin only)
+
+.ad l
+
+.SH "NAME"
+ubuchk \- send your Ubuntu system to the doctor for a check-up
+.SH "SYNOPSIS"
+ubuchk [OPTS]
+.SH "DESCRIPTION"
+.PP
+Perform various system health checks, with a focus on security.
+.PP
+Provided, is an extensive user configuration file, offering plenty of different settings, including the ability to tweak various checks and the output to the user's needs.
+.PP
+The core concept of UbuChk, is to allow the user to easily perform a number of useful system tests, without actually requiring root privileges. In some cases, with more locked-down installations of Ubuntu-based distributions of Linux, root access may be required, but that's down to the user.
+.PP
+UbuChk doesn't aim to do anything like change system settings, delete system files, change kernel parameters, etc. This means that, within reason, anyone can run UbuChk.
+.PP
+The approach here is to inform the user and recommend or suggest that he or she does something based on what's in-front of them, similar to how system tools like ClamAV and Rootkit Hunter work.
+.SH "OPTIONS"
+-h, --help, -?
+.RS 4
+Display some helpful information.
+.RE
+.PP
+-v, --version
+.RS 4
+Output the version datestamp.
+.RE
+.PP
+--config <PATH>
+.RS 4
+Override the default user configuration file location.
+.RE
+.PP
+--force-reset
+.RS 4
+Force re-generation of config file. This will completely erase all previous settings, so use this with care.
+.RE
+.PP
+-U, --is-ubuntu
+.RS 4
+Execute as though in an Ubuntu-based environment. This can be set persistently using the 'IsUbuntu' key.
+.RE
+.PP
+-Q, --query <ID>
+.RS 4
+Read about the provided alert ID number.
+.RE
+.PP
+--skip=<ID>[,<ID> ...]
+.RS 4
+Skip one or more alerts, by ID. When specifying multiple alerts, each one should be separated by a comma.
+.RE
+.PP
+-S, --summary
+.RS 4
+Conclude with a brief summary, which might be useful for logging.
+.RE
+.PP
+-V, --verbose
+.RS 4
+Execute checks verbosely, allowing the user to see more of what is going on. This can be set persistently by using the 'Verbose' key.
+.SH "FILES"
+/usr/share/ubuchk/ubuchk.conf
+.RS 4
+The default configuration file. This file is copied over to the user area when a fresh one is 'generated'.
+.RE
+.PP
+/usr/share/ubuchk/ubuchk-db
+.RS 4
+The UbuChk database, used for querying alerts, in order to, by request, display relevant information to the user.
+.RE
+.PP
+~/.config/ubuchk/config
+.RS 4
+The user's own configurations. This file must be 'generated' first, by simply running UbuChk, then re-running it once the defaults have been copied over.
+.SH "AUTHOR"
+.PP
+\fB'terminalforlife' <terminalforlife@yahoo.com>
+.RE
+(also known as 'Learn Linux', over at YouTube)
+.PP
+.SH "BUGS"
+For bug reports and other issues with UbuChk, including suggestions, please report to the below GitHub link, through which the project is developed.
+.PP
+.RS 2
+https://github.com/terminalforlife/PerlProjects
+.RE
+.PP
+You may also E-Mail the author of this project, but it's rarely checked.
+.RE
+.PP
+As a last resort, however, one might simply leave a comment over at the below YouTube channel, 'Learn Linux'.
+.PP
+.RS 2
+https://www.youtube.com/c/LearnLinux
