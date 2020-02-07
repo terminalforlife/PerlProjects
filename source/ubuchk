@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 04:06:34 GMT 2020
+# Last Change       - Fri  7 Feb 16:00:41 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ my (
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
-	$DiskSpace
+	$DiskSpace, @ShownAlerts, $AutoQuery
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -149,22 +149,133 @@ sub Info{ # Usage: [STRING]
 	print("$_[0]\n") if $Verbose eq 'true'
 }
 
+sub FileChk{ # Usage: [FILE]
+	my $Err;
+	unless (-r $_[0]){
+		FErr(0, __LINE__, "File '$_[0]' unreadable."); $Err++
+	}elsif (-B $_[0]){
+		FErr(0, __LINE__, "File '$_[0]' is binary."); $Err++
+	}
+
+	exit(1) if $Err > 0;
+
+	Info("Checking '$_[0]' file.")
+}
+
+sub QueryAlert{
+	use Term::ReadKey 'GetTerminalSize';
+	use Text::Wrap 'wrap';
+
+	my $Database = '/usr/share/ubuchk/ubuchk-db';
+	my $HelpAlertID = $_[1] if length($HelpAlertID) == 0;
+
+	unless (-f $Database){
+		if (DepChk(':', 'cito') == 0){
+			FErr(0, __LINE__, "File '$Database' not found -- run:")
+				unless -f $Database;
+
+			print(
+				STDERR "cito -r terminalforlife PerlProjects " .
+				"ubuchk_project source/ubuchk-db\n"
+			);
+
+			exit(1)
+		}else{
+			FErr(1, __LINE__, "File '$Database' not found")
+		}
+	}
+
+	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
+
+	open(my $FH, '<', $Database);
+
+	my ($Found, @Body);
+	while (<$FH>){
+		chomp();
+
+		if (/^:[0-9,]+$/){
+			last if $Found eq 'true';
+
+			my @CurIDs = split(',', substr($_, 1));
+			foreach (@CurIDs){
+				next unless $_ == $HelpAlertID;
+
+				$Found = 'true';
+				last
+			}
+		}elsif ($Found eq 'true'){
+			push(@Body, $_)
+		}
+	}
+
+	close($FH);
+
+	FErr(1, __LINE__, "Alert '$HelpAlertID' not found -- are we up-to-date?")
+		unless $Found eq 'true';
+
+	$Text::Wrap::columns = (GetTerminalSize())[0];
+
+	print("Alert #$HelpAlertID:\n");
+	print(wrap("\n  ", '  ', "$_\n")) foreach @Body;
+
+	exit($_[0]) if $_[0] > 0
+}
+
 sub Alert{ # Usage: [ALERT_ID] [STRING]
 	unless (grep(/^$_[0]$/, @SkipIDs)){
 		$AlertCount++;
 
 		printf("[A%0.4d]: %s\n", $_[0], $_[1]);
 
-		printf("       + %s\n", $_[2])
-			if $Recommend eq 'true' and length($_[2]) > 0
+		printf("       + %s\n\n", $_[2])
+			if $Recommend eq 'true' and length($_[2]) > 0;
+
+		if ($AutoQuery eq 'true'){
+			# Don't want to keep showing the same query.
+			unless (grep($_[0], @ShownAlerts)){
+				QueryAlert(0, $_[0]);
+				push(@ShownAlerts, $_[0]);
+				print("\n")
+			}
+		}
 	}
 }
 
-sub FileChk{ # Usage: [FILE]
-	FErr(1, __LINE__, "File '$_[0]' unreadable.") unless -r $_[0];
-	FErr(1, __LINE__, "File '$_[0]' is binary.") if -B $_[0];
+sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
+	my $DpkgStatus = '/var/lib/dpkg/status';
 
-	Info("Checking '$_[0]' file.")
+	unless (-f $DpkgStatus){
+		FErr(0, __LINE__, "File '$DpkgStatus' not found.")
+	}else{
+		FileChk($DpkgStatus);
+		open(my $FH, '<', $DpkgStatus);
+
+		my ($Package, $Arch, $Status, @Packages);
+		while (<$FH>){
+			chomp();
+			next if /^$/;
+
+			my ($Key, $Value) = split(':');
+
+			if ($Key eq 'Package'){
+				$Package = $Value =~ tr/ //dr;
+			}elsif ($Key eq 'Status'){
+				$Status = $Value =~ tr/ //dr;
+			}elsif ($Key eq 'Architecture'){
+				$Arch = $Value =~ tr/ //dr;
+
+				next unless $Status eq $_[0];
+
+				push(@Packages, "$Package:$Arch")
+			}
+		}
+
+		close($FH);
+
+		Info("Finished with '$DpkgStatus' file.");
+
+		return(sort(@Packages))
+	}
 }
 
 #---------------------------------------------------------------------LSB Check
@@ -258,6 +369,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'DiskSpace'){
 			Boolean($Value);
 			$DiskSpace = $Value
+		}elsif ($Key eq 'AutoQuery'){
+			Boolean($Value);
+			$AutoQuery = $Value
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -288,102 +402,7 @@ if (@SkipIDs > 0){
 
 #-------------------------------------------------------------Querying an Alert
 
-if ($Query eq 'true'){
-	use Term::ReadKey 'GetTerminalSize';
-	use Text::Wrap 'wrap';
-
-	my $Database = '/usr/share/ubuchk/ubuchk-db';
-
-	unless (-f $Database){
-		if (DepChk(':', 'cito') == 0){
-			FErr(0, __LINE__, "File '$Database' not found -- run:")
-				unless -f $Database;
-
-			print(
-				STDERR "cito -r terminalforlife PerlProjects " .
-				"ubuchk_project source/ubuchk-db\n"
-			);
-
-			exit(1)
-		}else{
-			FErr(1, __LINE__, "File '$Database' not found")
-		}
-	}
-
-	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
-
-	open(my $FH, '<', $Database);
-
-	my ($Found, @Body);
-	while (<$FH>){
-		chomp();
-
-		if (/^:[0-9,]+$/){
-			last if $Found eq 'true';
-
-			my @CurIDs = split(',', substr($_, 1));
-			foreach (@CurIDs){
-				next unless $_ == $HelpAlertID;
-
-				$Found = 'true';
-				last
-			}
-		}elsif ($Found eq 'true'){
-			push(@Body, $_)
-		}
-	}
-
-	close($FH);
-
-	FErr(1, __LINE__, "Alert '$HelpAlertID' not found -- are we up-to-date?")
-		unless $Found eq 'true';
-
-	$Text::Wrap::columns = (GetTerminalSize())[0];
-
-	print("Alert #$HelpAlertID:\n");
-	print(wrap("\n  ", '  ', "$_\n")) foreach @Body;
-
-	exit(0)
-}
-
-#-------------------------------------------DPKG Status File Parsing Subroutine
-
-sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
-	my $DpkgStatus = '/var/lib/dpkg/status';
-
-	unless (-f $DpkgStatus){
-		FErr(0, __LINE__, "File '$DpkgStatus' not found.")
-	}else{
-		FileChk($DpkgStatus);
-		open(my $FH, '<', $DpkgStatus);
-
-		my ($Package, $Arch, $Status, @Packages);
-		while (<$FH>){
-			chomp();
-			next if /^$/;
-
-			my ($Key, $Value) = split(':');
-
-			if ($Key eq 'Package'){
-				$Package = $Value =~ tr/ //dr;
-			}elsif ($Key eq 'Status'){
-				$Status = $Value =~ tr/ //dr;
-			}elsif ($Key eq 'Architecture'){
-				$Arch = $Value =~ tr/ //dr;
-
-				next unless $Status eq $_[0];
-
-				push(@Packages, "$Package:$Arch")
-			}
-		}
-
-		close($FH);
-
-		Info("Finished with '$DpkgStatus' file.");
-
-		return(sort(@Packages))
-	}
-}
+QueryAlert(0) if $Query eq 'true';
 
 #-------------------------------------------------------------Kernel Parameters
 
@@ -834,22 +853,6 @@ if ($DiskSpace eq 'true'){
 						last
 					}
 
-#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# You were here.
-#
-# Need to fill the hash. Got the total size of each partition, in human output.
-# Now I just need the space used, somehow; hopefully I don't have to count it
-# myself, for each file, using stat; that would be painful.
-#
-# I could just use a module for this, but I'm trying to do as much as I can
-# with just Perl, to avoid dependencies and because it's educational & fun!
-#
-# Once I've got the used space sorted, I then need to do some arithmetic to get
-# the percentage remaining, as an integer, and then, finally, have that value
-# checked for the maximum allowed, before an alert ocurrs; this will be a key
-# in the configuration file, which will be awesome.
-#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
 					my $PartName = $_ =~ s|^/sys/block/.*/(.*)|/dev/$1|r;
 					my $SizeHuman = format_bytes($Sectors * 512);
 					$Parts{$PartName}{'Total'} = $SizeHuman
@@ -858,8 +861,6 @@ if ($DiskSpace eq 'true'){
 				FErr(0, __LINE__, "Unable to access '$Device' block device.")
 			}
 		}
-
-		print("$Parts{'/dev/sda1'}{Total}\n")
 	}
 }
 
@@ -879,8 +880,7 @@ open(my $FH, '<', $HostNameFile);
 chomp(my $Host = <$FH>);
 close($FH);
 
-print(qq{
-	  Timestamp: $Time
+print(qq{  Timestamp: $Time
 	   Hostname: $Host
 	   Username: $ENV{USER}
 	     UserID: $<
