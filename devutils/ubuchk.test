@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/devutils/ubuchk.test
 # Started On        - Wed 15 Jan 13:44:46 GMT 2020
-# Last Change       - Thu  6 Feb 18:25:37 GMT 2020
+# Last Change       - Sat  8 Feb 23:43:21 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,7 +15,7 @@ set -e
 . /usr/lib/tflbp-sh/ChkDep
 set +e
 
-CurVer='2020-02-06'
+CurVer='2020-02-08'
 Progrm=${0##*/}
 
 Usage(){
@@ -57,7 +57,7 @@ for Arg; {
 
 ChkDep tput mktemp perl sed sleep rm cp
 
-Run="$HOME/GitHub/terminalforlife/Personal/PerlProjects/source/ubuchk"
+Run="$HOME/GitHub/terminalforlife/Personal/PerlProjects/source/ubuchk/ubuchk"
 RealConfig="$HOME/.config/ubuchk/config"
 TestConfig=`mktemp`
 
