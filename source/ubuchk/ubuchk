@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  8 Feb 19:44:03 GMT 2020
+# Last Change       - Sat  8 Feb 21:41:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,27 +46,15 @@ my $CurVer = '2020-02-08';
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
 sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+	print(qq{Usage: $TFL::PROGNAME [OPTS]
 
-		            Send your Ubuntu system to the doctor for a check-up.
-
-		SYNTAX:     $TFL::PROGNAME [OPTS]
-
-		OPTS:       --help|-h|-?            - Display this help information.
-		            --version|-v            - Output the version datestamp.
-		            --force-reset           - Force generation of config file.
-		            --is-ubuntu|-U          - Execute as though in Ubuntu.
-		            --query|-Q N            - Read about alert ID number N.
-		            --skip=N[,N ...]        - Skip one or more N alerts, by ID.
-		            --verbose|-V            - Execute checks verbosely.
-
-		NOTE:       A valid alert ID is 4 digits, IE: 5248
-
-		EXAMPLE:    $TFL::PROGNAME -V --skip=5754,7416
-		            $TFL::PROGNAME -Q 8471
-
-		SITE:       $Domain
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  --force-reset            - Force generation of config file.
+		  --is-ubuntu              - Execute as though in Ubuntu.
+		  -Q, --query N            - Read about alert ID number N.
+		  --skip=N[,N ...]         - Skip one or more N alerts, by ID.
+		  -V, --verbose            - Execute checks verbosely.
 	} =~ tr/\t//dr)
 }
 
