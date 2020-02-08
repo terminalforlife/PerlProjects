@@ -21,10 +21,10 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 209d3c1907da506010a2dffaab6bb27b  source/vignify
 ed8f264f476f544cff517da0de92cd25  source/wcdl
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
-f664e2d7f8b4a4fd9896f684c39d2051  source/ubuchk/config
+380e0c76c1dfa1e97f29d5a9f31755f3  source/ubuchk/config
 d0ba102157331cdcd83e3e46a5383744  source/ubuchk/database
-1dfa0e8bab30315dbf0f1cc317d6f70e  source/ubuchk/ubuchk
-a2654d4a79ab203fe95594438b98fe88  source/ubuchk/ubuchk.8.gz
+e79a3391ea9a14f8bd045b4a133f1ee4  source/ubuchk/ubuchk
+1f191a450166caad411c55ba234d99cf  source/ubuchk/ubuchk.8.gz
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
 f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
 eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap

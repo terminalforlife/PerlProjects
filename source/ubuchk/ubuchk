@@ -15,7 +15,6 @@
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add notes to applicable keys if REGEX is viable, like `UnwantedPKGs`.
-#TODO: Add permission and ownership check for directories like `/boot`.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Have a grep check for the SystemD section, to ignore certain keys.

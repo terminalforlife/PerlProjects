@@ -6,40 +6,38 @@
 IsUbuntu=false
 Recommend=true
 ShowSummary=true
-Verbose=false
 SkipIDs=
+Verbose=false
 
 # Queries
 AutoQuery=false
 QueryIndent=9
 
 # Disk Usage
-DiskSpace=true
 DSLimit=90
+DiskSpace=true
 
 # Package Management
 HardAPT=true
-SkipAPT=APT::Install-Recommends
 PurgeChk=true
+SkipAPT=APT::Install-Recommends
 UnwantedPKGs=^virtualbox-guest-.*
 
 # Kernel
-KernParams=true
-SkipKP=
-KernMods=true
-SkipKMs=joydev
 CustomKMs=
+KernMods=true
+KernParams=true
+SkipKMs=joydev
+SkipKP=
 
 # Mode, Owner, and Group
-PathPerms=true
 DirPerms=true
+PathPerms=true
 
 # SSH
-SSHSerCli=true
 SSHDConfig=/etc/ssh/sshd_config
-
-# SystemD
-SystemD=true
+SSHSerCli=true
 
 # Miscellaneous
 Firewall=true
+SystemD=true
