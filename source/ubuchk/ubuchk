@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  7 Feb 23:52:34 GMT 2020
+# Last Change       - Sat  8 Feb 14:42:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-07';
+my $CurVer = '2020-02-08';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -531,7 +531,7 @@ if ($PathPerms eq 'true'){
 				7869,
 				"File '$_' permits '$Mode'.",
 				"Recommended permissions are '755'."
-			) unless substr($Mode, 1) <= 755;
+			) unless $Mode <= 755;
 
 			# These executables should not be owned by a standard user, nor
 			# should they be in such a group. <1000 is for system users/groups.
