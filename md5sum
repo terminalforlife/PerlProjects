@@ -5,9 +5,9 @@ eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
 d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 2711f51d7c53f9d0963c6fa4f3c228b7  source/completions/wcdl
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
-2be7935cd8dc0d2fe84ec8c1bf010fc7  source/ubuchk/config
+16b932df099781538e488e6797e4cfc3  source/ubuchk/config
 0f11f1c869b341d3299da6e41507235c  source/ubuchk/database
-647f91f2556302e5c245d7d2816cb574  source/ubuchk/ubuchk
+395c80722a5d68fb3579850a172c2d20  source/ubuchk/ubuchk
 64af962f5a01b85f790b1a1b0c84ff04  source/ubuchk/ubuchk.8.gz
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 2992bb26459073734e057cfdeab2ccd6  source/apt-undo-install

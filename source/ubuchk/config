@@ -1,107 +1,44 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
 # User configuration file for UbuChk (>= 2020-02-07)
+# Refer to ubuchk(8) to learn about these settings.
 
-# Since we're intended for use on Ubuntu-based distributions, an error will
-# display, were it not detected. This can can be overridden by enabling this
-# key, like the `--is-ubuntu-|U` option.
+# Core Settings
 IsUbuntu=false
-
-# Display a brief summary just before UbuChk closes.
-ShowSummary=true
-
-# In addition to alerting, a recommended value or action can be displayed below
-# the alert itself, if this key is enabled, which is by default.
 Recommend=true
-
-# Skip (ignore) one or more alert IDs. This key can be provided any number of
-# times, but unlike other similar keys, you may provide a comma-separated list
-# of IDs.
+ShowSummary=true
+Verbose=false
 SkipIDs=
 
-# Be verbose during checks, if enabled, like the `--verbose|-V` option.
-Verbose=false
+# Queries
+AutoQuery=false
+QueryIndent=9
 
-# If enabled, perform various checks for kernel parameters.
-KernParams=true
-
-# Skip (ignore) the provided kernel parameter. This can be specified multiple
-# times, using the same key, but only one value per key.
-#
-# Example: SkipKP=vm.swappiness
-#
-# No test will take place to confirm the parameter entered here is actually
-# handled by UbuChk, so if you wanted to have several specific parameters
-# ignored, for any future updates, it's possible.
-SkipKP=
-
-# If enabled, check for sane owner, group, and mode of `PATH` files.
-#
-# It's important to note that, at least for now, only the last three digits of
-# the numeric mode (for example `0755`) are checked.
-PathPerms=true
-
-# If enabled, look for removed packages yet to be purged. An unpurged package
-# simply means there are associated files (these are typically global
-# configurations) still remainig.
-PurgeChk=true
-
-# Security-bolstering APT options will be set, if this is enabled.
-HardAPT=true
-
-# Same applies as with `SkipKP`, but for skipping APT option checks. By
-# default, the following key is ignored, because it may seem a bit excessive, -
-# but more importantly, could wind up causing dependency issues for users
-# misunderstanding their packaging operation.
-SkipAPT=APT::Install-Recommends
-
-# If enabled, performs various SSH Daemon security checks. This will check the
-# default location of the `sshd_config` configuration file, so if you've got
-# the file elsewhere, you'll want to provide it below.
-SSHSerCli=false
-
-# Optionally, override the default location of the `sshd_config` file.
-SSHDConfig=/etc/ssh/sshd_config
-
-# These packages are potentially unwanted, so will be checked to see if they
-# are installed. Additional packages can be provided below. You must specify
-# the exact architecture which you're targeting. REGEX is allowed here.
-UnwantedPKGs=^virtualbox-guest-dkms:all$
-UnwantedPKGs=^virtualbox-guest-utils:all$
-
-# If enabled, check that the Uncomplicated FireWall (UFW) service (unit) is
-# active. If the UFW executable is not found in PATH, then this check will be
-# skipped.
-Firewall=true
-
-# If enabled, check for SystemD security tweaks and optimizations.
-SystemD=true
-
-# If enabled, a check will take place for various kernel modules, which may be
-# considered a security vulnerability or as typically unneeded.
-KernMods=true
-
-# Ignore kernel modules checked internally by UbuChk with this key. The module
-# below is ignored by default, mostly as an example, but there are also a
-# surprising number of gamers moving over to Linux.
-SkipKMs=joydev
-
-# Below, you may wish to specify your own modules for which to check. This key
-# can be used multiple times, as one module per value.
-CustomKMs=
-
-# If enabled, alert the user when there is low disk space in `/dev/sd*`
-# partitions. Loop devices and special filesystems like `tempfs` are ignored.
+# Disk Usage
 DiskSpace=true
-
-# The percentage a partition must be full before `DiskSpace` warnings appear.
-# The default value is `90`. A valid value is between `10` and `100`.
 DSLimit=90
 
-# Automatically query alerts shown. When there are multiple alerts of the same
-# ID, such as with the `UnwantedPKGs` key, the query output is shown only after
-# the initial alert message.
-AutoQuery=false
+# Package Management
+HardAPT=true
+SkipAPT=APT::Install-Recommends
+PurgeChk=true
+UnwantedPKGs=^virtualbox-guest-.*
 
-# Specify the number of columns by which to indent the query output, or simply
-# leave it set to the default of '9'. A valid value is between `0` and `9`.
-QueryIndent=9
+# Kernel
+KernParams=true
+SkipKP=
+KernMods=true
+SkipKMs=joydev
+CustomKMs=
+
+# PATH Executables
+PathPerms=true
+
+# SSH
+SSHSerCli=false
+SSHDConfig=/etc/ssh/sshd_config
+
+# SystemD
+SystemD=true
+
+# Miscellaneous Checks
+Firewall=true

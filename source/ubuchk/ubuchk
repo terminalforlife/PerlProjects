@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  8 Feb 19:15:30 GMT 2020
+# Last Change       - Sat  8 Feb 19:44:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,8 +23,7 @@
 #
 # Bugs:
 #
-#TODO: Fix line spacing issue when `AutoQuery` & `Summary` are on.
-#TODO: Fix line spacing issue when `AutoQuery` is on & `Recommend` is off.
+#
 #
 # Dependencies:
 #
@@ -248,10 +247,11 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 		printf("[A%0.4d]: %s\n", $_[0], $_[1]);
 
 		if ($Recommend eq 'true' and length($_[2]) > 0){
-			printf("       + %s\n\n", $_[2])
+			printf("       + %s\n", $_[2]);
+			print("\n") if $AutoQuery eq 'true'
 		}else{
 			# This is needed to maintain the empty line.
-			#printf("\n")
+			printf("\n")
 		}
 
 		if ($AutoQuery eq 'true'){
@@ -917,7 +917,7 @@ open(my $FH, '<', $HostNameFile);
 chomp(my $Host = <$FH>);
 close($FH);
 
-print("\n") if $Recommend ne 'true';
+print("\n") if $Verbose eq 'true' or $AutoQuery ne 'true';
 
 print(qq{  Timestamp: $Time
 	   Hostname: $Host
