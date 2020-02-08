@@ -1,9 +1,3 @@
-7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
-f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
-eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
-024a5e593e44ef74fbcd8be90b96b1a9  source/completions/previewer
-d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
-2711f51d7c53f9d0963c6fa4f3c228b7  source/completions/wcdl
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 2992bb26459073734e057cfdeab2ccd6  source/apt-undo-install
 d94871ec61508bab48e1f5ce8f1fcc6a  source/clean-locales
@@ -27,7 +21,13 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 209d3c1907da506010a2dffaab6bb27b  source/vignify
 ed8f264f476f544cff517da0de92cd25  source/wcdl
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
-58434672d6d3c26eccaad46293856392  source/ubuchk/config
-0f11f1c869b341d3299da6e41507235c  source/ubuchk/database
-395c80722a5d68fb3579850a172c2d20  source/ubuchk/ubuchk
-64af962f5a01b85f790b1a1b0c84ff04  source/ubuchk/ubuchk.8.gz
+f664e2d7f8b4a4fd9896f684c39d2051  source/ubuchk/config
+d0ba102157331cdcd83e3e46a5383744  source/ubuchk/database
+1dfa0e8bab30315dbf0f1cc317d6f70e  source/ubuchk/ubuchk
+a2654d4a79ab203fe95594438b98fe88  source/ubuchk/ubuchk.8.gz
+7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
+f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
+eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
+024a5e593e44ef74fbcd8be90b96b1a9  source/completions/previewer
+d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
+2711f51d7c53f9d0963c6fa4f3c228b7  source/completions/wcdl

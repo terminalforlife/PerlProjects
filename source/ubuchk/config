@@ -30,15 +30,16 @@ KernMods=true
 SkipKMs=joydev
 CustomKMs=
 
-# PATH Executables
+# Mode, Owner, and Group
 PathPerms=true
+DirPerms=true
 
 # SSH
-SSHSerCli=false
+SSHSerCli=true
 SSHDConfig=/etc/ssh/sshd_config
 
 # SystemD
 SystemD=true
 
-# Miscellaneous Checks
+# Miscellaneous
 Firewall=true

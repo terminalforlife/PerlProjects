@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  8 Feb 21:41:12 GMT 2020
+# Last Change       - Sat  8 Feb 23:17:43 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -63,13 +63,16 @@ my (
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
-	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData
+	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
+	$DirPerms
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
 my $ConfigFile = "$MainDir/config";
 my $Database = '/usr/share/ubuchk/database';
 my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/config";
+
+my $GID = (split(' ', $())[0];
 
 mkdir($MainDir) unless -d $MainDir;
 
@@ -379,6 +382,9 @@ if (-f -r -T $ConfigFile){
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
+		}elsif ($Key eq 'DirPerms'){
+			Boolean($Value);
+			$DirPerms = $Value
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -642,8 +648,8 @@ if ($SSHSerCli eq 'true'){
 		Alert(
 			5439,
 			"Directory '$SSHDir' is in group '$Group'.",
-			"Recommended group is your GID ('$(')."
-		) unless $Group == $(;
+			"Recommended group is your GID ('$GID')."
+		) unless $Group == $GID;
 	}
 
 	if (-f $SSHDConfig){
@@ -885,6 +891,43 @@ if ($DiskSpace eq 'true'){
 		}
 
 		close($FH);
+	}
+}
+
+#----------------------Specific File & Directory Permissions, Group & Ownership
+
+
+
+if ($DirPerms eq 'true'){
+	foreach ( # [ALERTID] [MODE] [UID] [GID]
+		"5440:700:$<:$GID:/home/$ENV{USER}",
+		'5436:700:0:0:/boot',
+		'5446:700:0:0:/root'
+	){
+		my ($AlertID, $TargetMode, $TargetUID, $TargetGID, $Path) = split(':');
+
+		next unless -d $Path;
+
+		my ($Mode, $Owner, $Group) = (stat($Path))[2,4,5];
+		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
+
+		Alert(
+			$AlertID,
+			"Directory '$Path' is mode '$Mode'.",
+			"Recommended permissions are '$TargetMode'."
+		) unless $Mode == $TargetMode;
+
+		Alert(
+			$AlertID,
+			"Directory '$Path' is owned by '$Owner'.",
+			"Recommended owner is your UID ('$TargetUID')."
+		) unless $Owner == $TargetUID;
+
+		Alert(
+			$AlertID,
+			"Directory '$Path' is in group '$Group'.",
+			"Recommended group is your GID ('$TargetGID')."
+		) unless $Group == $TargetGID;
 	}
 }
 
