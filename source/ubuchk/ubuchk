@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  8 Feb 23:17:43 GMT 2020
+# Last Change       - Sat  8 Feb 23:54:59 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -906,6 +906,8 @@ if ($DirPerms eq 'true'){
 		my ($AlertID, $TargetMode, $TargetUID, $TargetGID, $Path) = split(':');
 
 		next unless -d $Path;
+
+		Info("Looking at '$Path' directory.");
 
 		my ($Mode, $Owner, $Group) = (stat($Path))[2,4,5];
 		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
