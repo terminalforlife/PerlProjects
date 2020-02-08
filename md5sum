@@ -17,9 +17,9 @@
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
 76e87bd0e07353e7ad7deca910f4e36e  source/get-fma
+78c4c749be4a1937a07e413e10113b51  source/ubuchk/ubuchk.8.gz
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
-92047236d96c38bd3d696677da5c97c0  source/ubuchk/ubuchk.8.gz
 aeaab1ece38304f6f1a2c931623c566f  source/ubuchk/ubuchk
 b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
 d0ba102157331cdcd83e3e46a5383744  source/ubuchk/database
