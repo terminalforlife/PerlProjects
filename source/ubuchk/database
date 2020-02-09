@@ -111,3 +111,5 @@ A disk is almost full. Hunt down some stuff you don't need, then remove it. You 
 Undocumented.
 :5440
 While a user's own HOME area isn't quite as sensitive as many of the system directories, it still can contain personal, identifiable, and otherwise sensitive files better kept private, such as SSH keys and entire user-specific web browsing data.
+:7541
+Not assigning a port for the SSH Daemon to use will still result in the default of '22', the use of which is strongly discouraged, as it is so often knocked on.
