@@ -1,5 +1,6 @@
 024a5e593e44ef74fbcd8be90b96b1a9  source/completions/previewer
 13e1614125736f2537856a8affba1064  source/mkdeb
+145a7e01c2f7eb97d27237d0bb1bbba1  source/ubuchk/ubuchk
 1e8602e4d82e5c39c8f45e3f050e09b6  source/kernelchk
 209d3c1907da506010a2dffaab6bb27b  source/vignify
 20c3d6b6be1892ebb8adb0d4e9d90872  source/TFL.pm
@@ -7,9 +8,7 @@
 27bb8841b2f36bc9d88d196761f2cf11  source/fix-ff-gtk
 2992bb26459073734e057cfdeab2ccd6  source/apt-undo-install
 31d128100386f840b85484372e4c0ddb  source/getip
-380e0c76c1dfa1e97f29d5a9f31755f3  source/ubuchk/config
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
-42a7166fdb7851fa8407b92b2721015c  source/ubuchk/ubuchk
 45eb879f26e09ef3d4cfc607b9b80c3d  source/notify-upgrade
 6053ce2c2e61c3c0afcce0c0069d2f5d  source/suptime
 68968174542dcb1e453fcadc47fa3841  source/lsbins
@@ -18,9 +17,9 @@
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
 76e87bd0e07353e7ad7deca910f4e36e  source/get-fma
-78c4c749be4a1937a07e413e10113b51  source/ubuchk/ubuchk.8.gz
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
+a1ae868ed212fc9d7edd6a60ab21dc0d  source/ubuchk/ubuchk.8.gz
 b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
 d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 d2ce81815ffad3e70232393e82fc079e  source/cpufreq
@@ -31,3 +30,4 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
 ed8f264f476f544cff517da0de92cd25  source/wcdl
 f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
+fd2d93c03680ffcddb327dbfbf187b0d  source/ubuchk/config

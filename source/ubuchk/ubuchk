@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  9 Feb 13:35:09 GMT 2020
+# Last Change       - Sun  9 Feb 23:08:35 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,19 +14,13 @@
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
-#TODO: Add notes to applicable keys if REGEX is viable, like `UnwantedPKGs`.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
-#TODO: Have a grep check for the SystemD section, to ignore certain keys.
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
 #
-#TODO: Line spacing is bugged again, when Recommend is on and AutoQuery is off.
-#TODO: Queries, when auto-shown, are showing duplicates.
-#      This should be fixable by spreading out the queries in the database. It
-#      looks like the separate IDs in the database for the one query are not
-#      being respected.
+#TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #
 # Dependencies:
 #
@@ -67,7 +61,7 @@ my (
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
-	$DirPerms
+	$DirPerms, @SkipSysD
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -235,22 +229,20 @@ sub QueryAlert{
 }
 
 sub Alert{ # Usage: [ALERT_ID] [STRING]
-	unless (grep(/^$_[0]$/, @SkipIDs)){
+	unless (grep({$_ eq $_[0]} @SkipIDs)){
 		$AlertCount++;
 
 		printf("[A%0.4d]: %s\n", $_[0], $_[1]);
 
-		if ($Recommend eq 'true' and length($_[2]) > 0){
-			printf("       + %s\n", $_[2]);
-			print("\n") if $AutoQuery eq 'true'
+		if ($Recommend eq 'true'){
+			printf("       + %s\n\n", $_[2]);
 		}else{
-			# This is needed to maintain the empty line.
-			printf("\n")
+			printf("\n") if $AutoQuery eq 'true';
 		}
 
 		if ($AutoQuery eq 'true'){
 			# Don't want to keep showing the same query.
-			unless (grep(/^$_[0]$/, @ShownAlerts)){
+			unless (grep({$_ eq $_[0]} @ShownAlerts)){
 				QueryAlert(0, $_[0]);
 				push(@ShownAlerts, $_[0]);
 				print("\n")
@@ -388,6 +380,8 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'DirPerms'){
 			Boolean($Value);
 			$DirPerms = $Value
+		}elsif ($Key eq 'SkipSysD'){
+			push(@SkipSysD, $Value)
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -504,7 +498,7 @@ if ($KernParams eq 'true'){
 			$AlertID,
 			"Key '$ShowKey' assigned '$Value'.",
 			"Recommended value is '$GoodValue'."
-		) if $Value != $GoodValue and not grep(/^$ShowKey$/, @SkipKP)
+		) if $Value != $GoodValue and not grep({$_ eq $ShowKey} @SkipKP)
 	}
 }
 
@@ -605,7 +599,7 @@ if ($HardAPT eq 'true'){
 		){
 			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 
-			next if grep(/^$Key$/, @SkipAPT);
+			next if grep({$_ eq $Key} @SkipAPT);
 
 			unless (exists($Settings{$Key})){
 				Alert(
@@ -683,7 +677,7 @@ if ($SSHSerCli eq 'true'){
 		){
 			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 
-			next if grep(/^$Key$/, @SkipAPT);
+			next if grep({$_ eq $Key} @SkipAPT);
 
 			unless (exists($Settings{$Key})){
 				Alert(
@@ -785,6 +779,8 @@ if ($SystemD eq 'true'){
 	){
 		my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 
+		next if grep({$_ eq $Key} @SkipSysD);
+
 		unless (exists($Settings{$Key})){
 			Alert(
 				$AlertID1,
@@ -829,8 +825,8 @@ if ($KernMods eq 'true'){
 	){
 		my ($AlertID, $Module) = split('\|');
 
-		if (grep(/^$Module$/, @Modules)){
-			unless (grep(/^$Module$/, @SkipKMs)){
+		if (grep({$_ eq $Module} @Modules)){
+			unless (grep({$_ eq $Module} @SkipKMs)){
 				Info("Module '$Module' found but ignored.");
 				next # <-- Skipping the below alert.
 			}
@@ -850,7 +846,7 @@ if ($KernMods eq 'true'){
 			8189,
 			"Module '$Mod' discovered and live.",
 			"Recommended action is to blacklist the module."
-		) if grep(/^$Mod$/, @Modules)
+		) if grep({$_ eq $Mod} @Modules)
 	}
 }
 
@@ -953,12 +949,14 @@ open(my $FH, '<', $HostNameFile);
 chomp(my $Host = <$FH>);
 close($FH);
 
-print("\n") if $Verbose eq 'true' or $AutoQuery ne 'true';
+unless ($AutoQuery eq 'true' or $Recommend eq 'true'){
+	print("\n") # <-- Certain circumstances under which this is needed.
+}
 
 print(qq{  Timestamp: $Time
 	   Hostname: $Host
 	   Username: $ENV{USER}
-	     UserID: $<
+	    UID/GID: $</$GID
 	     Alerts: $AlertCount
 
 } =~ tr/\t//dr)
