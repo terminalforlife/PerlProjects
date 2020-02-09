@@ -9,6 +9,7 @@
 31d128100386f840b85484372e4c0ddb  source/getip
 380e0c76c1dfa1e97f29d5a9f31755f3  source/ubuchk/config
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
+42a7166fdb7851fa8407b92b2721015c  source/ubuchk/ubuchk
 45eb879f26e09ef3d4cfc607b9b80c3d  source/notify-upgrade
 6053ce2c2e61c3c0afcce0c0069d2f5d  source/suptime
 68968174542dcb1e453fcadc47fa3841  source/lsbins
@@ -18,11 +19,10 @@
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
 76e87bd0e07353e7ad7deca910f4e36e  source/get-fma
 78c4c749be4a1937a07e413e10113b51  source/ubuchk/ubuchk.8.gz
+7bd9b3ae8d8f9636c0a2311c06e2281b  source/ubuchk/database
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
-aeaab1ece38304f6f1a2c931623c566f  source/ubuchk/ubuchk
 b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
-d0ba102157331cdcd83e3e46a5383744  source/ubuchk/database
 d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 d2ce81815ffad3e70232393e82fc079e  source/cpufreq
 d94871ec61508bab48e1f5ce8f1fcc6a  source/clean-locales

@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  8 Feb 23:54:59 GMT 2020
+# Last Change       - Sun  9 Feb 13:35:09 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,7 +22,11 @@
 #
 # Bugs:
 #
-#
+#TODO: Line spacing is bugged again, when Recommend is on and AutoQuery is off.
+#TODO: Queries, when auto-shown, are showing duplicates.
+#      This should be fixable by spreading out the queries in the database. It
+#      looks like the separate IDs in the database for the one query are not
+#      being respected.
 #
 # Dependencies:
 #
@@ -40,7 +44,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-08';
+my $CurVer = '2020-02-09';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 

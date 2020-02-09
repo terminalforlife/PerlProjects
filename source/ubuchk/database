@@ -73,7 +73,7 @@ Ubuntu takes a very on/off approach to certain elements of security, a philosoph
 Bottom line, run ufw. Better safe than sorry."
 .
   -- Scaine, January 22nd, 2011, on askubuntu.com
-:1411,1412,1413,1414,1415,1416,1417,14148
+:1411,1412,1413,1414,1415,1416,1417,1418
 Refer to systemd-system.conf(5) and systemd(1) for in-depth information.
 .
 Apparently, it's recommended, for security, to set `DefaultLimitNPROC` to `1024`, `DefaultLimitNOFILE` to `1024`, CrashShell to `no`, and DumpCore to `no`. (citation needed)
