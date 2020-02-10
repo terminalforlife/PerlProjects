@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 10 Feb 01:25:32 GMT 2020
+# Last Change       - Mon 10 Feb 03:16:17 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,11 +14,11 @@
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
+#TODO: Add keys for custom battery drain alert points.
+#TODO: Add support for multiple batteries.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Somehow handle the first digit in `stat()` mode.
-#TODO: Add keys for custom battery drain alert points.
-#TODO: Add support for multiple batteries.
 #
 # Bugs:
 #
@@ -63,7 +63,7 @@ my (
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
-	$DirPerms, @SkipSysD, $Laptop
+	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -288,6 +288,12 @@ sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 
 		return(sort(@Packages))
 	}
+}
+
+# Want to avoid all this processing if it's not needed.
+if ($SSHSerCli eq 'true' or @UnwantedPKGs > 0 or $PurgeChk eq 'true'){
+	@Installed = sort(ParseDpkgStatus('installokinstalled'));
+	@NotPurged = sort(ParseDpkgStatus('deinstallokconfig-files'));
 }
 
 #-------------------------------------Configuration File Parsing and Generation
@@ -555,15 +561,13 @@ if ($PathPerms eq 'true'){
 if ($PurgeChk eq 'true'){
 	Info("Looking for old package remains.");
 
-	my @Data = ParseDpkgStatus('deinstallokconfig-files');
-
 	Alert(
 		6712,
 		"Package '$_' wasn't purged.",
 		"Suggested action is to purge the package."
-	) foreach sort(@Data);
+	) foreach @NotPurged;
 
-	Info('No packages were found unpurged.') if @Data == 0
+	Info('No packages were found unpurged.') if @NotPurged == 0
 }
 
 #-----------------------------------------------------------APT Security Tweaks
@@ -628,7 +632,7 @@ if ($HardAPT eq 'true'){
 if ($SSHSerCli eq 'true'){
 	my $SSHDir = "$ENV{HOME}/.ssh";
 
-	if (-d $SSHDir){
+	if (-d $SSHDir and grep({$_ eq 'openssh-client'} @Installed)){
 		FErr(1, __LINE__, "Directory '$SSHDir' unreadable.") unless -r $SSHDir;
 		FErr(1, __LINE__, "Directory '$SSHDir' is binary.") unless -x $SSHDir;
 
@@ -654,7 +658,7 @@ if ($SSHSerCli eq 'true'){
 		) unless $Group == $GID;
 	}
 
-	if (-f $SSHDConfig){
+	if (-f $SSHDConfig and grep({$_ eq 'openssh-server'} @Installed)){
 		FErr(1, __LINE__, "File '$SSHDConfig' unreadable.") unless -r $SSHDConfig;
 		FErr(1, __LINE__, "File '$SSHDConfig' is binary.") if -B $SSHDConfig;
 
@@ -726,7 +730,7 @@ if (@UnwantedPKGs > 0){
 			5656,
 			"Package(s) matching '$CurPKG' installed.",
 			"Suggested action is to uninstall the package(s)."
-		) if grep(/$CurPKG/, ParseDpkgStatus('installokinstalled'))
+		) if grep(/$CurPKG/, @Installed)
 	}
 }
 
