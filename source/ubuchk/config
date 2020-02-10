@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-02-08)
+# User configuration file for UbuChk (>= 2020-02-10)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
@@ -21,10 +21,10 @@ DiskSpace=true
 HardAPT=true
 PurgeChk=true
 SkipAPT=APT::Install-Recommends
-UnwantedPKGs=kerneloops.*
-UnwantedPKGs=popularity-contest
-UnwantedPKGs=telnet.*
-UnwantedPKGs=virtualbox-guest-.*
+UnwantedPKGs=^kerneloops.*
+UnwantedPKGs=^popularity-contest
+UnwantedPKGs=^telnet.*
+UnwantedPKGs=^virtualbox-guest-.*
 
 # Kernel
 CustomKMs=

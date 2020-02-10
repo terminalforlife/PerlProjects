@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 10 Feb 04:52:08 GMT 2020
+# Last Change       - Mon 10 Feb 16:29:05 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -425,8 +425,9 @@ if (-f -r -T $ConfigFile){
 
 	exit(1) if $InvalidKeyCount > 0;
 
+	# Because this would otherwise make no sense.
 	FErr(1, __LINE__, "Key conflict with 'BatCrit' and 'BatLow'.")
-		if $BatCrit >= $BatLow # <-- Because this would make no sense.
+		if $Laptop eq 'true' and $BatCrit >= $BatLow
 }else{
 	use File::Copy 'copy';
 
