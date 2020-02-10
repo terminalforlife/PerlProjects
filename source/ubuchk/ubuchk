@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 10 Feb 22:45:59 GMT 2020
+# Last Change       - Mon 10 Feb 23:37:38 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -139,6 +139,9 @@ while (defined($ARGV[0])){
 	shift()
 }
 
+# Needs to be here, for the FileChk() function.
+my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
+
 #-----------------------------------------------------Miscellaneous Subroutines
 
 sub Info{ # Usage: [STRING]
@@ -156,7 +159,7 @@ sub FileChk{ # Usage: [FILE]
 	exit(1) if $Err > 0;
 
 	# Don't want the summary, if shown, to be cluttered here.
-	return if $_[0] eq '/etc/hostname';
+	return if $_[0] eq '/etc/hostname' or $_[0] =~ m{^$VulnDir};
 
 	Info("Checking '$_[0]' file.")
 }
@@ -1009,8 +1012,6 @@ if ($Laptop eq 'true'){
 #------------------------------------------------------CPU Marked as Vulnerable
 
 if ($ProcVuln eq 'true'){
-	my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
-
 	if (-d $VulnDir){
 		FErr(1, __LINE__, "Directory '$VulnDir' unreadable.")
 			unless -r $VulnDir;
@@ -1019,20 +1020,38 @@ if ($ProcVuln eq 'true'){
 			unless -x $VulnDir;
 
 		foreach (glob("$VulnDir/*")){
+			next unless -f;
+
 			my $Vuln = ($_ =~ m{(?:.*/)(.*)})[0];
-			Info("Checking whether CPU if vulnerable to $Vuln.");
+
+			# Excessive.
+			#Info("Checking whether CPU if vulnerable to $Vuln.");
 
 			FileChk($_);
 			open(my $FH, '<', $_);
 			chomp(my $Data = <$FH>);
 			close($FH);
 
-			Alert(
-				4811,
-				"CPU marked as vulnerable to $Vuln.",
-				"Don't panic -- refer to: $TFL::PROGNAME -Q 4811"
-			) if $Data =~ ': Vulnerable$'
+			if ($Data =~ /Vulnerable/i){
+				Alert(
+					4811,
+					"CPU marked as vulnerable to $Vuln.",
+					"Don't panic -- refer to: $TFL::PROGNAME -Q 4811"
+				)
+			}elsif ($Data =~ /Not affected/i){
+				Info("Unaffected by $Vuln vulnerability.")
+			}elsif ($Data =~ /Mitigation/i){
+				Info("Vulnerability $Vuln mitigated.")
+			}else{
+				Alert(
+					4812,
+					"Unrecognised vulnerability status to $Vuln.",
+					"Don't panic -- refer to: $TFL::PROGNAME -Q 4812"
+				)
+			}
 		}
+	}else{
+		Info("Unable to determine CPU vulnerabilities.")
 	}
 }
 
