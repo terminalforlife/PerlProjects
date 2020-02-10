@@ -21,7 +21,10 @@ DiskSpace=true
 HardAPT=true
 PurgeChk=true
 SkipAPT=APT::Install-Recommends
-UnwantedPKGs=^virtualbox-guest-.*
+UnwantedPKGs=kerneloops.*
+UnwantedPKGs=popularity-contest
+UnwantedPKGs=telnet.*
+UnwantedPKGs=virtualbox-guest-.*
 
 # Kernel
 CustomKMs=
@@ -42,6 +45,10 @@ SSHSerCli=true
 SkipSysD=
 SystemD=true
 
+# Portable Machine
+BatCrit=10
+BatLow=20
+Laptop=true
+
 # Miscellaneous
 Firewall=true
-Laptop=true

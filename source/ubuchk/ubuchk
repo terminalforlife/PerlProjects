@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 10 Feb 03:16:17 GMT 2020
+# Last Change       - Mon 10 Feb 04:24:10 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -63,7 +63,7 @@ my (
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
-	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged
+	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -265,7 +265,7 @@ sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 		my ($Package, $Arch, $Status, @Packages);
 		while (<$FH>){
 			chomp();
-			next if /^$/;
+			next if $_ eq '';
 
 			my ($Key, $Value) = split(':');
 
@@ -288,12 +288,6 @@ sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 
 		return(sort(@Packages))
 	}
-}
-
-# Want to avoid all this processing if it's not needed.
-if ($SSHSerCli eq 'true' or @UnwantedPKGs > 0 or $PurgeChk eq 'true'){
-	@Installed = sort(ParseDpkgStatus('installokinstalled'));
-	@NotPurged = sort(ParseDpkgStatus('deinstallokconfig-files'));
 }
 
 #-------------------------------------Configuration File Parsing and Generation
@@ -393,6 +387,24 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'Laptop'){
 			Boolean($Value);
 			$Laptop = $Value
+		}elsif ($Key eq 'BatCrit'){
+			if ($Value =~ /^[0-9]+$/){
+				FErr(1, __LINE__, "Key '$Key' out of bounds.")
+					unless $Value > 0 and $Value <= 99;
+
+				$BatCrit = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
+		}elsif ($Key eq 'BatLow'){
+			if ($Value =~ /^[0-9]+$/){
+				FErr(1, __LINE__, "Key '$Key' out of bounds.")
+					unless $Value > 0 and $Value <= 99;
+
+				$BatLow = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -402,7 +414,10 @@ if (-f -r -T $ConfigFile){
 
 	close($FH);
 
-	exit(1) if $InvalidKeyCount > 0
+	exit(1) if $InvalidKeyCount > 0;
+
+	FErr(1, __LINE__, "Key conflict with 'BatCrit' and 'BatLow'.")
+		if $BatCrit >= $BatLow # <-- Because this would make no sense.
 }else{
 	use File::Copy 'copy';
 
@@ -424,6 +439,12 @@ if (@SkipIDs > 0){
 			unless /^[0-9]{4}$/
 	}
 }
+
+@Installed = sort(ParseDpkgStatus('installokinstalled'))
+	if $SSHSerCli eq 'true' or @UnwantedPKGs > 0;
+
+@NotPurged = sort(ParseDpkgStatus('deinstallokconfig-files'))
+	if $PurgeChk eq 'true';
 
 #---------------------------------------------------------------------LSB Check
 
@@ -952,13 +973,13 @@ if ($Laptop eq 'true'){
 
 		my $Battery = $BatFile =~ s/.*\/BAT([0-9]+)\/capacity$/$1/r;
 
-		if ($BatPerc <= 10){
+		if ($BatPerc <= $BatCrit){
 			Alert(
 				2850,
 				"Battery #$Battery is at $BatPerc% capacity.",
 				"Save your work and shut down the computer."
 			)
-		}elsif ($BatPerc <= 20){
+		}elsif ($BatPerc <= $BatLow){
 			Alert(
 				2849,
 				"Battery #$Battery is at $BatPerc% capacity.",
