@@ -25,9 +25,9 @@ b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
 d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 d2ce81815ffad3e70232393e82fc079e  source/cpufreq
 d94871ec61508bab48e1f5ce8f1fcc6a  source/clean-locales
-e62df622b9e6688fc41af74bdf3b37ff  source/ubuchk/database
 e6858c18ef7499b24b2fb17e08f52b4f  source/gitbrov
 eade09b4413ebc944a87b83e98ed295d  source/previewer
 eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
 ed8f264f476f544cff517da0de92cd25  source/wcdl
 f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
+fcaa21dad590a36c8459318ed2afc0b4  source/ubuchk/database
