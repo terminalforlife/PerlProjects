@@ -11,12 +11,12 @@
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
 45eb879f26e09ef3d4cfc607b9b80c3d  source/notify-upgrade
 6053ce2c2e61c3c0afcce0c0069d2f5d  source/suptime
+6236045f42d7c185df213dee762fe839  source/ubuchk/ubuchk.8.gz
 68968174542dcb1e453fcadc47fa3841  source/lsbins
 68d869825a38b876a4ebef643d5f9bc7  source/redshifter
 68fbf75ef30ed2fa0509fa5950e854d2  source/gitsap
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
-74d0dcc7bdc4c09d6a2f4b04c46be627  source/ubuchk/ubuchk.8.gz
 76e87bd0e07353e7ad7deca910f4e36e  source/get-fma
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
