@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  9 Feb 23:08:35 GMT 2020
+# Last Change       - Mon 10 Feb 01:25:32 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,6 +17,8 @@
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Somehow handle the first digit in `stat()` mode.
+#TODO: Add keys for custom battery drain alert points.
+#TODO: Add support for multiple batteries.
 #
 # Bugs:
 #
@@ -38,7 +40,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-09';
+my $CurVer = '2020-02-10';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -61,7 +63,7 @@ my (
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
-	$DirPerms, @SkipSysD
+	$DirPerms, @SkipSysD, $Laptop
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -382,6 +384,9 @@ if (-f -r -T $ConfigFile){
 			$DirPerms = $Value
 		}elsif ($Key eq 'SkipSysD'){
 			push(@SkipSysD, $Value)
+		}elsif ($Key eq 'Laptop'){
+			Boolean($Value);
+			$Laptop = $Value
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -895,8 +900,6 @@ if ($DiskSpace eq 'true'){
 
 #----------------------Specific File & Directory Permissions, Group & Ownership
 
-
-
 if ($DirPerms eq 'true'){
 	foreach ( # [ALERTID] [MODE] [UID] [GID]
 		"5440:700:$<:$GID:/home/$ENV{USER}",
@@ -929,6 +932,37 @@ if ($DirPerms eq 'true'){
 			"Directory '$Path' is in group '$Group'.",
 			"Recommended group is your GID ('$TargetGID')."
 		) unless $Group == $TargetGID;
+	}
+}
+
+#-----------------------------------------------------------------Laptop Checks
+
+if ($Laptop eq 'true'){
+	my $BatFile = '/sys/class/power_supply/BAT1/capacity';
+
+	if (-f $BatFile){
+		FileChk($BatFile);
+		open(my $FH, '<', $BatFile);
+		chomp(my $BatPerc = <$FH>);
+		close($FH);
+
+		my $Battery = $BatFile =~ s/.*\/BAT([0-9]+)\/capacity$/$1/r;
+
+		if ($BatPerc <= 10){
+			Alert(
+				2850,
+				"Battery #$Battery is at $BatPerc% capacity.",
+				"Save your work and shut down the computer."
+			)
+		}elsif ($BatPerc <= 20){
+			Alert(
+				2849,
+				"Battery #$Battery is at $BatPerc% capacity.",
+				"Recommended action is to charge the battery."
+			)
+		}else{
+			Info("Battery #$Battery still has $BatPerc% left.")
+		}
 	}
 }
 

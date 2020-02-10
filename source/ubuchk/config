@@ -44,3 +44,4 @@ SystemD=true
 
 # Miscellaneous
 Firewall=true
+Laptop=true
