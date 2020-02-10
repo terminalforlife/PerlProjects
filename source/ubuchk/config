@@ -52,3 +52,4 @@ Laptop=true
 
 # Miscellaneous
 Firewall=true
+ProcVuln=true

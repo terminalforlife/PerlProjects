@@ -115,3 +115,5 @@ While a user's own HOME area isn't quite as sensitive as many of the system dire
 Not assigning a port for the SSH Daemon to use will still result in the default of '22', the use of which is strongly discouraged, as it is so often knocked on.
 :2850,2849
 Undocumented.
+:4811
+Please use a search engine to look for the detected vulnerability and the version of Linux (the kernel) you're running. Chances are, lots of people are working on it across the board, and/or the threat is so low and specific that you needn't really worry.

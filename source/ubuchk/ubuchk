@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 10 Feb 17:48:02 GMT 2020
+# Last Change       - Mon 10 Feb 22:45:59 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -73,7 +73,8 @@ my (
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
-	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow
+	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
+	$ProcVuln
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -415,6 +416,9 @@ if (-f -r -T $ConfigFile){
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
+		}elsif ($Key eq 'ProcVuln'){
+			Boolean($Value);
+			$ProcVuln = $Value
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -998,6 +1002,36 @@ if ($Laptop eq 'true'){
 			)
 		}else{
 			Info("Battery #$Battery still has $BatPerc% left.")
+		}
+	}
+}
+
+#------------------------------------------------------CPU Marked as Vulnerable
+
+if ($ProcVuln eq 'true'){
+	my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
+
+	if (-d $VulnDir){
+		FErr(1, __LINE__, "Directory '$VulnDir' unreadable.")
+			unless -r $VulnDir;
+
+		FErr(1, __LINE__, "Unable to open '$VulnDir' directory.")
+			unless -x $VulnDir;
+
+		foreach (glob("$VulnDir/*")){
+			my $Vuln = ($_ =~ m{(?:.*/)(.*)})[0];
+			Info("Checking whether CPU if vulnerable to $Vuln.");
+
+			FileChk($_);
+			open(my $FH, '<', $_);
+			chomp(my $Data = <$FH>);
+			close($FH);
+
+			Alert(
+				4811,
+				"CPU marked as vulnerable to $Vuln.",
+				"Don't panic -- refer to: $TFL::PROGNAME -Q 4811"
+			) if $Data =~ ': Vulnerable$'
 		}
 	}
 }
