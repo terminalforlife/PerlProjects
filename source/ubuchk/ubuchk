@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 10 Feb 04:24:10 GMT 2020
+# Last Change       - Mon 10 Feb 04:35:08 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
+#TODO: Add check for Linux, just in-case.
 #TODO: Add keys for custom battery drain alert points.
 #TODO: Add support for multiple batteries.
 #TODO: Add update feature, because it's important to keep this updated.
