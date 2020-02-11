@@ -1,0 +1,98 @@
+#!/usr/bin/env perl
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/dayborn
+# Started On        - Mon 10 Feb 23:49:15 GMT 2020
+# Last Change       - Tue 11 Feb 01:39:15 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This project was originally called Iteration. The aim was to generate a more
+# traditional version number from the delta of the two timestamps, the time the
+# project was born, and the time of the last change made.
+#
+# In the end, it wound up being a nifty little program which simply outputs how
+# many days it has been since the project was born, hence the name.
+#
+# Dependencies:
+#
+#   libtfl-perl (>= 2020-01-03)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use TFL 'Err';
+use Date::Format 'time2str';
+use File::Basename 'basename';
+use Time::Piece;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2020-02-11';
+
+sub Usage{
+	print(qq{Usage: $TFL::PROGNAME [OPTS] [FILE]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+	} =~ tr/\t//dr)
+}
+
+while (defined($ARGV[0])){
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+		Usage(1); exit(0)
+	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+		print("$CurVer\n"); exit(0)
+	}elsif ($ARGV[0] =~ '^-'){
+		Err(1, "Incorrect option(s) specified.")
+	}else{
+		last
+	}
+
+	shift()
+}
+
+Err(1, "File name required -- see: $TFL::PROGNAME -h") unless @ARGV == 1;
+Err(1, "Only one file at a time is valid.") if @ARGV > 1;
+
+Err(1, "File '$ARGV[0]' not found.") unless -f $ARGV[0];
+Err(1, "File '$ARGV[0]' unreadable.") unless -r $ARGV[0];
+Err(1, "File '$ARGV[0]' is binary.") if -B $ARGV[0];
+
+open(my $FH, '<', $ARGV[0]);
+
+my ($Start, $Now);
+while (<$FH>){
+	next unless /^# (Started|Last) /;
+
+	chomp(my @Arr = split(' '));
+
+	# The following format is expected:
+	#
+	#   '# Started On        - Mon 10 Feb 23:49:15 GMT 2020'
+	#
+	$Start = Time::Piece->strptime(
+		join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+	)->epoch() if $Arr[1] eq 'Started';
+
+	# The following format is expected:
+	#
+	#   '# Last Change       - Tue 11 Feb 01:00:34 GMT 2020'
+	#
+	$Now = Time::Piece->strptime(
+		join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+	)->epoch() if $Arr[1] eq 'Last'
+}
+
+close($FH);
+
+# Room for expansion, allowing the user to pick by what timeframe.
+my $DeltaSec = $Now - $Start;
+my $DeltaMin = $DeltaSec / 60;
+my $DeltaHou = $DeltaMin / 60;
+my $DeltaDay = $DeltaHou / 24;
+
+my $Project = basename($ARGV[0]);
+printf("Project '%s' was born %.2f day's ago.\n", $Project, $DeltaDay)
