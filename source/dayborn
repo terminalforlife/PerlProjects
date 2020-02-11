@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dayborn
 # Started On        - Mon 10 Feb 23:49:15 GMT 2020
-# Last Change       - Tue 11 Feb 01:39:15 GMT 2020
+# Last Change       - Tue 11 Feb 02:11:56 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ while (<$FH>){
 
 	chomp(my @Arr = split(' '));
 
-	# The following format is expected:
+	# The following format (sans quotes) is expected:
 	#
 	#   '# Started On        - Mon 10 Feb 23:49:15 GMT 2020'
 	#
@@ -77,7 +77,7 @@ while (<$FH>){
 		join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
 	)->epoch() if $Arr[1] eq 'Started';
 
-	# The following format is expected:
+	# The following format (sans quotes) is expected:
 	#
 	#   '# Last Change       - Tue 11 Feb 01:00:34 GMT 2020'
 	#
@@ -88,11 +88,7 @@ while (<$FH>){
 
 close($FH);
 
-# Room for expansion, allowing the user to pick by what timeframe.
-my $DeltaSec = $Now - $Start;
-my $DeltaMin = $DeltaSec / 60;
-my $DeltaHou = $DeltaMin / 60;
-my $DeltaDay = $DeltaHou / 24;
-
 my $Project = basename($ARGV[0]);
+my $DeltaDay = ($Now - $Start) / 60 / 60 / 24;
+
 printf("Project '%s' was born %.2f day's ago.\n", $Project, $DeltaDay)
