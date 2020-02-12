@@ -10,6 +10,7 @@ eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
 d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 2711f51d7c53f9d0963c6fa4f3c228b7  source/completions/wcdl
 d2ce81815ffad3e70232393e82fc079e  source/cpufreq
+5d5a97c68842f53ccdec129ad52a46b7  source/dayborn
 27bb8841b2f36bc9d88d196761f2cf11  source/fix-ff-gtk
 76e87bd0e07353e7ad7deca910f4e36e  source/get-fma
 31d128100386f840b85484372e4c0ddb  source/getip
@@ -28,8 +29,8 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
 38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
 11f452123b4c70aa77cf88f871f3bf43  source/ubuchk/config
-667ac8dd10f90372a8e6ebf5c20ecfe4  source/ubuchk/database
-9edbfde0e8a21f3f64dd01557c95c50d  source/ubuchk/ubuchk
-519f48b4b5eceae7f1b1d45395b70eca  source/ubuchk/ubuchk.8.gz
+7746456ad1cf33a3a26fdd96f68ef53c  source/ubuchk/database
+e9d8091946042c6c4fc8e0f46e4c4778  source/ubuchk/ubuchk
+ae3f0f78bdb240188348cb294542b4c7  source/ubuchk/ubuchk.8.gz
 209d3c1907da506010a2dffaab6bb27b  source/vignify
 ed8f264f476f544cff517da0de92cd25  source/wcdl
