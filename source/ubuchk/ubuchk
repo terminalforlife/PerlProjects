@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 12 Feb 02:04:29 GMT 2020
+# Last Change       - Wed 12 Feb 02:08:48 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -1046,5 +1046,5 @@ if ($ProcVuln eq 'true'){
 #------------------------------------------------------------------------Finish
 
 # This verbosity message is a bit out of place otherwise.
-Info("Done, with $AlertCount alert(s) found.") if $AlertCount > 0;
-Info("Done.") if $AlertCount == 0
+print("Done, with $AlertCount alert(s) found.\n") if $AlertCount > 0;
+print("Done.\n") if $AlertCount == 0
