@@ -5,13 +5,12 @@
 # Core Settings
 IsUbuntu=false
 Recommend=true
-ShowSummary=true
 SkipIDs=
 Verbose=false
 
 # Queries
 AutoQuery=false
-QueryIndent=9
+QueryIndent=8
 
 # Disk Usage
 DSLimit=90
