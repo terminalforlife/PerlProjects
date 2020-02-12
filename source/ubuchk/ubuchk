@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 12 Feb 00:50:47 GMT 2020
+# Last Change       - Wed 12 Feb 01:11:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,6 +23,7 @@
 #TODO: Add check for sensor temperatures and fan speeds.
 #TODO: Add check for using `NAME=` in `fstab` instead of `UUID=`, for example.
 #TODO: Add check(s) for swapfile permissions if it's detected in `/`.
+#TODO: Add key to ignore undetermined kernel parameters.
 #TODO: Add keys for custom battery drain alert points.
 #TODO: Add support for multiple batteries.
 #TODO: Add update feature, because it's important to keep this updated.
