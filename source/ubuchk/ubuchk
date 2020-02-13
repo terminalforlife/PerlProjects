@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 13 Feb 21:35:20 GMT 2020
+# Last Change       - Thu 13 Feb 22:05:33 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,7 +16,6 @@
 #TODO: Add `Info()` for `Laptop` when it's plugged in and charging.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governer when using a laptop.
-#TODO: Add check for Linux, just in-case.
 #TODO: Add check for X amount of space taken up in Trash and/or user's cache?
 #TODO: Add check for `nodev` and `noexec` for `/home` if detected.
 #TODO: Add check for detecting package changes via `apt-get`?
@@ -76,6 +75,7 @@ my (
 	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
+	$OSOverride
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -129,6 +129,8 @@ while (defined($ARGV[0])){
 		$IsUbuntu = 'true'
 	}elsif($ARGV[0] =~ '^(--verbose|-V)$'){
 		$Verbose = 'true'
+	}elsif($ARGV[0] eq '--os-override'){
+		$OSOverride = 'true'
 	}elsif ($ARGV[0] =~ '^-'){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
@@ -136,6 +138,19 @@ while (defined($ARGV[0])){
 	}
 
 	shift()
+}
+
+unless ($OSOverride eq 'true'){
+	if (-f -r '/proc/version'){
+		open(my $FH, '<', '/proc/version');
+		my $OS = (split(' ', <$FH>))[0];
+		close($FH);
+
+		FErr(1, __LINE__, "Sorry, $OS is not supported by UbuChk.")
+			unless $OS eq 'Linux'
+	}else{
+		FErr(1, __LINE__, 'Unable to determine OS -- refer to ubuchk(8).')
+	}
 }
 
 # Needs to be here, for the FileChk() function.
