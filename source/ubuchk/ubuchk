@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 13 Feb 02:32:31 GMT 2020
+# Last Change       - Thu 13 Feb 20:34:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -28,23 +28,22 @@
 #TODO: Add support for multiple batteries.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
-#TODO: File `01-vendor-ubuntu` limited to only it -- check files in directory.
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
 #
-#TODO: Error via statfs on a snap mountpoint, when `DiskSpace` is on.
-#TODO: Fix borked Bash completion script after changing `Usage()` output.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
-#TODO: Reporting '01-vendor-ubuntu' is binary, when making blank file, as told.
 #
 # Dependencies:
 #
+#   apt (>= 1.2.32)
 #   libfilesys-diskspace-perl (>= 0.05-16)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-09)
+#   libwww-perl (>= 6.15-1)
 #   perl (>= 5.22.1-9)
+#   systemd (>= 229-4)
 #------------------------------------------------------------------------------
 
 use strict;
@@ -518,7 +517,11 @@ if ($KernParams eq 'true'){
 		Info("Checking '$ShowKey' parameter.");
 
 		if (-f $Path){
-			unless (-r -T $Path){
+			unless (-r $Path){
+				# Some parameters are more locked down than others.
+				FErr(0, __LINE__, "Denied access to '$ShowKey' parameter.");
+				next
+			}elsif (-B -s $Path){
 				FErr(0, __LINE__, "Unable to determine '$ShowKey' parameter.");
 				next
 			}
@@ -550,14 +553,12 @@ if ($PathPerms eq 'true'){
 		Info("Looking in '$_' directory.");
 
 		foreach (glob("$_/*")){
-			# This is a little excessive.
-			#Info("Checking '$_' file.");
+			Info("Checking '$_' file.");
 
 			my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
 			$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
-			# This is a little excessive, too.
-			#Info("File is '$Mode' and '$Owner:$Group'.");
+			Info("File is '$Mode' and '$Owner:$Group'.");
 
 			Alert(
 				7869,
@@ -602,32 +603,23 @@ if ($PurgeChk eq 'true'){
 #-----------------------------------------------------------APT Security Tweaks
 
 if ($HardAPT eq 'true'){
-	my $VendorFile = '/etc/apt/apt.conf.d/01-vendor-ubuntu';
-
-	unless (-f $VendorFile){
-		Alert(
-			5411,
-			"File '$VendorFile' not found.",
-			"Create the file in question, then re-run UbuChk."
-		)
-	}else{
-		FileChk($VendorFile);
-		open(my $FH, '<', $VendorFile);
-
+	if (DepChk(':', 'apt-config') == 0){
 		my %Settings;
-		while (<$FH>){
+		foreach (`apt-config dump --format '%f=%v%n' 2> /dev/null`){
 			chomp();
 			next if /(^#|^$)/;
 
-			my ($Key, $Value) = split(' ');
+			my ($Key, $Value) = split('=');
 			$Value = $Value =~ tr/"';//dr;
 
-			Info("Key '$Key' is '$Value'.");
+			unless (/=$/){
+				Info("Key '$Key' is '$Value'.");
+			}else{
+				Info("Key '$Key' is empty.");
+			}
 
 			$Settings{$Key} = $Value
 		}
-
-		close($FH);
 
 		foreach ( # [TARGET_VALUE] [KEY]
 			'6135|6131|false|APT::Get::AllowUnauthenticated',
@@ -653,6 +645,9 @@ if ($HardAPT eq 'true'){
 				)
 			}
 		}
+	}else{
+		# This should be very unlikely, unless in an unsupported LSB.
+		FErr(0, __LINE__, "Dependency 'apt-config' not met.")
 	}
 }
 
@@ -688,8 +683,12 @@ if ($SSHSerCli eq 'true'){
 	}
 
 	if (-f $SSHDConfig and grep({$_ eq 'openssh-server'} @Installed)){
-		FErr(1, __LINE__, "File '$SSHDConfig' unreadable.") unless -r $SSHDConfig;
-		FErr(1, __LINE__, "File '$SSHDConfig' is binary.") if -B $SSHDConfig;
+		FErr(1, __LINE__, "File '$SSHDConfig' unreadable.")
+			unless -r $SSHDConfig;
+
+		# Without the `-s` flag, zero-size files get flagged as binary.
+		FErr(1, __LINE__, "File '$SSHDConfig' is binary.")
+			if -B -s $SSHDConfig;
 
 		FileChk($SSHDConfig);
 		open(my $FH, '<', $SSHDConfig);
@@ -901,16 +900,16 @@ if ($DiskSpace eq 'true'){
 		FileChk($MountFile);
 		open(my $FH, '<', $MountFile);
 
-		my (@MountPoints, $Used, $Free, $Size, $Mount, $Perc);
+		my (@MountPoints, $Base, $Used, $Free, $Size, $Mount, $Perc);
 		while (<$FH>){
 			chomp(my @Arr = split(' '));
 
-			if (/^\//){
-				# Excessive, perhaps.
-				#Info("Looking at '$Arr[0]' partition.");
+			# Using this REGEX over just '^/' avoids statfs errors.
+			if ($Arr[0] =~ '^/dev/(sd|hd|fd)[[:alpha:]]+[0-9]+$'){
+				Info("Looking at '$Arr[0]' partition.");
 
 				$Mount = $Arr[1] =~ s/\\040/ /gr;
-				($Used, $Free) = (df($Mount))[2,3];
+				($Used, $Free) = (df($Mount))[2,3] or next;
 				$Used = $Used * 1024;
 				$Free = $Free * 1024;
 				$Size = $Free + $Used;
@@ -1014,8 +1013,7 @@ if ($ProcVuln eq 'true'){
 
 			my $Vuln = ($_ =~ m{(?:.*/)(.*)})[0];
 
-			# Excessive.
-			#Info("Checking whether CPU if vulnerable to $Vuln.");
+			Info("Checking CPU for vulnerability to $Vuln.");
 
 			FileChk($_);
 			open(my $FH, '<', $_);
@@ -1047,6 +1045,6 @@ if ($ProcVuln eq 'true'){
 
 #------------------------------------------------------------------------Finish
 
-# This verbosity message is a bit out of place otherwise.
-print("Done, with $AlertCount alert(s) found.\n") if $AlertCount > 0;
-print("Done.\n") if $AlertCount == 0
+my $Word;
+$AlertCount > 0 ? $Word = 'times' : $Word = 'time';
+print("Alerted $AlertCount $Word.\n") if $AlertCount > 0;
