@@ -21,14 +21,24 @@ Or, if you prefer, this user goes in further detail:
 In short, it's debatable whether there's any need to change the swappiness value, but YMMV. It's often concluded that servers are the better use-cases for swappiness 60 (usually the default in Ubuntu distributions), and that 10 is the better setting for typical desktop use. You'll find arguments for and against adjusting this value all over the Internet, so, as always, come to your own conclusion.
 :8852,2847
 Log martians.
+.
+Refer to the default: `/etc/sysctl.conf`
 :7512,1821
-Protect against IP spoofing.
+Apply the recommended values to enable Spoof protection (reverse-path filter). Turn on Source Address Verification in all interfaces to prevent some spoofing attacks.
+.
+Refer to the default: `/etc/sysctl.conf`
 :1211,2916,9191,2529,6576,8963,6279,1291
 Not a router. Also ignores ICMP redirects.
+.
+Refer to the default: `/etc/sysctl.conf`
 :9222,2125,5668,1090
 Block SYN attacks.
+.
+Refer to the default: `/etc/sysctl.conf`
 :5434
 Ignore pings.
+.
+Refer to the default: `/etc/sysctl.conf`
 :9623
 Restrict what users can garner from the kernel log.
 :8560
@@ -117,3 +127,9 @@ Not assigning a port for the SSH Daemon to use will still result in the default 
 Undocumented.
 :4811
 Please use a search engine to look for the detected vulnerability and the version of Linux (the kernel) you're running. Chances are, lots of people are working on it across the board, and/or the threat is so low and specific that you needn't really worry.
+:7536
+The magic system request key is set to '0' by default in Debian (disables it). Setting it to '1' (enables it all); this could be considerably unwanted or even dangerous, if local mischief were possible.
+:9999,9998
+If set to '1', these parameters will prevent creating or following links under certain conditions. In Debian, these are both enabled by default.
+.
+Refer to the default: `/etc/sysctl.conf`

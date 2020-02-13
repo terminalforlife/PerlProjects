@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 10 Feb 23:37:38 GMT 2020
+# Last Change       - Thu 13 Feb 02:32:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,16 +23,20 @@
 #TODO: Add check for sensor temperatures and fan speeds.
 #TODO: Add check for using `NAME=` in `fstab` instead of `UUID=`, for example.
 #TODO: Add check(s) for swapfile permissions if it's detected in `/`.
+#TODO: Add key to ignore undetermined kernel parameters.
 #TODO: Add keys for custom battery drain alert points.
 #TODO: Add support for multiple batteries.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
+#TODO: File `01-vendor-ubuntu` limited to only it -- check files in directory.
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
 #
 #TODO: Error via statfs on a snap mountpoint, when `DiskSpace` is on.
+#TODO: Fix borked Bash completion script after changing `Usage()` output.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
+#TODO: Reporting '01-vendor-ubuntu' is binary, when making blank file, as told.
 #
 # Dependencies:
 #
@@ -50,7 +54,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-10';
+my $CurVer = '2020-02-13';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -71,10 +75,9 @@ my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
-	@SkipKMs, @SkipIDs, $ShowSummary, $AlertCount, $Recommend, $SSHClient,
+	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
-	$ProcVuln
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -128,8 +131,6 @@ while (defined($ARGV[0])){
 		$IsUbuntu = 'true'
 	}elsif($ARGV[0] =~ '^(--verbose|-V)$'){
 		$Verbose = 'true'
-	}elsif($ARGV[0] =~ '^(--summary|-S)$'){
-		$ShowSummary = 'true'
 	}elsif ($ARGV[0] =~ '^-'){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
@@ -157,9 +158,6 @@ sub FileChk{ # Usage: [FILE]
 	}
 
 	exit(1) if $Err > 0;
-
-	# Don't want the summary, if shown, to be cluttered here.
-	return if $_[0] eq '/etc/hostname' or $_[0] =~ m{^$VulnDir};
 
 	Info("Checking '$_[0]' file.")
 }
@@ -221,22 +219,19 @@ sub QueryAlert{
 	FErr(1, __LINE__, "Alert '$HelpAlertID' not found -- are we up-to-date?")
 		unless $Found eq 'true';
 
-	$Text::Wrap::columns = (GetTerminalSize())[0] - 1;
+	$Text::Wrap::columns = (GetTerminalSize())[0] - 2;
 
 	print("Alert #$HelpAlertID:\n\n") unless length($_[1]) > 0;
 
+	print(' ' x $QueryIndent . "+\n");
 	foreach (@Body){
 		# Ensures paragraphing works properly. The database must have a
 		# single period (`.`) on an otherwise empty line, for this to work.
 		print("\n") and next if $_ eq '.';
 
-		# Corrects formatting when `AutoQuery` is or isn't used.
-		unless (length($_[1]) > 0){
-			print(wrap("  ", '  ', "$_\n"))
-		}else{
-			print(wrap(" " x $QueryIndent, ' ' x $QueryIndent, "$_\n"));
-		}
+		print(wrap(' ' x $QueryIndent . '|  ', ' ' x $QueryIndent . '|  ', "$_\n"));
 	}
+	print(' ' x $QueryIndent . "+\n");
 
 	exit($_[0]) unless $_[1] > 0;
 
@@ -248,13 +243,8 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 	unless (grep({$_ eq $_[0]} @SkipIDs)){
 		$AlertCount++;
 
-		printf("[A%0.4d]: %s\n", $_[0], $_[1]);
-
-		if ($Recommend eq 'true'){
-			printf("       + %s\n\n", $_[2]);
-		}else{
-			printf("\n") if $AutoQuery eq 'true';
-		}
+		printf("[A%0.4d] %s\n", $_[0], $_[1]);
+		printf("        %s\n", $_[2]) if $Recommend eq 'true';
 
 		if ($AutoQuery eq 'true'){
 			# Don't want to keep showing the same query.
@@ -361,9 +351,6 @@ if (-f -r -T $ConfigFile){
 			push(@SkipKMs, $Value)
 		}elsif ($Key eq 'SkipIDs'){
 			push(@SkipIDs, split(',', $Value))
-		}elsif ($Key eq 'ShowSummary'){
-			Boolean($Value);
-			$ShowSummary = $Value unless $ShowSummary eq 'true'
 		}elsif ($Key eq 'Recommend'){
 			Boolean($Value);
 			$Recommend = $Value
@@ -515,12 +502,15 @@ if ($KernParams eq 'true'){
 		'6279:0:/proc/sys/net/ipv4/conf/default/accept_source_route',
 		'6576:0:/proc/sys/net/ipv4/conf/all/accept_source_route',
 		'7512:1:/proc/sys/net/ipv4/conf/all/rp_filter',
+		'7536:0:/proc/sys/kernel/sysrq',
 		'8560:2:/proc/sys/kernel/kptr_restrict',
 		'8852:1:/proc/sys/net/ipv4/conf/all/log_martians',
 		'8963:0:/proc/sys/net/ipv6/conf/all/accept_source_route',
 		'9191:0:/proc/sys/net/ipv4/conf/all/send_redirects',
 		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
-		'9623:1:/proc/sys/kernel/dmesg_restrict'
+		'9623:1:/proc/sys/kernel/dmesg_restrict',
+		'9998:1:/proc/sys/fs/protected_symlinks',
+		'9999:1:/proc/sys/fs/protected_hardlinks'
 	){
 		($AlertID, $GoodValue, $Path) = split(':');
 		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;
@@ -1055,31 +1045,8 @@ if ($ProcVuln eq 'true'){
 	}
 }
 
-#--------------------------------------------------------------Finish & Summary
+#------------------------------------------------------------------------Finish
 
 # This verbosity message is a bit out of place otherwise.
-Info("Done.") unless $AlertCount > 0 and $ShowSummary eq 'true';
-
-# Only show the summary if set to and actually have alerts. This should be
-# particularly useful if the user logs UbuChk's output.
-exit(0) unless $AlertCount > 0 and $ShowSummary eq 'true';
-
-my $Time = localtime();
-my $HostNameFile = '/etc/hostname';
-
-FileChk($HostNameFile);
-open(my $FH, '<', $HostNameFile);
-chomp(my $Host = <$FH>);
-close($FH);
-
-unless ($AutoQuery eq 'true' or $Recommend eq 'true'){
-	print("\n") # <-- Certain circumstances under which this is needed.
-}
-
-print(qq{  Timestamp: $Time
-	   Hostname: $Host
-	   Username: $ENV{USER}
-	    UID/GID: $</$GID
-	     Alerts: $AlertCount
-
-} =~ tr/\t//dr)
+print("Done, with $AlertCount alert(s) found.\n") if $AlertCount > 0;
+print("Done.\n") if $AlertCount == 0
