@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 13 Feb 20:34:46 GMT 2020
+# Last Change       - Thu 13 Feb 21:35:20 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -41,7 +41,6 @@
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-09)
-#   libwww-perl (>= 6.15-1)
 #   perl (>= 5.22.1-9)
 #   systemd (>= 229-4)
 #------------------------------------------------------------------------------
@@ -514,6 +513,8 @@ if ($KernParams eq 'true'){
 		($AlertID, $GoodValue, $Path) = split(':');
 		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;
 
+		next if grep({$_ eq $ShowKey} @SkipKP);
+
 		Info("Checking '$ShowKey' parameter.");
 
 		if (-f $Path){
@@ -541,7 +542,7 @@ if ($KernParams eq 'true'){
 			$AlertID,
 			"Key '$ShowKey' assigned '$Value'.",
 			"Recommended value is '$GoodValue'."
-		) if $Value != $GoodValue and not grep({$_ eq $ShowKey} @SkipKP)
+		) if $Value != $GoodValue
 	}
 }
 
