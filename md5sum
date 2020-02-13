@@ -27,10 +27,10 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 20c3d6b6be1892ebb8adb0d4e9d90872  source/TFL.pm
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
-38d5779295a84fb608ba5eb9024709b2  source/ubuchk/completions
+4ea0134f6bb7065c1c027b6d114d5ebb  source/ubuchk/completions
 feb86a14d47b38f8b0dba808013b8b1a  source/ubuchk/config
 7746456ad1cf33a3a26fdd96f68ef53c  source/ubuchk/database
-c6208f785311c7f16668c7a3a37da55d  source/ubuchk/ubuchk
+40f9a2f95da89afae08be0b51cf6faf0  source/ubuchk/ubuchk
 d7010c26219c02f5e3e05597aa532b57  source/ubuchk/ubuchk.8.gz
 209d3c1907da506010a2dffaab6bb27b  source/vignify
 ed8f264f476f544cff517da0de92cd25  source/wcdl

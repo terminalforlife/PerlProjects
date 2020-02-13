@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 12 Feb 02:08:48 GMT 2020
+# Last Change       - Thu 13 Feb 02:25:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -35,6 +35,7 @@
 #TODO: Error via statfs on a snap mountpoint, when `DiskSpace` is on.
 #TODO: Fix borked Bash completion script after changing `Usage()` output.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
+#TODO: Reporting '01-vendor-ubuntu' is binary, when making blank file, as told.
 #
 # Dependencies:
 #
@@ -52,7 +53,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-12';
+my $CurVer = '2020-02-13';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
