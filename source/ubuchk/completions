@@ -2,35 +2,27 @@
 #cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/ubuchk
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
-# Started On        - Fri  7 Feb 21:36:54 GMT 2020
-# Last Change       - Fri  7 Feb 21:45:59 GMT 2020
+# Started On        - Mon 29 Jan 18:47:58 GMT 2018
+# Last Change       - Tue 11 Feb 13:37:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# This is the bash completion script for UbuChk.
+# This is the bash completion script for `ubuchk`.
 #------------------------------------------------------------------------------
 
 _ubuchk(){
-	GetArgs(){
-		local IsOpts F1 F2 _
-		ubuchk -h | while read F1 F2 _; do
-			if [ "$F1" = 'OPTS:' ]; then
-				printf '%s ' "${F2//|/ }"
-				IsOpts='true'
-			elif [ "$IsOpts" = 'true' ]; then
-				case $F1 in
-					--skip=*)
-						printf -- '--skip= ' ;;
-					-*)
-						printf '%s ' "${F1//|/ }"
-						[ -z "$F1" ] && break ;;
-					*) continue ;;
-				esac
-			fi
-		done
-	}
+	while read; do
+		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+			Option=${REPLY%% - *}
+			for Arg in ${Option//,/}; {
+				Args+="${Arg##[^-]*} "
+			}
+		fi
+	done <<< "$(rmne -h)"
 
-	COMPREPLY=(`compgen -W "$(GetArgs)" -- "$2"`)
+	COMPREPLY=(`compgen -W "$Args" -- "$2"`)
+
+	unset Option Arg Args
 }
 
 complete -F _ubuchk ubuchk
