@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 13 Feb 02:25:52 GMT 2020
+# Last Change       - Thu 13 Feb 02:32:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -28,6 +28,7 @@
 #TODO: Add support for multiple batteries.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
+#TODO: File `01-vendor-ubuntu` limited to only it -- check files in directory.
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
