@@ -17,7 +17,6 @@
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governer when using a laptop.
 #TODO: Add check for X amount of space taken up in Trash and/or user's cache?
-#TODO: Add check for `nodev` and `noexec` for `/home` if detected.
 #TODO: Add check for detecting package changes via `apt-get`?
 #TODO: Add check for sensor temperatures and fan speeds.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
