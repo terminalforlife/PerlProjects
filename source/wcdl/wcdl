@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl/wcdl
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Sat 15 Feb 00:20:49 GMT 2020
+# Last Change       - Sat 15 Feb 01:44:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,11 +17,11 @@
 #
 # Dependencies:
 #
-#   libimage-magick-perl (>= 8:6.8.9.9-7)
-#   libtfl-perl (>= 2020-01-03)
-#   libwww-perl (>= 6.15-1)
-#   libx11-protocol-perl (>= 0.56-7)
-#   perl (>= 5.26.1-6)
+#  libimage-magick-perl (>= 8:6.8.9.9-7)
+#  libtfl-perl (>= 2020-01-15)
+#  libwww-perl (>= 6.15-1)
+#  libx11-protocol-perl (>= 0.56-7)
+#  perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
 use strict;
