@@ -8,7 +8,6 @@ f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
 eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
 024a5e593e44ef74fbcd8be90b96b1a9  source/completions/previewer
 d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
-2711f51d7c53f9d0963c6fa4f3c228b7  source/completions/wcdl
 d2ce81815ffad3e70232393e82fc079e  source/cpufreq
 5d5a97c68842f53ccdec129ad52a46b7  source/dayborn
 27bb8841b2f36bc9d88d196761f2cf11  source/fix-ff-gtk
@@ -33,4 +32,6 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 6773275a2dc024bde1652aa702029ebb  source/ubuchk/ubuchk
 22db8073aee82654d0cf784fcab55612  source/ubuchk/ubuchk.8.gz
 209d3c1907da506010a2dffaab6bb27b  source/vignify
-ed8f264f476f544cff517da0de92cd25  source/wcdl
+8f5d04bed61c9379bb1a7d214b6ac3c7  source/wcdl/completions
+f550864cee5088263539da6bf23b8716  source/wcdl/wcdl
+8e33c44f328a043491a27eb6ceb246cc  source/wcdl/wcdl.1.gz

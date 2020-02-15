@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/wcdl
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/completions/wcdl
+# Project Name      - PerlProjects/source/wcdl/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Sat  1 Feb 01:04:44 GMT 2020
+# Last Change       - Sat 15 Feb 00:27:28 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,24 +11,16 @@
 #------------------------------------------------------------------------------
 
 _wcdl(){
-	local Current=${COMP_WORDS[$COMP_CWORD]}
-	local Previous=${COMP_WORDS[$COMP_CWORD - 1]}
-
 	GetArgs(){
-		local IsOpts F1 F2 _
-		wcdl -h | while read F1 F2 _; do
-			if [ "$F1" = 'OPTS:' ]; then
-				printf '%s ' "${F2//|/ }"
-				IsOpts='true'
-			elif [ "$IsOpts" = 'true' ]; then
-				case $F1 in
-					-*)
-						printf '%s ' "${F1//|/ }"
-						[ -z "$F1" ] && break ;;
-					*) continue ;;
-				esac
+		while read; do
+			if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+				Option=${REPLY%% - *}
+				for Arg in ${Option//,/}; {
+					printf '%s ' "${Arg##[^-]*}"
+				}
 			fi
-		done
+		done <<< "$(wcdl -h)"
+		unset Option Arg
 	}
 
 	GetCats(){
@@ -39,11 +31,11 @@ _wcdl(){
 		done <<< "$(wcdl --colorless --show-categories)"
 	}
 
-	if [[ $Previous =~ ^(--resolution|-r)$ ]]; then
+	if [[ $3 =~ ^(--resolution|-r)$ ]]; then
 		COMPREPLY=($(compgen -W "$(wcdl --show-resolutions)" -- "$2"))
-	elif [[ "$Current" == -* ]]; then
+	elif [[ "$2" == -* ]]; then
 		COMPREPLY=($(compgen -W "$(GetArgs)" -- "$2"))
-	elif [[ $Previous =~ ^(--dest|-D)$ ]]; then
+	elif [[ $3 =~ ^(--dest|-D)$ ]]; then
 		COMPREPLY=($(compgen -o default -- "$2"))
 	else
 		COMPREPLY=($(compgen -W "$(GetCats)" -- "$2"))
