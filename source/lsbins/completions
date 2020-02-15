@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/lsbins
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/lsbins/completions
+# Started On        - Mon 29 Jan 18:47:58 GMT 2018
+# Last Change       - Sat 15 Feb 02:06:58 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This is the bash completion script for `lsbins`.
+#------------------------------------------------------------------------------
+
+_lsbins(){
+	while read; do
+		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+			Option=${REPLY%% - *}
+			for Arg in ${Option//,/}; {
+				Args+="${Arg##[^-]*} "
+			}
+		fi
+	done <<< "$(lsbins -h)"
+
+	COMPREPLY=(`compgen -W "$Args" -- "$2"`)
+
+	unset Option Arg Args
+}
+
+complete -F _lsbins lsbins

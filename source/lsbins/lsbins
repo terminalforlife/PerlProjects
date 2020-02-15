@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019
-# Last Change       - Sat  1 Feb 00:52:50 GMT 2020
+# Last Change       - Sat 15 Feb 02:08:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,29 +20,17 @@ use TFL;
 use File::Basename 'basename';
 use List::MoreUtils 'uniq';
 
-my $CurVer = "2020-02-01";
+my $CurVer = "2020-02-15";
 
 sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+	print(qq{Usage: $TFL::PROGNAME [OPTS] [MATCH]
 
-		            A descriptive, searchable overview of PATH executables.
-
-		SYNTAX:     $TFL::PROGNAME [OPTS] [MATCH]
-
-		OPTS:       --help|-h|-?            - Display this help information.
-		            --version|-v            - Output the version datestamp.
-		            --ignore-case|-i        - Search case-insensitively.
-		            --extended-regexp|-E    - Search with extended REGEX.
-		            --nodescribe|-N         - Omit the short description.
-		            --show-all|-a           - Show alternative descriptions.
-
-		NOTE:       Where MATCH is a REGEX string for which is searched in the
-		            name of the command, program, file, etc. The description, -
-		            however, is ignored.
-
-		            Typically, executables found within PATH are lowercase, but
-		            for other times, the above flags comes into play.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -E, --extended-regexp    - Search with extended REGEX.
+		  -N, --nodescribe         - Omit the short description.
+		  -a, --show-all           - Show alternative descriptions.
+		  -i, --ignore-case        - Search case-insensitively.
 	} =~ tr/\t//dr)
 }
 
@@ -51,7 +39,7 @@ my $CaseInsen = 'false';
 my $ExtReg = 'false';
 my $ShowAll = 'false';
 
-while (defined(@ARGV)){
+while (defined($ARGV[0])){
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
 		Usage(1); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){

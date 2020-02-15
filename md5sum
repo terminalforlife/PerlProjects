@@ -17,7 +17,9 @@ e6858c18ef7499b24b2fb17e08f52b4f  source/gitbrov
 68fbf75ef30ed2fa0509fa5950e854d2  source/gitsap
 1e8602e4d82e5c39c8f45e3f050e09b6  source/kernelchk
 b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
-68968174542dcb1e453fcadc47fa3841  source/lsbins
+3ba785def282d6b77545cd0ed47f3516  source/lsbins/completions
+56db8fb84e88be6e555302986d370a99  source/lsbins/lsbins
+a05bf48ce4cc9e66a95c001efd64c4f9  source/lsbins/lsbins.1.gz
 13e1614125736f2537856a8affba1064  source/mkdeb
 45eb879f26e09ef3d4cfc607b9b80c3d  source/notify-upgrade
 eade09b4413ebc944a87b83e98ed295d  source/previewer
@@ -33,5 +35,5 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 22db8073aee82654d0cf784fcab55612  source/ubuchk/ubuchk.8.gz
 209d3c1907da506010a2dffaab6bb27b  source/vignify
 8f5d04bed61c9379bb1a7d214b6ac3c7  source/wcdl/completions
-f550864cee5088263539da6bf23b8716  source/wcdl/wcdl
+86ec4b0c844fcb7d81d918d2d3453371  source/wcdl/wcdl
 8e33c44f328a043491a27eb6ceb246cc  source/wcdl/wcdl.1.gz
