@@ -133,3 +133,15 @@ The magic system request key is set to '0' by default in Debian (disables it). S
 If set to '1', these parameters will prevent creating or following links under certain conditions. In Debian, these are both enabled by default.
 .
 Refer to the default: `/etc/sysctl.conf`
+:1356
+By default, the execution bit (permission) is allowed to be set on files in order to execute them with a method such as `./file`, but this could pose a security risk, as anything could then be executed with whichever permissions the current user has, which is especially dangerous when you consider what could be downloaded without your knowledge.
+.
+However, setting this option can also cause irritating issues by program like Valve's Steam (popular gaming client) which requires execution privileges on one or more files installed in the user's HOME.
+.
+While setting this mount option will add an additional layer of security, there is still only so much damage that can be done without root privileges, which the user typically doesn't have without first entering his or her own password, or root's itself.
+.
+This is one of the many reasons why setting `sudo` to ignore the need to enter a password in order to gain elevated privileges can be a grave error in judgement. A similar problem occurs when setting things up in such a way that a user can log in without the need to even enter a password.
+:1357
+Undocumented.
+:1358
+Undocumented.

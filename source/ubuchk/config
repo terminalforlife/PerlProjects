@@ -49,6 +49,10 @@ BatCrit=10
 BatLow=20
 Laptop=true
 
+# Mount Options
+MountHome=true
+SkipMountOpts=
+
 # Miscellaneous
 Firewall=true
 ProcVuln=true

@@ -29,9 +29,9 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
 4ea0134f6bb7065c1c027b6d114d5ebb  source/ubuchk/completions
-63600188a3c327d63a1d6438100c764d  source/ubuchk/config
-7746456ad1cf33a3a26fdd96f68ef53c  source/ubuchk/database
-6773275a2dc024bde1652aa702029ebb  source/ubuchk/ubuchk
+3c4d89aa7b739a7b7fb99bdfb3362a26  source/ubuchk/config
+e229cf5fcfeff78dd371d251b844b76e  source/ubuchk/database
+60cdc92deec35e8f9954f6b7ae9149ce  source/ubuchk/ubuchk
 22db8073aee82654d0cf784fcab55612  source/ubuchk/ubuchk.8.gz
 209d3c1907da506010a2dffaab6bb27b  source/vignify
 8f5d04bed61c9379bb1a7d214b6ac3c7  source/wcdl/completions
