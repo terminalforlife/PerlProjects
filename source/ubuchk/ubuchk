@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 15 Feb 18:53:56 GMT 2020
+# Last Change       - Sat 15 Feb 23:56:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 #TODO: Add check for CPU governer when using a laptop.
 #TODO: Add check for X amount of space taken up in Trash and/or user's cache?
 #TODO: Add check for detecting package changes via `apt-get`?
-#TODO: Add check for sensor temperatures and fan speeds.
+#TODO: Add check for fan speeds.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add check(s) for swapfile permissions if it's detected in `/`.
 #TODO: Add update feature, because it's important to keep this updated.
@@ -71,7 +71,8 @@ my (
 	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
-	$OSOverride, $MountHome, @SkipMountOpts
+	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
+	$TempScale
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -168,7 +169,18 @@ sub FileChk{ # Usage: [FILE]
 
 	exit(1) if $Err > 0;
 
-	Info("Checking '$_[0]' file.")
+	my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
+	Info("Checking '$BaseName' file.")
+}
+
+sub CelsFahr{ # Usage: [CELCIUS_INT]
+	if ($TempScale eq 'F'){
+		use POSIX 'ceil';
+
+		return(ceil(($_[1] * 9/5) + 32)) if $_[0] eq 'int';
+	}elsif ($TempScale eq 'C'){
+		return($_[1]) if $_[0] eq 'int';
+	}
 }
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
@@ -423,6 +435,21 @@ if (-f -r -T $ConfigFile){
 			$MountHome = $Value
 		}elsif ($Key eq 'SkipMountOpts'){
 			push(@SkipMountOpts, split(',', $Value))
+		}elsif ($Key eq 'CPUTemp'){
+			Boolean($Value);
+			$CPUTemp = $Value
+		}elsif ($Key eq 'CoreTempCrit'){
+			if ($Value =~ /^[0-9]+$/){
+				$CoreTempCrit = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
+		}elsif ($Key eq 'TempScale'){
+			if ($Value =~ /^[C|F]$/){
+				$TempScale = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' must be either 'F' or 'C'.");
+			}
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -675,7 +702,7 @@ if ($SSHSerCli eq 'true'){
 
 	if (-d $SSHDir and grep({$_ eq 'openssh-client'} @Installed)){
 		FErr(1, __LINE__, "Directory '$SSHDir' unreadable.") unless -r $SSHDir;
-		FErr(1, __LINE__, "Directory '$SSHDir' is binary.") unless -x $SSHDir;
+		FErr(1, __LINE__, "Directory '$SSHDir' denies execution.") unless -x $SSHDir;
 
 		my ($Mode, $Owner, $Group) = (stat($SSHDir))[2,4,5];
 		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
@@ -1111,6 +1138,73 @@ if ($MountHome eq 'true'){
 				}
 			}
 		}
+	}
+}
+
+#---------------------------------------------------------CPU Core Temperatures
+
+# There are several ways to get the system's CPU temperature(s), without
+# dragging in another program, but for now, I'll program for this particular
+# method, adding additional ones as issues are reported.
+if ($CPUTemp eq 'true'){
+	my $Dir = '/sys/devices/platform/coretemp.0/hwmon/hwmon3';
+
+	if (-d $Dir){
+		FErr(1, __LINE__, "Directory '$Dir' unreadable.") unless -r $Dir;
+		FErr(1, __LINE__, "Directory '$Dir' denies execution.") unless -x $Dir;
+
+		# Gather a hash of (only) the core temperatures.
+		my (%TempData, $Temp);
+		foreach (glob("$Dir/temp*")){
+			next unless -f and m{/temp[0-9]+_(input|label)$};
+
+			FileChk($_);
+			open(my $FH, '<', $_);
+			chomp(my $Data = <$FH>);
+			close($FH);
+
+			# The files are ordered from input to label, so we need to process
+			# it backwards, otherwise the output would be borked.
+			if (/_input$/){
+				$Temp = $Data
+			}elsif (/_label$/){
+				$TempData{$Data} = $Temp
+			}
+		}
+
+		# Ensure we have the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
+		sub Suffix{ # Usage: [INT]
+			my $Num = $_[0] + 1;
+			return("${Num}st") if $Num =~ '1$';
+			return("${Num}nd") if $Num =~ '2$';
+			return("${Num}rd") if $Num =~ '3$';
+			return("${Num}th")
+		}
+
+		# Begin checking on each of the core temperatures, per the above hash.
+		foreach (sort(keys(%TempData))){
+			next unless /^Core [0-9]+$/;
+
+			# Initially, this value is in Celsius (unconfirmed).
+			my $TempInt = CelsFahr(
+				'int', substr($TempData{$_}, 0, length($TempData{$_}) - 3)
+			);
+
+			my $TempStr = "$TempInt°$TempScale";
+			my $CoreInt = (m{(?:.* )(.*)})[0];
+			my $CoreStr = Suffix($CoreInt);
+			if ($TempInt >= $CoreTempCrit){
+				Alert(
+					6237,
+					"CPU's $CoreStr core critical at $TempStr.",
+					"Suggested action is to shut down the machine."
+				)
+			}else{
+				Info("CPU core #$CoreInt stable at $TempStr.")
+			}
+		}
+	}else{
+		FErr(0, __LINE__, 'Unable to fetch CPU core temperatures.')
 	}
 }
 

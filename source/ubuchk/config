@@ -53,6 +53,11 @@ Laptop=true
 MountHome=true
 SkipMountOpts=
 
+# Temperatures
+CPUTemp=true
+CoreTempCrit=70
+TempScale=C
+
 # Miscellaneous
 Firewall=true
 ProcVuln=true
