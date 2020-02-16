@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 16 Feb 01:38:03 GMT 2020
+# Last Change       - Sun 16 Feb 02:36:15 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `Info()` for `Laptop` when it's plugged in and charging.
+#TODO: Add a second level of verbosity, for those wanting lots of information.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governer when using a laptop and regular PC.
 #TODO: Add check for X amount of space taken up in Trash and/or user's cache?
@@ -33,6 +34,7 @@
 #
 #   apt (>= 1.2.32)
 #   libfilesys-diskspace-perl (>= 0.05-16)
+#   libnumber-bytes-human-perl (>= 0.09-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-09)
@@ -72,7 +74,7 @@ my (
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
-	$TempScale
+	$TempScale, $AptCache, $CacheMBLimit
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -169,11 +171,11 @@ sub FileChk{ # Usage: [FILE]
 
 	exit(1) if $Err > 0;
 
-	my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
-	Info("Checking '$BaseName' file.")
+	#my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
+	#Info("Checking '$BaseName' file.")
 }
 
-sub CelsFahr{ # Usage: [CELCIUS_INT]
+sub CelsFahr{ # Usage: [CELSIUS_INT]
 	if ($TempScale eq 'F'){
 		use POSIX 'ceil';
 
@@ -184,7 +186,7 @@ sub CelsFahr{ # Usage: [CELCIUS_INT]
 }
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
-# alert is shown. Not sure why; something about changing a readonly variable.
+# alert is shown. Not sure why; something about changing a read-only variable.
 # This is usually not ideal, but at least when there are many alerts, the file
 # won't constantly be opened and processed.
 if (-f $Database){
@@ -450,6 +452,15 @@ if (-f -r -T $ConfigFile){
 			}else{
 				FErr(1, __LINE__, "Key '$Key' must be either 'F' or 'C'.");
 			}
+		}elsif ($Key eq 'AptCache'){
+			Boolean($Value);
+			$AptCache = $Value
+		}elsif ($Key eq 'CacheMBLimit'){
+			if ($Value =~ /^[0-9]+$/){
+				$CacheMBLimit = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer in MB.");
+			}
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -597,12 +608,12 @@ if ($PathPerms eq 'true'){
 		Info("Looking in '$_' directory.");
 
 		foreach (glob("$_/*")){
-			Info("Checking '$_' file.");
+			#Info("Checking '$_' file.");
 
 			my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
 			$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
-			Info("File is '$Mode' and '$Owner:$Group'.");
+			#Info("File '$_' is '$Mode' and '$Owner:$Group'.");
 
 			Alert(
 				7869,
@@ -1205,6 +1216,45 @@ if ($CPUTemp eq 'true'){
 		}
 	}else{
 		FErr(0, __LINE__, 'Unable to fetch CPU core temperatures.')
+	}
+}
+
+#----------------------------------------------------------APT Cache Disk Usage
+
+if ($AptCache eq 'true'){
+	my $Dir = '/var/cache/apt/archives';
+
+	if (-d $Dir){
+		use Number::Bytes::Human 'format_bytes';
+
+		# Ignoring `partial` directory, as it often needs root access to use.
+		# The same goes for files like `lock`, as they're irrelevant here.
+		my ($FileCount, $Size);
+		foreach (glob("$Dir/*.deb")){
+			$Size += -s;
+			$FileCount++
+		}
+
+		my $Human = format_bytes($Size);
+		if ($Size / 1024 / 1024 >= $CacheMBLimit){
+			if (DepChk(':', 'sudo') == 0){
+				Alert(
+					9708,
+					"Found $FileCount cached Debian packages, totalling $Human.",
+					"Suggested action is to run: sudo apt-get clean"
+				);
+			}else{
+				Alert(
+					9708,
+					"Found $FileCount cached Debian packages, totalling $Human.",
+					"Suggested action is to, as root, run: apt-get clean"
+				);
+			}
+		}else{
+			Info("Cached Debian packages take up only $Human.");
+		}
+	}else{
+		FErr(0, __LINE__, "Directory '$Dir' not found.")
 	}
 }
 

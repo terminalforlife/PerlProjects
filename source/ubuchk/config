@@ -13,6 +13,8 @@ AutoQuery=false
 QueryIndent=8
 
 # Disk Usage
+AptCache=true
+CacheMBLimit=100
 DSLimit=90
 DiskSpace=true
 

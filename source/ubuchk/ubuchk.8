@@ -1,0 +1,527 @@
+.TH "UBUCHK" "8" "2020-02-16" "UbuChk 2020-02-16" "UbuChk"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ad l
+.nh
+.SH "NAME"
+ubuchk \- send your Ubuntu system to the doctor for a check-up
+.SH "SYNOPSIS"
+ubuchk [OPTS]
+.SH "DESCRIPTION"
+.PP
+Perform various system health checks, with a focus on security.
+.PP
+Provided, is an extensive user configuration file, offering plenty of different settings, including the ability to tweak various checks and the output to the user's needs.
+.PP
+The core concept of UbuChk, is to allow the user to easily perform a number of useful system tests, without actually requiring root privileges. In some cases, with more locked-down installations of Ubuntu-based distributions of Linux, root access may be required, but that's down to the user.
+.PP
+UbuChk doesn't aim to do anything like change system settings, delete system files, change kernel parameters, etc. This means that, within reason, anyone can run UbuChk.
+.PP
+The approach here is to inform the user and recommend or suggest that he or she does something based on what's in-front of them, similar to how system tools like ClamAV and Rootkit Hunter work.
+.SH "OPTIONS"
+-h, --help, -?
+.RS 4
+Display some helpful information.
+.RE
+.PP
+-v, --version
+.RS 4
+Output the version datestamp.
+.RE
+.PP
+--config <PATH>
+.RS 4
+Override the default user configuration file location.
+.RE
+.PP
+--force-reset
+.RS 4
+Force re-generation of config file. This will completely erase all previous settings, so use this with care.
+.RE
+.PP
+-U, --is-ubuntu
+.RS 4
+Execute as though in an Ubuntu-based environment. This can be set persistently using the 'IsUbuntu' key.
+.RE
+.PP
+-Q, --query <ID>
+.RS 4
+Read about the provided alert ID number.
+.RE
+.PP
+--skip=<ID>[,<ID> ...]
+.RS 4
+Skip one or more alerts, by ID. When specifying multiple alerts, each one should be separated by a comma.
+.RE
+.PP
+-V, --verbose
+.RS 4
+Execute checks verbosely, allowing the user to see more of what is going on. This can be set persistently by using the 'Verbose' key.
+.RE
+.SH "KEYS"
+There are currently a total of 35 individual keys which can be used to customize the operation of UbuChk, all of which are listed and described below.
+.PP
+IsUbuntu
+.RS 4
+Since UbuChk is intended for use on an Ubuntu-based distribution of Linux, an error will display if it's not detected. However, this can can be overridden by enabling this key, like the `--is-ubuntu-|U` option.
+.PP
+Default: 'false'
+.RE
+.PP
+Recommend
+.RS 4
+In addition to alerting the user, a recommended (or suggested) value or action will be displayed below the alert itself, if this key is enabled.
+.PP
+Default: 'true'
+.RE
+.PP
+SkipIDs
+.RS 4
+Skip one or more alerts by providing the associated alert ID number. This key can be provided multiple times, allowing also for a comma-separated list of IDs.
+.RE
+.PP
+Verbose
+.RS 4
+Enabled, this key will act as though the '--verbose|-V' option were always used.
+.PP
+Default: 'false'
+.RE
+.PP
+KernParams
+.RS 4
+Perform various checks for kernel parameters. As of the current version of UbuChk, the following parameters are checked:
+.PP
+.RS 4
+kernel.ctrl-alt-del
+.RE
+.RS 4
+kernel.dmesg_restrict
+.RE
+.RS 4
+kernel.kptr_restrict
+.RE
+.RS 4
+kernel.yama.ptrace_scope
+.RE
+.RS 4
+net.ipv4.conf.all.accept_redirects
+.RE
+.RS 4
+net.ipv4.conf.all.accept_source_route
+.RE
+.RS 4
+net.ipv4.conf.all.log_martians
+.RE
+.RS 4
+net.ipv4.conf.all.rp_filter
+.RE
+.RS 4
+kernel.sysrq
+.RE
+.RS 4
+net.ipv4.conf.all.send_redirects
+.RE
+.RS 4
+net.ipv4.conf.default.accept_source_route
+.RE
+.RS 4
+net.ipv4.conf.default.rp_filter
+.RE
+.RS 4
+net.ipv4.conf.default.send_redirects
+.RE
+.RS 4
+net.ipv4.icmp_echo_ignore_all
+.RE
+.RS 4
+net.ipv4.icmp_ignore_bogus_error_responses
+.RE
+.RS 4
+net.ipv4.tcp_max_syn_backlog
+.RE
+.RS 4
+net.ipv4.tcp_syn_retries
+.RE
+.RS 4
+net.ipv4.tcp_synack_retries
+.RE
+.RS 4
+net.ipv4.tcp_syncookies
+.RE
+.RS 4
+net.ipv6.conf.all.accept_redirects
+.RE
+.RS 4
+net.ipv6.conf.all.accept_source_route
+.RE
+.RS 4
+net.ipv6.conf.default.accept_source_route
+.RE
+.RS 4
+vm.swappiness
+.RE
+.RS 4
+fs.protected_symlinks
+.RE
+.RS 4
+fs.protected_hardlinks
+.RE
+.PP
+Default: 'true'
+.RE
+.PP
+SkipKP
+.RS 4
+Skip the provided kernel parameter. This can be specified multiple times, using the same key, but only one value per key.
+.PP
+No test will take place to confirm the parameter entered here is actually handled by UbuChk, so were it desired to have several specific parameters ignored, for any future updates, this can be achieved.
+.RE
+.PP
+PathPerms
+.RS 4
+If enabled, check for sensible owner, group, and mode of executables found within the current user's 'PATH' environment variable.
+.PP
+Importantly, at least for now, only the last three digits of the numeric mode (IE: '0755') are checked.
+.PP
+Default: 'true'
+.RE
+.PP
+PurgeChk
+.RS 4
+UbuChk can look for removed packages yet to be purged. An unpurged package simply means there are associated files (these are typically global configurations) still remaining.
+.PP
+Default: 'true'
+.RE
+.PP
+HardAPT
+.RS 4
+Security-bolstering APT options for which will be checked by UbuChk, if this is enabled.
+.PP
+Default: 'true'
+.PP
+The below parameters will be checked.
+.PP
+.RS 4
+APT::Get::AllowUnauthenticated
+.RE
+.RS 4
+APT::Install-Recommends
+.RE
+.RS 4
+APT::Install-Suggests
+.RE
+.RS 4
+Acquire::http::AllowRedirect
+.RE 1
+.PP
+SkipAPT
+.RS 4
+Skipping APT parameters is possible with this key.
+.PP
+By default, the following key is ignored, to avoid causing dependency issues for users misunderstanding their packaging operation.
+.PP
+Default: 'APT::Install-Recommends'
+.RE
+.PP
+SSHSerCli
+.RS 4
+If enabled, performs various SSH Daemon security checks.
+.PP
+Default: 'true'
+.RE
+.PP
+SSHDConfig
+.RS 4
+Optionally, override the default location of the configuration file used by the 'SSHSerCli' key.
+.PP
+See FILES for the default file location.
+.RE
+.PP
+UnwantedPKGs
+.RS 4
+These packages are potentially unwanted, so will be checked to see if they are installed. Additional packages can be provided.
+.PP
+You must specify the exact architecture which you're targeting. REGEX is allowed here.
+.PP
+Below, is a list of packages for which are by default searched.
+.PP
+.RS 4
+kerneloops.*
+.RE
+.RS 4
+popularity-contest
+.RE
+.RS 4
+telnet.*
+.RE
+.RS 4
+virtualbox-guest-.*
+.RE 1
+.PP
+Firewall
+.RS 4
+If enabled, check that the Uncomplicated FireWall (UFW) service (unit) is active. If the UFW executable is not found, then this check will be skipped.
+.PP
+Currently, the 'systemctl' executable is required.
+.PP
+Importantly, due to permission limitations, disabling UFW directly will unfortunately be ignored; this will hopefully be addressed in future versions of UbuChk.
+.PP
+Default: 'true'
+.RE
+.PP
+SystemD
+.RS 4
+If enabled, check for SystemD security tweaks and optimizations.
+.PP
+The below parameters will be checked.
+.PP
+.RS 4
+DefaultLimitNPROC
+.RE
+.RS 4
+DefaultLimitNOFILE
+.RE
+.RS 4
+CrashShell
+.RE
+.RS 4
+DumpCore
+.RE
+.PP
+Default: 'true'
+.RE
+.PP
+KernMods
+.RS 4
+If enabled, a check will take place for various kernel modules, which may be considered a security vulnerability or as typically unneeded.
+.PP
+Below are listed modules for which are looked by UbuChk.
+.PP
+.RS 4
+mei
+.RE
+.RS 4
+mei_me
+.RE
+.RS 4
+mei_wtk
+.RE
+.RS 4
+joydev
+.RE
+.RS 4
+psmouse
+.RE
+.PP
+Default: 'true'
+.RE
+.PP
+SkipMKs
+.RS 4
+Ignore kernel modules checked internally by UbuChk with this key. The module below is ignored by default, mostly as an example, but there are also a surprising number of gamers moving over to Linux.
+.PP
+Default: 'joydev'
+.RE
+.PP
+CustomKMs
+.RS 4
+You may wish to specify your own modules for which to check. This key can be used multiple times, as one module per value.
+.RE
+.PP
+DiskSpace
+.RS 4
+If enabled, the user is alerted when there are partitions with low remaining disk space. Loop devices and special filesystems like 'tempfs' are ignored. Partitions counted, are those of 'sd*', 'hd*', and 'fd*'.
+.PP
+Default: 'true'
+.RE
+.PP
+DSLimit
+.RS 4
+The percentage a partition must be full before 'DiskSpace' warnings appear. A valid value is between '10' and '100'.
+.PP
+Default: '90'
+.RE
+.PP
+AutoQuery
+.RS 4
+Automatically query alerts shown. When there are multiple alerts of the same ID, such as with the 'UnwantedPKGs' key, the query output is shown only after the initial alert message.
+.PP
+Default: 'false'
+.RE
+.PP
+QueryIndent
+.RS 4
+Specify the number of columns by which to indent the query output. A valid value is between '0' and '9'.
+.RE
+.PP
+DirPerms
+.RS 4
+Some directories are more sensitive than others, due to the data they keep. With this key enabled, you can be apprised if the mode, owner, and group attributes aren't cohesive with a safer environment.
+.PP
+The below directories are checked.
+.PP
+.RS 4
+/boot
+.RE
+.RS 4
+/home/$USER
+.RE
+.RS 4
+/root
+.RE
+.PP
+Default: 'true'
+.RE
+.PP
+SkipSysD
+.RS 4
+Optionally provide a 'SystemD' check to skip. Multiple instances of this key are allowed, but only one value per key is valid.
+.RE
+.PP
+Laptop
+.RS 4
+Check the machine's first battery capacity, alerting when it reaches the low and even lower point; these are 20% and 10%, respectively.
+.PP
+Default: 'true'
+.RE
+.PP
+BatLow
+.RS 4
+The battery capacity percentage at which you'll be alerted it's low.
+.PP
+Default: '20'
+.RE
+.PP
+BatCrit
+.RS 4
+The battery capacity percentage at which you'll be alerted it's critical.
+.PP
+Default: '10'
+.RE
+.PP
+ProcVuln
+.RS 4
+Refer to the kernel as to whether the CPU is flagged as vulnerable to various known vulnerabilities.
+.PP
+Default: 'true'
+.RE
+.PP
+MountHome
+.RS 4
+Some mount options add additional layers of security to your system; this key, when enabled, will allow the user feedback for 3 particularly useful options, as listed below.
+.PP
+.RS 4
+noexec
+.RE
+.RS 4
+nodev
+.RE
+.RS 4
+nosuid
+.RE
+.PP
+Default: 'true'
+.RE 1
+.PP
+SkipMountOpts
+.RS 4
+Some options may be required in order to maintain a functional system, which is where this key comes in. This key can be specified multiple times, but only one value per key.
+.RE
+.PP
+CPUTemp
+.RS 4
+If enabled, this will check the temperature of each of the cores of the CPU, currently assuming only one physical CPU in the machine.
+.PP
+Default: 'true'
+.RE
+.PP
+CoreTempCrit
+.RS 4
+If the temperature of one of the CPU cores, reaches or exceeds the critical amount specified by this key, the user is alerted. This key will adhere to the temperature scale set by the 'TempScale' key.
+.PP
+Default: '70'
+.RE
+.PP
+TempScale
+.RS 4
+The temperature scale UbuChk will use to display alerts and verbosity messages, as well as read from the 'CoreTempCrit' key.
+.PP
+Default: 'C'
+.RE
+.PP
+AptCache
+.RS 4
+If enabled, the size taken up by fully-downloaded Debian packages is tallied up and the user alerted when appropriate. Partial downloads will be ignored, due to root access often being needed to view them.
+.PP
+Once the size is determined, it's compared to 'CacheMBLimit'; if it's greater than that value, the user is alerted.
+.PP
+Default: 'true'
+.RE
+.PP
+CacheMBLimit
+.RS 4
+Integer in MB (Megabytes) after which the user is alerted, per the 'AptCache' key's value.
+.PP
+Default: '100'
+.SH "FILES"
+~/.config/ubuchk/config
+.RS 4
+The user's own configurations. This file must be 'generated' first, by simply running UbuChk, then re-running it once the defaults have been copied over.
+.RE
+.PP
+/usr/share/ubuchk/config
+.RS 4
+The default configuration file. This file is copied over to the user area when a fresh one is 'generated'.
+.RE
+.PP
+/usr/share/ubuchk/database
+.RS 4
+The UbuChk database, used for querying alerts, in order to, by request, display relevant information to the user.
+.RE
+.PP
+/var/lib/dpkg/status
+.RS 4
+This file is parsed by UbuChk in order to determine which packages have been uninstalled but yet to be purged.
+.RE
+.PP
+/etc/apt/apt.conf.d/01-vendor-ubuntu
+.RS 4
+This file is parsed to determined which APT options have been set or not.
+.PP
+On some installations of Ubuntu (and similar), this file may not already exist, in which case one could perhaps be created and values added to it. If the file doesn't already exist until the user creates one, UbuChk, upon next execution, will check it as normal.
+.RE
+.PP
+/etc/ssh/sshd_config
+.RS 4
+The default location of the SSH Daemon configuration file. UbuChk will parse this file by default, unless an alternative is specified using the 'SSHDConfig' key.
+.SH "AUTHOR"
+.PP
+terminalforlife <terminalforlife@yahoo.com>
+.RE
+(also known as Learn Linux, over at YouTube)
+.PP
+.SH "NOTES"
+This program is developed strictly for GNU/Linux operating systems, but in some cases, detection of as much may fail, such as if '/proc/version' is inaccessible or none-existent.
+.PP
+If needed, you can override the OS check with the otherwise undocumented '--os-override' option. Doing so on an unsupported system may yield unexpected and/or undesired results!
+.PP
+If, after overriding, UbuChk continues to run perfectly well for you, you may wish to add an alias (shell allowing) to a startup script, allowing this option to be automagically used on each execution.
+.PP
+For example:
+.PP
+.RS 4
+alias ubuchk='ubuchk --os-override'
+.SH "BUGS"
+For bug reports and other issues with UbuChk, including suggestions, please report to the below GitHub link, through which the project is developed.
+.PP
+.RS 2
+https://github.com/terminalforlife/PerlProjects
+.RE
+.PP
+You may also E-Mail the author of this project, but it's rarely checked.
+.RE
+.PP
+As a last resort, however, one might simply leave a comment over at the below YouTube channel, 'Learn Linux'.
+.PP
+.RS 2
+https://www.youtube.com/c/LearnLinux
