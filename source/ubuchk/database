@@ -148,7 +148,7 @@ Undocumented.
 :6237
 Whether a temperature is considered as truly harmful or even dangerous, really depends on the CPU. Most modern CPUs should be able to withstand very high temperatures (>= 100°C) but this comes at the cost of the reduction of the CPU's lifespan, which is especially unwanted for expensive processors. Another important compromise made with a hot-running CPU, is throttling; temporarily underclocking the CPU in an effort to bring down the temperature, which of course means that performance can take a nose-dive.
 .
-However, there are a number of ways to reduce the thermal limits your CPU reaches, such as by improving the cooling capabilities of your machine, using higher quality fans, using a better CPU heatsink, improving cable management, and even resorting to various water-cooling methods.
+However, there are a number of ways to reduce the thermal limits your CPU reaches, such as by improving the cooling capabilities of your machine, using higher quality fans, using a better CPU heatsink, improving cable management, and even resorting to various water-cooling methods. Sometimes just clearing out some dust-bunnies can improve temperatures, if a machine is particularly dirty.
 .
 In some cases, although more of a temporary measure, you may want to disable unneeded cores and/or permanently underclock the CPU.
 .
