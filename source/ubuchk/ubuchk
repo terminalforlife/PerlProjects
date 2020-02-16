@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 16 Feb 02:36:15 GMT 2020
+# Last Change       - Sun 16 Feb 18:08:40 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -961,6 +961,9 @@ if ($DiskSpace eq 'true'){
 
 			# Using this REGEX over just '^/' avoids statfs errors.
 			if ($Arr[0] =~ '^/dev/(sd|hd|fd)[[:alpha:]]+[0-9]+$'){
+				# Avoids `not a directory` error, for EFI setups.
+				next if $Arr[1] eq '/boot/efi';
+
 				Info("Looking at '$Arr[0]' partition.");
 
 				$Mount = $Arr[1] =~ s/\\040/ /gr;
