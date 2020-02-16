@@ -13,11 +13,14 @@ If you're not sure what UbuChk is, check out [this](https://youtu.be/CZ4Kn0gtHaM
 
 # Dependencies
 
+  * apt (>= 1.2.32)
   * libfilesys-diskspace-perl (>= 0.05-16)
+  * libnumber-bytes-human-perl (>= 0.09-1)
   * libterm-readkey-perl (>= 2.33-1build1)
   * libtext-wrapi18n-perl (>= 0.06-7.1)
   * [libtfl-perl](https://github.com/terminalforlife/PerlProjects/blob/master/source/TFL.pm) (>= 2020-01-09)
   * perl (>= 5.22.1-9)
+  * systemd (>= 229-4)
 
 If you're on an Ubuntu or similar system, you can use `sudo apt-get install -f` to get all of the remaining dependencies sorted, but **only** after the TFL module is installed, which can be done with the below Cito command.
 
