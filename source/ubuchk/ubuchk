@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Feb 00:37:58 GMT 2020
+# Last Change       - Wed 19 Feb 00:43:38 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -743,6 +743,8 @@ if ($SSHClient eq 'true'){
 			"Directory '$SSHDir' is in group '$Group'.",
 			"Recommended group is your GID ('$GID')."
 		) unless $Group == $GID;
+	}else{
+		Info("Missing prerequisites -- skipping 'SSHClient' key.")
 	}
 }
 
@@ -812,6 +814,8 @@ if ($SSHServer eq 'true'){
 				"Recommended value is one other than '22'."
 			)
 		}
+	}else{
+		Info("Missing prerequisites -- skipping 'SSHServer' key.")
 	}
 }
 
@@ -831,11 +835,8 @@ if (@UnwantedPKGs > 0){
 
 #------------------------------------------------------------UFW Firewall Check
 
-if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
-	Info("Found the 'ufw' executable in PATH.");
-
-	if (DepChk(':', 'systemctl') == 0){
-		Info("Found 'systemctl' executable in PATH.");
+if ($Firewall eq 'true'){
+	if (DepChk(':', 'systemctl', 'ufw') == 0){
 		Info('Finding out if UFW unit is active.');
 
 		chomp(my $Result = `systemctl is-active ufw 2> /dev/null`);
