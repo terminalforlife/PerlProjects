@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Feb 00:32:12 GMT 2020
+# Last Change       - Wed 19 Feb 00:37:58 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,9 +17,7 @@
 #TODO: Add a second level of verbosity, for those wanting lots of information.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governer when using a laptop and regular PC.
-#TODO: Add check for LightDM's Guest Session; want it disabled for security.
 #TODO: Add check for X amount of space taken up in Trash and/or user's cache?
-#TODO: Add check for detecting package changes via `apt-get`?
 #TODO: Add check for fan speeds; alert when low/off.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add check(s) for swapfile permissions if it's detected in `/`.
@@ -34,14 +32,12 @@
 #
 # Dependencies:
 #
-#   apt (>= 1.2.32)
 #   libfilesys-diskspace-perl (>= 0.05-16)
 #   libnumber-bytes-human-perl (>= 0.09-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   libtfl-perl (>= 2020-01-09)
 #   perl (>= 5.22.1-9)
-#   systemd (>= 229-4)
 #------------------------------------------------------------------------------
 
 use strict;
