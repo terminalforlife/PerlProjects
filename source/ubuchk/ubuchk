@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Feb 23:45:32 GMT 2020
+# Last Change       - Wed 19 Feb 23:58:24 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -1339,11 +1339,15 @@ if ($RootKits eq 'true'){
 	#   https://github.com/ossec/ossec-hids
 	#
 	foreach (
-		'7125|/tmp/{mcliZokhb,mclzaKmfa}|Bash Door|infection',
+		'7125|/tmp/{mcliZokhb,mclzaKmfa}|Bash door|infection',
 		'7126|/dev/.shit/red.tgz,/usr/{lib/libt,bin/adore}|Adore Worm|worm',
 		'7127|/usr/bin/{soucemask,sourcemask}|TRK Rootkit|rootkit',
 		'7128|/tmp/.../{a,r}|55808.A Worm|worm',
 		'7129|/usr/{lib,bin}/volc|Volc Rootkit|rootkit',
+		'7129|/{lib/security/.config,usr/bin/sia,etc/ld.so.hash}|Illogic Rootkit|rootkit',
+		'7130|/{usr/src/.puta,usr/info/.t0rn,lib/ldlib.tk,etc/ttyhash,sbin/xlogin}|t0rn Rootkit|rootkit',
+		'7131|/{bin/{rtty,squit},sbin/pback,proc/kset,usr/src/linux/modules/{autod.o,soundx.o}}|RK17|infection',
+		'7132|/usr/{lib/ldlib{[pn]s,login}.so,src/.poop,tmp/ramen.tgz,etc/xinetd.d/asp}|Ramen Worm|worm',
 	){
 		my ($AlertID, $Infection, $Name, $Type) = split('\|');
 
