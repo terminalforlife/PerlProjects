@@ -39,8 +39,9 @@ DirPerms=true
 PathPerms=true
 
 # SSH
+SSHClient=true
 SSHDConfig=/etc/ssh/sshd_config
-SSHSerCli=true
+SSHServer=true
 
 # SystemD
 SkipSysD=
@@ -63,3 +64,4 @@ TempScale=C
 # Miscellaneous
 Firewall=true
 ProcVuln=true
+LightDM=true
