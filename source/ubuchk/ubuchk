@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 16 Feb 18:08:40 GMT 2020
+# Last Change       - Wed 19 Feb 00:10:26 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,9 +17,10 @@
 #TODO: Add a second level of verbosity, for those wanting lots of information.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governer when using a laptop and regular PC.
+#TODO: Add check for LightDM's Guest Session; want it disabled for security.
 #TODO: Add check for X amount of space taken up in Trash and/or user's cache?
 #TODO: Add check for detecting package changes via `apt-get`?
-#TODO: Add check for fan speeds.
+#TODO: Add check for fan speeds; alert when low/off.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add check(s) for swapfile permissions if it's detected in `/`.
 #TODO: Add update feature, because it's important to keep this updated.
@@ -49,7 +50,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-16';
+my $CurVer = '2020-02-19';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -74,7 +75,7 @@ my (
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
-	$TempScale, $AptCache, $CacheMBLimit
+	$TempScale, $AptCache, $CacheMBLimit, $LightDM
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -461,6 +462,9 @@ if (-f -r -T $ConfigFile){
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer in MB.");
 			}
+		}elsif ($Key eq 'LightDM'){
+			Boolean($Value);
+			$LightDM = $Value
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -603,41 +607,46 @@ if ($KernParams eq 'true'){
 #--------------------------------------------------PATH Permissions & Ownership
 
 if ($PathPerms eq 'true'){
-	my @AlertPerms;
-	foreach (split(':', $ENV{'PATH'})){
-		Info("Looking in '$_' directory.");
+	if (length($ENV{'PATH'}) > 0){
+		my @AlertPerms;
+		foreach (split(':', $ENV{'PATH'})){
+			Info("Looking in '$_' directory.");
 
-		foreach (glob("$_/*")){
-			#Info("Checking '$_' file.");
+			foreach (glob("$_/*")){
+				#Info("Checking '$_' file.");
 
-			my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
-			$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
+				my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
+				$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
-			#Info("File '$_' is '$Mode' and '$Owner:$Group'.");
+				#Info("File '$_' is '$Mode' and '$Owner:$Group'.");
 
-			Alert(
-				7869,
-				"File '$_' permits '$Mode'.",
-				"Recommended permissions are '755'."
-			) unless $Mode <= 755;
+				Alert(
+					7869,
+					"File '$_' permits '$Mode'.",
+					"Recommended permissions are '755'."
+				) unless $Mode <= 755;
 
-			# These executables should not be owned by a standard user, nor
-			# should they be in such a group. <1000 is for system users/groups.
-			# A stricter test (make optional?) would be to flag all non-0s.
-			# There are exceptions, however, such as the user having his or her
-			# own `bin` directory in their `/home` directory.
-			Alert(
-				6005,
-				"File '$_' owned by '$Owner'.",
-				"Recommended owner is '0' ('root')."
-			) if $Owner >= 1000;
+				# These executables should not be owned by a standard user, nor
+				# should they be in such a group. <1000 is for system users/groups.
+				# A stricter test (make optional?) would be to flag all non-0s.
+				# There are exceptions, however, such as the user having his or her
+				# own `bin` directory in their `/home` directory.
+				Alert(
+					6005,
+					"File '$_' owned by '$Owner'.",
+					"Recommended owner is '0' ('root')."
+				) if $Owner >= 1000;
 
-			Alert(
-				3597,
-				"File '$_' in group '$Group'.",
-				"Recommended group is '0' ('root')."
-			) if $Group >= 1000
+				Alert(
+					3597,
+					"File '$_' in group '$Group'.",
+					"Recommended group is '0' ('root')."
+				) if $Group >= 1000
+			}
 		}
+	}else{
+		# This would have to be some seriously bizarre edge-case.
+		Info("Missing pre-requisits -- skipping 'PathPerms' key.")
 	}
 }
 
@@ -701,8 +710,7 @@ if ($HardAPT eq 'true'){
 			}
 		}
 	}else{
-		# This should be very unlikely, unless in an unsupported LSB.
-		FErr(0, __LINE__, "Dependency 'apt-config' not met.")
+		Info("Missing pre-requisits -- skipping 'HardAPT' key.")
 	}
 }
 
@@ -837,7 +845,7 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 			Info('Active UFW service detected.')
 		}
 	}else{
-		FErr(1, __LINE__, "Dependency 'systemctl' not met.")
+		Info("Missing pre-requisits -- skipping 'Firewall' key.")
 	}
 }
 
@@ -846,46 +854,50 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 if ($SystemD eq 'true'){
 	my $SDConfig = '/etc/systemd/system.conf';
 
-	FileChk($SDConfig);
-	open(my $FH, '<', $SDConfig);
+	if (-f $SDConfig){
+		FileChk($SDConfig);
+		open(my $FH, '<', $SDConfig);
 
-	my %Settings;
-	while (<$FH>){
-		chomp();
-		next if /(^#|^$|^\[Manager\]$)/;
+		my %Settings;
+		while (<$FH>){
+			chomp();
+			next if /(^#|^$|^\[Manager\]$)/;
 
-		my ($Key, $Value) = split('=');
+			my ($Key, $Value) = split('=');
 
-		Info("Key '$Key' is '$Value'.");
+			Info("Key '$Key' is '$Value'.");
 
-		$Settings{$Key} = $Value
-	}
-
-	close($FH);
-
-	foreach ( # [TARGET_VALUE] [KEY]
-		'1411|1415|1024|DefaultLimitNPROC',
-		'1412|1416|1024|DefaultLimitNOFILE',
-		'1413|1417|no|CrashShell',
-		'1414|1418|no|DumpCore'
-	){
-		my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
-
-		next if grep({$_ eq $Key} @SkipSysD);
-
-		unless (exists($Settings{$Key})){
-			Alert(
-				$AlertID1,
-				"SystemD key '$Key' not assigned.",
-				"Recommended action is to assign it '$Target'."
-			)
-		}elsif ($Settings{$Key} ne $Target){
-			Alert(
-				$AlertID2,
-				"SystemD key '$Key' assigned '$Settings{$Key}'.",
-				"Recommended value is '$Target'."
-			)
+			$Settings{$Key} = $Value
 		}
+
+		close($FH);
+
+		foreach ( # [TARGET_VALUE] [KEY]
+			'1411|1415|1024|DefaultLimitNPROC',
+			'1412|1416|1024|DefaultLimitNOFILE',
+			'1413|1417|no|CrashShell',
+			'1414|1418|no|DumpCore'
+		){
+			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
+
+			next if grep({$_ eq $Key} @SkipSysD);
+
+			unless (exists($Settings{$Key})){
+				Alert(
+					$AlertID1,
+					"SystemD key '$Key' not assigned.",
+					"Recommended action is to assign it '$Target'."
+				)
+			}elsif ($Settings{$Key} ne $Target){
+				Alert(
+					$AlertID2,
+					"SystemD key '$Key' assigned '$Settings{$Key}'.",
+					"Recommended value is '$Target'."
+				)
+			}
+		}
+	}else{
+		Info("Missing pre-requisits -- skipping 'SystemD' key.")
 	}
 }
 
@@ -894,51 +906,55 @@ if ($SystemD eq 'true'){
 if ($KernMods eq 'true'){
 	my $ProcMods = '/proc/modules';
 
-	FileChk($ProcMods);
-	open(my $FH, '<', $ProcMods);
+	if (-f $ProcMods){
+		FileChk($ProcMods);
+		open(my $FH, '<', $ProcMods);
 
-	my @Modules;
-	while (<$FH>){
-		chomp();
+		my @Modules;
+		while (<$FH>){
+			chomp();
 
-		my @Line = split(' ');
+			my @Line = split(' ');
 
-		push(@Modules, $Line[0])
-	}
-
-	close($FH);
-
-	foreach (
-		'1274|mei',
-		'1275|mei_me',
-		'1276|mei_wtk',
-		'7416|joydev',
-		'8471|psmouse'
-	){
-		my ($AlertID, $Module) = split('\|');
-
-		if (grep({$_ eq $Module} @Modules)){
-			unless (grep({$_ eq $Module} @SkipKMs)){
-				Info("Module '$Module' found but ignored.");
-				next # <-- Skipping the below alert.
-			}
-
-			Alert(
-				$AlertID,
-				"Module '$Module' discovered and live.",
-				"Recommended action is to blacklist the module."
-			)
-		}else{
-			Info("Module '$Module' not found.")
+			push(@Modules, $Line[0])
 		}
-	}
 
-	foreach my $Mod (@CustomKMs){
-		Alert(
-			8189,
-			"Module '$Mod' discovered and live.",
-			"Recommended action is to blacklist the module."
-		) if grep({$_ eq $Mod} @Modules)
+		close($FH);
+
+		foreach (
+			'1274|mei',
+			'1275|mei_me',
+			'1276|mei_wtk',
+			'7416|joydev',
+			'8471|psmouse'
+		){
+			my ($AlertID, $Module) = split('\|');
+
+			if (grep({$_ eq $Module} @Modules)){
+				unless (grep({$_ eq $Module} @SkipKMs)){
+					Info("Module '$Module' found but ignored.");
+					next # <-- Skipping the below alert.
+				}
+
+				Alert(
+					$AlertID,
+					"Module '$Module' discovered and live.",
+					"Recommended action is to blacklist the module."
+				)
+			}else{
+				Info("Module '$Module' not found.")
+			}
+		}
+
+		foreach my $Mod (@CustomKMs){
+			Alert(
+				8189,
+				"Module '$Mod' discovered and live.",
+				"Recommended action is to blacklist the module."
+			) if grep({$_ eq $Mod} @Modules)
+		}
+	}else{
+		Info("Missing pre-requisits -- skipping 'KernMods' key.")
 	}
 }
 
@@ -947,9 +963,7 @@ if ($KernMods eq 'true'){
 if ($DiskSpace eq 'true'){
 	my $MountFile = '/proc/mounts';
 
-	unless (-f $MountFile){
-		FErr(0, __LINE__, "File '$MountFile' not found.") unless -f $MountFile;
-	}else{
+	if (-f $MountFile){
 		use Filesys::DiskSpace 'df';
 
 		FileChk($MountFile);
@@ -985,6 +999,8 @@ if ($DiskSpace eq 'true'){
 		}
 
 		close($FH);
+	}else{
+		Info("Missing pre-requisits -- skipping 'DiskSpace' key.")
 	}
 }
 
@@ -1053,6 +1069,8 @@ if ($Laptop eq 'true'){
 		}else{
 			Info("Battery #$Battery still has $BatPerc% left.")
 		}
+	}else{
+		Info("Missing pre-requisits -- skipping 'Laptop' key.")
 	}
 }
 
@@ -1097,7 +1115,7 @@ if ($ProcVuln eq 'true'){
 			}
 		}
 	}else{
-		Info("Unable to determine CPU vulnerabilities.")
+		Info("Missing pre-requisits -- skipping 'ProcVuln' key.")
 	}
 }
 
@@ -1106,9 +1124,7 @@ if ($ProcVuln eq 'true'){
 if ($MountHome eq 'true'){
 	my $MountFile = '/proc/mounts';
 
-	unless (-f $MountFile){
-		FErr(0, __LINE__, "File '$MountFile' not found.") unless -f $MountFile;
-	}else{
+	if (-f $MountFile){
 		FileChk($MountFile);
 		open(my $FH, '<', $MountFile);
 
@@ -1152,6 +1168,8 @@ if ($MountHome eq 'true'){
 				}
 			}
 		}
+	}else{
+		Info("Missing pre-requisits -- skipping 'MountHome' key.")
 	}
 }
 
@@ -1218,7 +1236,7 @@ if ($CPUTemp eq 'true'){
 			}
 		}
 	}else{
-		FErr(0, __LINE__, 'Unable to fetch CPU core temperatures.')
+		Info("Missing pre-requisits -- skipping 'CPUTemp' key.")
 	}
 }
 
@@ -1257,7 +1275,22 @@ if ($AptCache eq 'true'){
 			Info("Cached Debian packages take up only $Human.");
 		}
 	}else{
-		FErr(0, __LINE__, "Directory '$Dir' not found.")
+		Info("Missing pre-requisits -- skipping 'AptCache' key.")
+	}
+}
+
+#-----------------------------------------------------------------------LightDM
+
+if ($LightDM eq 'true'){
+	if (DepChk(':', 'lightdm') == 1){
+		my $Config = '/etc/lightdm/lightdm.conf.d/50-no-guest.conf';
+
+		if (-f $Config){
+		}else{
+			FErr(0, __LINE__, "File '$Config' not found.")
+		}
+	}else{
+		Info("Missing pre-requisits -- skipping 'LightDM' key.")
 	}
 }
 
