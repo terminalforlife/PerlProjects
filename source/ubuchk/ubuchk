@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Feb 00:43:38 GMT 2020
+# Last Change       - Wed 19 Feb 23:33:36 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ my (
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
-	$TempScale, $AptCache, $CacheMBLimit, $LightDM
+	$TempScale, $AptCache, $CacheMBLimit, $LightDM, $RootKits
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -465,6 +465,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'LightDM'){
 			Boolean($Value);
 			$LightDM = $Value
+		}elsif ($Key eq 'RootKits'){
+			Boolean($Value);
+			$RootKits = $Value
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -1261,23 +1264,27 @@ if ($AptCache eq 'true'){
 			$FileCount++
 		}
 
-		my $Human = format_bytes($Size);
-		if ($Size / 1024 / 1024 >= $CacheMBLimit){
-			if (DepChk(':', 'sudo') == 0){
-				Alert(
-					9708,
-					"Found $FileCount cached Debian packages, totalling $Human.",
-					"Suggested action is to run: sudo apt-get clean"
-				);
+		if ($Size > 0){
+			my $Human = format_bytes($Size);
+			if ($Size / 1024 / 1024 >= $CacheMBLimit){
+				if (DepChk(':', 'sudo') == 0){
+					Alert(
+						9708,
+						"Found $FileCount cached Debian packages, totalling $Human.",
+						"Suggested action is to run: sudo apt-get clean"
+					);
+				}else{
+					Alert(
+						9708,
+						"Found $FileCount cached Debian packages, totalling $Human.",
+						"Suggested action is to, as root, run: apt-get clean"
+					);
+				}
 			}else{
-				Alert(
-					9708,
-					"Found $FileCount cached Debian packages, totalling $Human.",
-					"Suggested action is to, as root, run: apt-get clean"
-				);
+				Info("Cached Debian packages take up only $Human.");
 			}
 		}else{
-			Info("Cached Debian packages take up only $Human.");
+			Info("Found no cached Debian packages.");
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'AptCache' key.")
@@ -1298,6 +1305,7 @@ if ($LightDM eq 'true'){
 			while (<$FH>){
 				chomp();
 
+				# Correct, at least in Ubuntu 16.04.6 base.
 				if (/^\[SeatDefaults\] allow-guest=true$/){
 					$AllowGuest = 'true';
 					last
@@ -1320,6 +1328,38 @@ if ($LightDM eq 'true'){
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'LightDM' key.")
+	}
+}
+
+#----------------------------------------------------------RootKits, Worms, etc
+
+if ($RootKits eq 'true'){
+	# Based on information from this GitHub repository:
+	#
+	#   https://github.com/ossec/ossec-hids
+	#
+	foreach (
+		'7125|/tmp/{mcliZokhb,mclzaKmfa}|Bash door|infection',
+	){
+		my ($AlertID, $Infection, $Name, $Type) = split('\|');
+
+		my ($Alert, $Info);
+		foreach (glob($Infection)){
+			if (-e $_){
+				Alert(
+					$AlertID,
+					"Potential '$Name' $Type detected!",
+					'Seek immediate medical attention.'
+				) unless $Alert eq 'true';
+
+				$Alert = 'true'
+			}else{
+				Info("No sign of '$Name' found.")
+					unless $Info eq 'true' or $Alert eq 'true';
+
+				$Info = 'true'
+			}
+		}
 	}
 }
 
