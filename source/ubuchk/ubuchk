@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Feb 00:10:26 GMT 2020
+# Last Change       - Wed 19 Feb 00:32:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -25,6 +25,7 @@
 #TODO: Add check(s) for swapfile permissions if it's detected in `/`.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for UFW service without the use of `systemctl` executable.
+#TODO: Don't rely just on '50-no-guest.conf' file for LightDM guest check.
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
@@ -69,7 +70,7 @@ sub Usage{
 
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
-	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHSerCli,
+	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
 	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
@@ -352,9 +353,12 @@ if (-f -r -T $ConfigFile){
 			$HardAPT = $Value
 		}elsif ($Key eq 'SSHDConfig'){
 			$SSHDConfig = $Value
-		}elsif ($Key eq 'SSHSerCli'){
+		}elsif ($Key eq 'SSHServer'){
 			Boolean($Value);
-			$SSHSerCli = $Value
+			$SSHServer = $Value
+		}elsif ($Key eq 'SSHClient'){
+			Boolean($Value);
+			$SSHClient = $Value
 		}elsif ($Key eq 'UnwantedPKGs'){
 			push(@UnwantedPKGs, $Value)
 		}elsif ($Key eq 'Verbose'){
@@ -502,7 +506,7 @@ if (@SkipIDs > 0){
 }
 
 @Installed = sort(ParseDpkgStatus('installokinstalled'))
-	if $SSHSerCli eq 'true' or @UnwantedPKGs > 0;
+	if @UnwantedPKGs > 0;
 
 @NotPurged = sort(ParseDpkgStatus('deinstallokconfig-files'))
 	if $PurgeChk eq 'true';
@@ -646,7 +650,7 @@ if ($PathPerms eq 'true'){
 		}
 	}else{
 		# This would have to be some seriously bizarre edge-case.
-		Info("Missing pre-requisits -- skipping 'PathPerms' key.")
+		Info("Missing prerequisites -- skipping 'PathPerms' key.")
 	}
 }
 
@@ -710,16 +714,16 @@ if ($HardAPT eq 'true'){
 			}
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'HardAPT' key.")
+		Info("Missing prerequisites -- skipping 'HardAPT' key.")
 	}
 }
 
-#----------------------------------------------------SSH Client & Server Checks
+#--------------------------------------------------------------------SSH Client
 
-if ($SSHSerCli eq 'true'){
+if ($SSHClient eq 'true'){
 	my $SSHDir = "$ENV{HOME}/.ssh";
 
-	if (-d $SSHDir and grep({$_ eq 'openssh-client'} @Installed)){
+	if (-d $SSHDir){
 		FErr(1, __LINE__, "Directory '$SSHDir' unreadable.") unless -r $SSHDir;
 		FErr(1, __LINE__, "Directory '$SSHDir' denies execution.") unless -x $SSHDir;
 
@@ -744,8 +748,12 @@ if ($SSHSerCli eq 'true'){
 			"Recommended group is your GID ('$GID')."
 		) unless $Group == $GID;
 	}
+}
 
-	if (-f $SSHDConfig and grep({$_ eq 'openssh-server'} @Installed)){
+#--------------------------------------------------------------------SSH Server
+
+if ($SSHServer eq 'true'){
+	if (-f $SSHDConfig){
 		FErr(1, __LINE__, "File '$SSHDConfig' unreadable.")
 			unless -r $SSHDConfig;
 
@@ -845,7 +853,7 @@ if ($Firewall eq 'true' and DepChk(':', 'ufw') == 0){
 			Info('Active UFW service detected.')
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'Firewall' key.")
+		Info("Missing prerequisites -- skipping 'Firewall' key.")
 	}
 }
 
@@ -897,7 +905,7 @@ if ($SystemD eq 'true'){
 			}
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'SystemD' key.")
+		Info("Missing prerequisites -- skipping 'SystemD' key.")
 	}
 }
 
@@ -954,7 +962,7 @@ if ($KernMods eq 'true'){
 			) if grep({$_ eq $Mod} @Modules)
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'KernMods' key.")
+		Info("Missing prerequisites -- skipping 'KernMods' key.")
 	}
 }
 
@@ -1000,7 +1008,7 @@ if ($DiskSpace eq 'true'){
 
 		close($FH);
 	}else{
-		Info("Missing pre-requisits -- skipping 'DiskSpace' key.")
+		Info("Missing prerequisites -- skipping 'DiskSpace' key.")
 	}
 }
 
@@ -1070,7 +1078,7 @@ if ($Laptop eq 'true'){
 			Info("Battery #$Battery still has $BatPerc% left.")
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'Laptop' key.")
+		Info("Missing prerequisites -- skipping 'Laptop' key.")
 	}
 }
 
@@ -1115,7 +1123,7 @@ if ($ProcVuln eq 'true'){
 			}
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'ProcVuln' key.")
+		Info("Missing prerequisites -- skipping 'ProcVuln' key.")
 	}
 }
 
@@ -1169,7 +1177,7 @@ if ($MountHome eq 'true'){
 			}
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'MountHome' key.")
+		Info("Missing prerequisites -- skipping 'MountHome' key.")
 	}
 }
 
@@ -1236,7 +1244,7 @@ if ($CPUTemp eq 'true'){
 			}
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'CPUTemp' key.")
+		Info("Missing prerequisites -- skipping 'CPUTemp' key.")
 	}
 }
 
@@ -1275,22 +1283,46 @@ if ($AptCache eq 'true'){
 			Info("Cached Debian packages take up only $Human.");
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'AptCache' key.")
+		Info("Missing prerequisites -- skipping 'AptCache' key.")
 	}
 }
 
 #-----------------------------------------------------------------------LightDM
 
 if ($LightDM eq 'true'){
-	if (DepChk(':', 'lightdm') == 1){
+	if (DepChk(':', 'lightdm') == 0){
 		my $Config = '/etc/lightdm/lightdm.conf.d/50-no-guest.conf';
 
 		if (-f $Config){
+			FileChk($Config);
+			open(my $FH, '<', $Config);
+
+			my $AllowGuest;
+			while (<$FH>){
+				chomp();
+
+				if (/^\[SeatDefaults\] allow-guest=true$/){
+					$AllowGuest = 'true';
+					last
+				}
+			}
+
+			close($FH);
+
+			if ($AllowGuest eq 'true'){
+				Alert(
+					9188,
+					'Guest logins are allowed with LightDM.',
+					'Recommended action is to disable guest logins.'
+				);
+			}else{
+				Info('LightDM does not permit guest logins.')
+			}
 		}else{
 			FErr(0, __LINE__, "File '$Config' not found.")
 		}
 	}else{
-		Info("Missing pre-requisits -- skipping 'LightDM' key.")
+		Info("Missing prerequisites -- skipping 'LightDM' key.")
 	}
 }
 
