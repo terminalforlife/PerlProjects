@@ -1,6 +1,6 @@
 # Introduction
 
-UbuChk -- a vast upgrade to its old predecessor -- is an administrative tool to determine various aspects of the system health, with a focus on security. Whether it's checking CPU temperatures, PATH executables, disk space, security settings for APT, potentially unwanted packages, or questionable kernel parameters, UbuChk is looking out for you.
+UbuChk -- a vast upgrade to its old predecessor -- is an administrative tool to determine various aspects of the system health, with a focus on security. Whether it's checking CPU temperatures, PATH executables, disk space, security settings for APT, rootkits, potentially unwanted packages, or questionable kernel parameters, UbuChk is looking out for you.
 
 Thanks to UbuChk being written in Perl, performance is a huge leap forward. This tool offers the potential additional portability, despite targeting Ubuntu users, allowing the user to roll the dice, forcing UbuChk to run as though in a supported Ubuntu installation of Linux.
 
@@ -16,7 +16,7 @@ The future of UbuChk looks bright, with development ongoing, and plenty of room 
 
 UbuChk has been developed for and used in Ubuntu 16.04 LTS and Ubuntu 18.04 LTS. Distributions based on regular Ubuntu (that one with GNOME 3), such as Linux Mint, Linux Lite, Peppermint OS, and Zorin OS, all should all be capable of running UbuChk, although some features may not work as intended.
 
-The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 36 user configuration keys.
+The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 40 user configuration keys.
 
 Thank you for your interest and time.
 
