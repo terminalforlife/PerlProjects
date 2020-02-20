@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Tue 11 Feb 13:37:31 GMT 2020
+# Last Change       - Thu 20 Feb 04:46:54 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ _ubuchk(){
 				Args+="${Arg##[^-]*} "
 			}
 		fi
-	done <<< "$(rmne -h)"
+	done <<< "$(ubuchk -h)"
 
 	COMPREPLY=(`compgen -W "$Args" -- "$2"`)
 
