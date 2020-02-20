@@ -17,6 +17,7 @@ AptCache=true
 CacheMBLimit=100
 DSLimit=90
 DiskSpace=true
+HomeCache=true
 
 # Package Management
 HardAPT=true

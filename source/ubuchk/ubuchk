@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 20 Feb 00:18:03 GMT 2020
+# Last Change       - Thu 20 Feb 02:11:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -72,7 +72,8 @@ my (
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
-	$TempScale, $AptCache, $CacheMBLimit, $LightDM, $RootKits, @SkipRKs
+	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
+	$HomeCache, $HomeCacheMBLimit
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -456,9 +457,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'AptCache'){
 			Boolean($Value);
 			$AptCache = $Value
-		}elsif ($Key eq 'CacheMBLimit'){
+		}elsif ($Key eq 'AptCacheMBLimit'){
 			if ($Value =~ /^[0-9]+$/){
-				$CacheMBLimit = $Value
+				$AptCacheMBLimit = $Value
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer in MB.");
 			}
@@ -470,6 +471,15 @@ if (-f -r -T $ConfigFile){
 			$RootKits = $Value
 		}elsif ($Key eq 'SkipRKs'){
 			push(@SkipRKs, $Value)
+		}elsif ($Key eq 'HomeCache'){
+			Boolean($Value);
+			$HomeCache = $Value
+		}elsif ($Key eq 'HomeCacheMBLimit'){
+			if ($Value =~ /^[0-9]+$/){
+				$HomeCacheMBLimit = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -1268,7 +1278,7 @@ if ($AptCache eq 'true'){
 
 		if ($Size > 0){
 			my $Human = format_bytes($Size);
-			if ($Size / 1024 / 1024 >= $CacheMBLimit){
+			if ($Size / 1024 / 1024 >= $AptCacheMBLimit){
 				if (DepChk(':', 'sudo') == 0){
 					Alert(
 						9708,
@@ -1376,6 +1386,48 @@ if ($RootKits eq 'true'){
 				$Info = 'true'
 			}
 		}
+	}
+}
+
+#------------------------------------------------------------------User's Cache
+
+if ($HomeCache eq 'true'){
+	use POSIX 'ceil';
+
+	my $CacheDir = "$ENV{'HOME'}/.cache";
+
+	if (-d $CacheDir){
+		my @Dirs = InitialDirs($CacheDir);
+
+		my $Size;
+		foreach (@Dirs){
+			foreach (glob("$_/{*,.*}")){
+				next if m{/(\.\.|\.)$};
+				next if -l; # <-- Avoid infinite loop.
+
+				push(@Dirs, $_) if -d -x;
+
+				$Size += -s if -f
+			}
+		}
+
+		my $SizeMB = ceil($Size / 1024 / 1024);
+
+		if ($SizeMB >= $HomeCacheMBLimit){
+			Alert(
+				7619,
+				"User '$ENV{USER}' has a cache total of ${SizeMB}M.",
+				"Suggested action is to remove unneeded files."
+			)
+		}else{
+			use Number::Bytes::Human 'format_bytes';
+
+			my $Human = format_bytes($Size);
+
+			Info("User '$ENV{USER}' caches only $Human.")
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'HomeCache' key.")
 	}
 }
 
