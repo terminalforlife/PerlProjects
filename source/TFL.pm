@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/TFL.pm
 # Started On        - Mon  6 May 19:29:05 BST 2019
-# Last Change       - Mon  3 Feb 23:45:17 GMT 2020
+# Last Change       - Thu 20 Feb 02:16:28 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -41,10 +41,10 @@ use vars '@EXPORT', '$VERSION';
 @EXPORT = (
 	'$PROGNAME', '$AUTHOR', '$GITHUB', 'FErr', 'Err', 'KeyVal',
 	'GitTopLevel', 'DepChk', 'KeyDef', 'UsageCPU', 'UnderLine',
-	'Boolean', 'YNInput', 'ReadFile', 'WriteFile'
+	'Boolean', 'YNInput', 'ReadFile', 'WriteFile', 'InitialDirs'
 );
 
-$VERSION = '2020-02-03';
+$VERSION = '2020-02-20';
 
 our ($PROGNAME) = $0 =~ m{(?:.*/)?([^/]*)};
 our $AUTHOR = 'Written by terminalforlife <terminalforlife@yahoo.com>';
@@ -258,9 +258,29 @@ sub GitTopLevel{
 	}
 }
 
+=item InitialDirs()
+
+Return an array consisting of all -- hidden or otherwise -- directories within the first argument's path. This is primarily useful for recursive directory crawling.
+
+=cut
+
+sub InitialDirs{
+	my @Dirs;
+	foreach (glob("$_[0]/{*,.*}")){
+		next if m{/(\.\.|\.)$};
+		push(@Dirs, $_) if -d -x
+	}
+
+	return(@Dirs)
+}
+
 =back
 
 =head1 CHANGES
+
+=head2 2020-02-20
+
+Added InitialDirs().
 
 =head2 2020-02-03
 
