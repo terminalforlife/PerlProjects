@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Feb 00:43:38 GMT 2020
+# Last Change       - Thu 20 Feb 00:18:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-19';
+my $CurVer = '2020-02-20';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -72,7 +72,7 @@ my (
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
-	$TempScale, $AptCache, $CacheMBLimit, $LightDM
+	$TempScale, $AptCache, $CacheMBLimit, $LightDM, $RootKits, @SkipRKs
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -465,6 +465,11 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'LightDM'){
 			Boolean($Value);
 			$LightDM = $Value
+		}elsif ($Key eq 'RootKits'){
+			Boolean($Value);
+			$RootKits = $Value
+		}elsif ($Key eq 'SkipRKs'){
+			push(@SkipRKs, $Value)
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -1261,23 +1266,27 @@ if ($AptCache eq 'true'){
 			$FileCount++
 		}
 
-		my $Human = format_bytes($Size);
-		if ($Size / 1024 / 1024 >= $CacheMBLimit){
-			if (DepChk(':', 'sudo') == 0){
-				Alert(
-					9708,
-					"Found $FileCount cached Debian packages, totalling $Human.",
-					"Suggested action is to run: sudo apt-get clean"
-				);
+		if ($Size > 0){
+			my $Human = format_bytes($Size);
+			if ($Size / 1024 / 1024 >= $CacheMBLimit){
+				if (DepChk(':', 'sudo') == 0){
+					Alert(
+						9708,
+						"Found $FileCount cached Debian packages, totalling $Human.",
+						"Suggested action is to run: sudo apt-get clean"
+					);
+				}else{
+					Alert(
+						9708,
+						"Found $FileCount cached Debian packages, totalling $Human.",
+						"Suggested action is to, as root, run: apt-get clean"
+					);
+				}
 			}else{
-				Alert(
-					9708,
-					"Found $FileCount cached Debian packages, totalling $Human.",
-					"Suggested action is to, as root, run: apt-get clean"
-				);
+				Info("Cached Debian packages take up only $Human.");
 			}
 		}else{
-			Info("Cached Debian packages take up only $Human.");
+			Info("Found no cached Debian packages.");
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'AptCache' key.")
@@ -1298,6 +1307,7 @@ if ($LightDM eq 'true'){
 			while (<$FH>){
 				chomp();
 
+				# Correct, at least in Ubuntu 16.04.6 base.
 				if (/^\[SeatDefaults\] allow-guest=true$/){
 					$AllowGuest = 'true';
 					last
@@ -1320,6 +1330,52 @@ if ($LightDM eq 'true'){
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'LightDM' key.")
+	}
+}
+
+#----------------------------------------------------------RootKits, Worms, etc
+
+if ($RootKits eq 'true'){
+	# Based on information from this GitHub repository:
+	#
+	#   https://github.com/ossec/ossec-hids
+	#
+	foreach (
+		'7125|/tmp/{mcliZokhb,mclzaKmfa}|Bash door|infection',
+		'7126|/dev/.shit/red.tgz,/usr/{lib/libt,bin/adore}|Adore Worm|worm',
+		'7127|/usr/bin/{soucemask,sourcemask}|TRK Rootkit|rootkit',
+		'7128|/tmp/.../{a,r}|55808.A Worm|worm',
+		'7129|/usr/{lib,bin}/volc|Volc Rootkit|rootkit',
+		'7129|/{lib/security/.config,usr/bin/sia,etc/ld.so.hash}|Illogic Rootkit|rootkit',
+		'7130|/{usr/src/.puta,usr/info/.t0rn,lib/ldlib.tk,etc/ttyhash,sbin/xlogin}|t0rn Rootkit|rootkit',
+		'7131|/{bin/{rtty,squit},sbin/pback,proc/kset,usr/src/linux/modules/{autod.o,soundx.o}}|RK17|infection',
+		'7132|/usr/{lib/ldlib{[pn]s,login}.so,src/.poop,tmp/ramen.tgz,etc/xinetd.d/asp}|Ramen Worm|worm',
+		'7133|/dev/cuc|Sadmind/IIS Worm|worm',
+		'7134|/{lib/defs,usr/lib/libpikapp.a}|Monkit|infection',
+		'7134|/{usr/bin/{kr4p,n3tstat,chsh2,slice2},etc/rc.d/rsha}|RSHA|infection',
+		'7135|/{bin/home,sbin/home,usr/sbin/in.slogind}|ShitC|worm',
+	){
+		my ($AlertID, $Infection, $Name, $Type) = split('\|');
+
+		my ($Alert, $Info);
+		foreach (glob($Infection)){
+			next if grep({$_ eq $Name} @SkipRKs);
+
+			if (-e $_){
+				Alert(
+					$AlertID,
+					"Potential '$Name' $Type detected!",
+					'Seek immediate medical attention.'
+				) unless $Alert eq 'true';
+
+				$Alert = 'true'
+			}else{
+				Info("No sign of '$Name' found.")
+					unless $Info eq 'true' or $Alert eq 'true';
+
+				$Info = 'true'
+			}
+		}
 	}
 }
 

@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-02-13)
+# User configuration file for UbuChk (>= 2020-02-20)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
@@ -60,6 +60,10 @@ SkipMountOpts=
 CPUTemp=true
 CoreTempCrit=70
 TempScale=C
+
+# RootKits, Worms, etc
+RootKits=true
+SkipRKs=
 
 # Miscellaneous
 Firewall=true
