@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 20 Feb 00:08:08 GMT 2020
+# Last Change       - Thu 20 Feb 00:18:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ my (
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
-	$TempScale, $AptCache, $CacheMBLimit, $LightDM, $RootKits
+	$TempScale, $AptCache, $CacheMBLimit, $LightDM, $RootKits, @SkipRKs
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -468,6 +468,8 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'RootKits'){
 			Boolean($Value);
 			$RootKits = $Value
+		}elsif ($Key eq 'SkipRKs'){
+			push(@SkipRKs, $Value)
 		}else{
 			FErr(0, __LINE__, "Invalid key '$Key' detected.");
 
@@ -1357,6 +1359,8 @@ if ($RootKits eq 'true'){
 
 		my ($Alert, $Info);
 		foreach (glob($Infection)){
+			next if grep({$_ eq $Name} @SkipRKs);
+
 			if (-e $_){
 				Alert(
 					$AlertID,
