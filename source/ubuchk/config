@@ -17,7 +17,7 @@ DSLimit=90
 DiskSpace=true
 HomeCache=true
 HomeCacheMBLimit=100
-ThumbMBLimit=40
+ThumbsMBLimit=40
 Thumbnails=true
 
 # Package Management
