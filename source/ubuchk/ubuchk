@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Feb 23:58:24 GMT 2020
+# Last Change       - Thu 20 Feb 00:08:08 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-19';
+my $CurVer = '2020-02-20';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -1348,6 +1348,10 @@ if ($RootKits eq 'true'){
 		'7130|/{usr/src/.puta,usr/info/.t0rn,lib/ldlib.tk,etc/ttyhash,sbin/xlogin}|t0rn Rootkit|rootkit',
 		'7131|/{bin/{rtty,squit},sbin/pback,proc/kset,usr/src/linux/modules/{autod.o,soundx.o}}|RK17|infection',
 		'7132|/usr/{lib/ldlib{[pn]s,login}.so,src/.poop,tmp/ramen.tgz,etc/xinetd.d/asp}|Ramen Worm|worm',
+		'7133|/dev/cuc|Sadmind/IIS Worm|worm',
+		'7134|/{lib/defs,usr/lib/libpikapp.a}|Monkit|infection',
+		'7134|/{usr/bin/{kr4p,n3tstat,chsh2,slice2},etc/rc.d/rsha}|RSHA|infection',
+		'7135|/{bin/home,sbin/home,usr/sbin/in.slogind}|ShitC|worm',
 	){
 		my ($AlertID, $Infection, $Name, $Type) = split('\|');
 
