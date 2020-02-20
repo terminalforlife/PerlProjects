@@ -14,10 +14,11 @@ QueryIndent=8
 
 # Disk Usage
 AptCache=true
-CacheMBLimit=100
+AptCacheMBLimit=100
 DSLimit=90
 DiskSpace=true
 HomeCache=true
+HomeCacheMBLimit=100
 
 # Package Management
 HardAPT=true
