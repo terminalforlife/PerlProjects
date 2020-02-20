@@ -3,14 +3,12 @@
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
+AutoQuery=false
 IsUbuntu=false
+QueryIndent=8
 Recommend=true
 SkipIDs=
 Verbose=false
-
-# Queries
-AutoQuery=false
-QueryIndent=8
 
 # Disk Usage
 AptCache=true
