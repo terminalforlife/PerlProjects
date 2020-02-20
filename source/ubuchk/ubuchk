@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 20 Feb 02:19:40 GMT 2020
+# Last Change       - Thu 20 Feb 03:26:22 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -36,14 +36,14 @@
 #   libnumber-bytes-human-perl (>= 0.09-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
-#   libtfl-perl (>= 2020-01-09)
+#   libtfl-perl (>= 2020-02-20)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'Boolean', 'DepChk';
+use TFL qw{FErr Boolean DepChk InitialDirs CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
@@ -73,7 +73,7 @@ my (
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
-	$HomeCache, $HomeCacheMBLimit
+	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -172,16 +172,6 @@ sub FileChk{ # Usage: [FILE]
 
 	#my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
 	#Info("Checking '$BaseName' file.")
-}
-
-sub CelsFahr{ # Usage: [CELSIUS_INT]
-	if ($TempScale eq 'F'){
-		use POSIX 'ceil';
-
-		return(ceil(($_[1] * 9/5) + 32)) if $_[0] eq 'int';
-	}elsif ($TempScale eq 'C'){
-		return($_[1]) if $_[0] eq 'int';
-	}
 }
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
@@ -480,8 +470,17 @@ if (-f -r -T $ConfigFile){
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
+		}elsif ($Key eq 'Thumbnails'){
+			Boolean($Value);
+			$Thumbnails = $Value
+		}elsif ($Key eq 'ThumbsMBLimit'){
+			if ($Value =~ /^[0-9]+$/){
+				$ThumbsMBLimit = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
 		}else{
-			FErr(0, __LINE__, "Invalid key '$Key' detected.");
+			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
 			$InvalidKeyCount++
 		}
@@ -502,7 +501,7 @@ if (-f -r -T $ConfigFile){
 		copy($DefaultConfigFile, $ConfigFile)
 			or FErr(1, __LINE__, "Failed to generate a configuration file.");
 
-		printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
+		printf("File '~/.config/$TFL::PROGNAME/config' generated -- reload me.\n");
 		exit(0)
 	}else{
 		FErr(1, __LINE__, "File '/usr/share/$TFL::PROGNAME/config' not found.")
@@ -1239,7 +1238,7 @@ if ($CPUTemp eq 'true'){
 
 			# Initially, this value is in Celsius (unconfirmed).
 			my $TempInt = CelsFahr(
-				'int', substr($TempData{$_}, 0, length($TempData{$_}) - 3)
+				$TempScale, substr($TempData{$_}, 0, length($TempData{$_}) - 3)
 			);
 
 			my $TempStr = "$TempInt°$TempScale";
@@ -1392,42 +1391,64 @@ if ($RootKits eq 'true'){
 #------------------------------------------------------------------User's Cache
 
 if ($HomeCache eq 'true'){
-	use POSIX 'ceil';
-
-	my $CacheDir = "$ENV{'HOME'}/.cache";
+	my $CacheDir = "$ENV{HOME}/.cache";
 
 	if (-d $CacheDir){
-		my @Dirs = InitialDirs($CacheDir);
+		my $Size = GetDirSize($CacheDir);
+		if ($Size > 0){
+			use POSIX 'ceil';
 
-		my $Size;
-		foreach (@Dirs){
-			foreach (glob("$_/{*,.*}")){
-				next if m{/(\.\.|\.)$};
-				next if -l; # <-- Avoid infinite loop.
+			my $SizeMB = ceil($Size / 1024 / 1024);
+			if ($SizeMB >= $HomeCacheMBLimit){
+				Alert(
+					7619,
+					"User '$ENV{USER}' has a cache total of ${SizeMB}M.",
+					"Suggested action is to remove unneeded files."
+				)
+			}else{
+				use Number::Bytes::Human 'format_bytes';
 
-				push(@Dirs, $_) if -d -x;
+				my $Human = format_bytes($Size);
 
-				$Size += -s if -f
+				Info("User '$ENV{USER}' caches only $Human.")
 			}
-		}
-
-		my $SizeMB = ceil($Size / 1024 / 1024);
-
-		if ($SizeMB >= $HomeCacheMBLimit){
-			Alert(
-				7619,
-				"User '$ENV{USER}' has a cache total of ${SizeMB}M.",
-				"Suggested action is to remove unneeded files."
-			)
 		}else{
-			use Number::Bytes::Human 'format_bytes';
-
-			my $Human = format_bytes($Size);
-
-			Info("User '$ENV{USER}' caches only $Human.")
+			Info("User '$ENV{USER}' directory '~/.cache' is empty.")
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'HomeCache' key.")
+	}
+}
+
+#-------------------------------------------------------------User's Thumbnails
+
+if ($Thumbnails eq 'true'){
+	my $ThumbDir = "$ENV{HOME}/.thumbnails";
+
+	if (-d $ThumbDir){
+		my $Size = GetDirSize($ThumbDir);
+		if ($Size > 0){
+			use POSIX 'ceil';
+
+			my $SizeMB = ceil($Size / 1024 / 1024);
+			if ($SizeMB >= $ThumbsMBLimit){
+				Alert(
+					7620,
+					"User '$ENV{USER}' has a cache total of ${SizeMB}M.",
+					"Suggested action is to remove unneeded files."
+				)
+			}else{
+				use Number::Bytes::Human 'format_bytes';
+
+				my $Human = format_bytes($Size);
+
+				Info("User '$ENV{USER}' thumbnails take up only $Human.")
+			}
+		}else{
+			Info("User '$ENV{USER}' directory '~/.thumbnails' is empty.")
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'Thumbnails' key.")
 	}
 }
 

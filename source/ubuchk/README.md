@@ -16,7 +16,7 @@ The future of UbuChk looks bright, with development ongoing, and plenty of room 
 
 UbuChk has been developed for and used in Ubuntu 16.04 LTS and Ubuntu 18.04 LTS. Distributions based on regular Ubuntu (that one with GNOME 3), such as Linux Mint, Linux Lite, Peppermint OS, and Zorin OS, all should all be capable of running UbuChk, although some features may not work as intended.
 
-The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 40 user configuration keys.
+The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 42 user configuration keys.
 
 Thank you for your interest and time.
 
