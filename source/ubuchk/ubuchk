@@ -3,18 +3,17 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 20 Feb 03:26:22 GMT 2020
+# Last Change       - Sat 22 Feb 20:52:38 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# A work-in-progress Perl rewrite and overhaul of `ubuntu-syschk`.
+# An ever-growing Perl rewrite and vast overhaul of `ubuntu-syschk`.
 #
 # Features:
 #
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `Info()` for `Laptop` when it's plugged in and charging.
-#TODO: Add a second level of verbosity, for those wanting lots of information.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governor when using a laptop and regular PC.
 #TODO: Add check for X amount of space taken up in Trash.
@@ -22,12 +21,14 @@
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add check(s) for swapfile permissions if it's detected in `/`.
 #TODO: Add update feature, because it's important to keep this updated.
+#TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Don't rely just on '50-no-guest.conf' file for LightDM guest check.
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
 #
+#TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #
 # Dependencies:
@@ -43,11 +44,11 @@
 use strict;
 use warnings;
 use autodie;
-use TFL qw{FErr Boolean DepChk InitialDirs CelsFahr GetDirSize};
+use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-20';
+my $CurVer = '2020-02-22';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -73,7 +74,8 @@ my (
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
-	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit
+	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
+	@SkipDpkgOpts
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -85,12 +87,12 @@ my $GID = (split(' ', $())[0];
 
 mkdir($MainDir) unless -d $MainDir;
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+foreach (@ARGV){
+	if (/^(--help|-h|-\?)$/){
 		Usage(); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	}elsif (/^(--version|-v)$/){
 		print("$CurVer\n"); exit(0)
-	}elsif($ARGV[0] =~ '^(--config|-c)$'){
+	}elsif(/^(--config|-c)$/){
 		shift();
 
 		unless (length($ARGV[0]) > 0){
@@ -100,9 +102,9 @@ while (defined($ARGV[0])){
 		}
 
 		$ConfigFile = $ARGV[0]
-	}elsif($ARGV[0] =~ '^(--force-reset|-F)$'){
+	}elsif(/^(--force-reset|-F)$/){
 		$ForceReset = 'true'
-	}elsif($ARGV[0] =~ '^(--query|-Q)$'){
+	}elsif(/^(--query|-Q)$/){
 		shift();
 
 		FErr(1, __LINE__, "Option '--query|-Q' requires an alert ID.")
@@ -113,7 +115,7 @@ while (defined($ARGV[0])){
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
-	}elsif($ARGV[0] =~ '^--skip='){
+	}elsif(/^--skip=/){
 		@SkipIDs = split(',', $ARGV[0] =~ s/^--skip=//r);
 
 		FErr(1, __LINE__, "Option '--skip=' requires at least one alert ID.")
@@ -123,13 +125,13 @@ while (defined($ARGV[0])){
 			FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
 				unless /^[0-9]{4}$/;
 		}
-	}elsif($ARGV[0] =~ '^(--is-ubuntu|-U)$'){
+	}elsif(/^(--is-ubuntu|-U)$/){
 		$IsUbuntu = 'true'
-	}elsif($ARGV[0] =~ '^(--verbose|-V)$'){
+	}elsif(/^(--verbose|-V)$/){
 		$Verbose = 'true'
 	}elsif($ARGV[0] eq '--os-override'){
 		$OSOverride = 'true'
-	}elsif ($ARGV[0] =~ '^-'){
+	}elsif (/^-/){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
 		last
@@ -161,17 +163,18 @@ sub Info{ # Usage: [STRING]
 }
 
 sub FileChk{ # Usage: [FILE]
-	my $Err;
+	my $Errs;
 	unless (-r $_[0]){
-		FErr(0, __LINE__, "File '$_[0]' unreadable."); $Err++
+		FErr(0, __LINE__, "File '$_[0]' unreadable."); $Errs++
 	}elsif (-B $_[0]){
-		FErr(0, __LINE__, "File '$_[0]' is binary."); $Err++
+		FErr(0, __LINE__, "File '$_[0]' is binary."); $Errs++
 	}
 
-	exit(1) if $Err > 0;
+	exit(1) if $Errs > 0;
 
-	#my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
-	#Info("Checking '$BaseName' file.")
+	my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
+	Info("Checking '$BaseName' file.")
+		unless $BaseName =~ /^(os-release$|status$|temp)/
 }
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
@@ -316,8 +319,8 @@ if (-f -r -T $ConfigFile){
 	open(my $FH, '<', $ConfigFile);
 
 	while (<$FH>){
-		next if length() <= 1 or /^#/;
 		chomp(my ($Key, $Value) = split('='));
+		next if /^(#|$)/;
 
 		if ($Key eq 'KernParams'){
 			Boolean($Value);
@@ -479,6 +482,14 @@ if (-f -r -T $ConfigFile){
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
+		}elsif ($Key eq 'DpkgConf'){
+			Boolean($Value);
+			$DpkgConf = $Value
+		}elsif ($Key eq 'DpkgConf'){
+			Boolean($Value);
+			$DpkgConf = $Value
+		}elsif ($Key eq 'SkipDpkgOpts'){
+			push(@SkipDpkgOpts, $Value)
 		}else{
 			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
@@ -532,7 +543,7 @@ unless ($IsUbuntu eq 'true'){
 	my ($LSB, $Found);
 	while (<$FH>){
 		chomp();
-		next if /(^$|^#)/;
+		next if /^(#|$)/;
 		next unless $_ eq 'ID=ubuntu';
 
 		$Found = 'true';
@@ -627,12 +638,10 @@ if ($PathPerms eq 'true'){
 			Info("Looking in '$_' directory.");
 
 			foreach (glob("$_/*")){
-				#Info("Checking '$_' file.");
-
 				my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
 				$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
-				#Info("File '$_' is '$Mode' and '$Owner:$Group'.");
+				Info("File '$_' is '$Mode' and '$Owner:$Group'.");
 
 				Alert(
 					7869,
@@ -685,7 +694,7 @@ if ($HardAPT eq 'true'){
 		my %Settings;
 		foreach (`apt-config dump --format '%f=%v%n' 2> /dev/null`){
 			chomp();
-			next if /(^#|^$)/;
+			next if /^(#|$)/;
 
 			my ($Key, $Value) = split('=');
 			$Value = $Value =~ tr/"';//dr;
@@ -1164,6 +1173,7 @@ if ($MountHome eq 'true'){
 			Info("Mountpoint '/home' points to '$Device'.");
 
 			my @OptArr = split(',', $Options);
+				my ($AlertID, $Option) = split(',');
 
 			foreach (
 				'1356,noexec',
@@ -1272,7 +1282,14 @@ if ($AptCache eq 'true'){
 		my ($FileCount, $Size);
 		foreach (glob("$Dir/*.deb")){
 			$Size += -s;
-			$FileCount++
+			$FileCount++;
+
+			if ($Verbose eq 'true'){
+				my $Human = format_bytes($Size);
+				my $BaseName = ($_ =~ m{(?:.*/)(.*)})[0];
+
+				Info("Found '$BaseName', using $Human.");
+			}
 		}
 
 		if ($Size > 0){
@@ -1349,43 +1366,64 @@ if ($RootKits eq 'true'){
 	#
 	#   https://github.com/ossec/ossec-hids
 	#
+	my (@BadFiles, @FoundInfs);
 	foreach (
-		'7125|/tmp/{mcliZokhb,mclzaKmfa}|Bash door|infection',
-		'7126|/dev/.shit/red.tgz,/usr/{lib/libt,bin/adore}|Adore Worm|worm',
-		'7127|/usr/bin/{soucemask,sourcemask}|TRK Rootkit|rootkit',
-		'7128|/tmp/.../{a,r}|55808.A Worm|worm',
-		'7129|/usr/{lib,bin}/volc|Volc Rootkit|rootkit',
-		'7129|/{lib/security/.config,usr/bin/sia,etc/ld.so.hash}|Illogic Rootkit|rootkit',
-		'7130|/{usr/src/.puta,usr/info/.t0rn,lib/ldlib.tk,etc/ttyhash,sbin/xlogin}|t0rn Rootkit|rootkit',
-		'7131|/{bin/{rtty,squit},sbin/pback,proc/kset,usr/src/linux/modules/{autod.o,soundx.o}}|RK17|infection',
-		'7132|/usr/{lib/ldlib{[pn]s,login}.so,src/.poop,tmp/ramen.tgz,etc/xinetd.d/asp}|Ramen Worm|worm',
-		'7133|/dev/cuc|Sadmind/IIS Worm|worm',
-		'7134|/{lib/defs,usr/lib/libpikapp.a}|Monkit|infection',
-		'7134|/{usr/bin/{kr4p,n3tstat,chsh2,slice2},etc/rc.d/rsha}|RSHA|infection',
-		'7135|/{bin/home,sbin/home,usr/sbin/in.slogind}|ShitC|worm',
+		'7125|/tmp/{mcliZokhb,mclzaKmfa}|Bash door',
+		'7126|/dev/.shit/red.tgz,/usr/{lib/libt,bin/adore}|Adore Worm',
+		'7127|/usr/bin/{soucemask,sourcemask}|TRK Rootkit',
+		'7128|/tmp/.../{a,r}|55808.A Worm',
+		'7129|/usr/{lib,bin}/volc|Volc Rootkit',
+		'7129|/{lib/security/.config,usr/bin/sia,etc/ld.so.hash}|Illogic Rootkit',
+		'7130|/{usr/src/.puta,usr/info/.t0rn,lib/ldlib.tk,etc/ttyhash,sbin/xlogin}|t0rn Rootkit',
+		'7131|/{bin/{rtty,squit},sbin/pback,proc/kset,usr/src/linux/modules/{autod.o,soundx.o}}|RK17',
+		'7132|/usr/{lib/ldlib{[pn]s,login}.so,src/.poop,tmp/ramen.tgz,etc/xinetd.d/asp}|Ramen Worm',
+		'7133|/dev/cuc|Sadmind/IIS Worm',
+		'7134|/{lib/defs,usr/lib/libpikapp.a}|Monkit',
+		'7134|/{usr/bin/{kr4p,n3tstat,chsh2,slice2},etc/rc.d/rsha}|RSHA',
+		'7135|/{bin/home,sbin/home,usr/sbin/in.slogind}|ShitC',
+		'7136|/dev/chr|Omega Worm',
+		'7137|/{bin/{.lpstree,.ps,ldu,lkillall,lnetstat},usr/bin/{cleaner,slice,vadim,.ps,.lpstree,ldu,lkillall,lnetstat}}|rh-sharpe',
+		'7138|/usr/bin/mailrc|Maniac RK',
+		'7139|/usr/{sbin/{initdl,xntps},lib/{.{egcs,wormie,kinetic},liblog.o},include/{addr,file,proc,syslogs}.h}|Showtee / Romanian',
+		'7140|/usr/bin/{xchk,xsf}|Optickit',
+		'7141|/{dev/.kork,bin/.{login,ps}}|LDP worm',
+		'7142|/{dev/hda06,usr/info/libc1.so}|Telekit',
+		'7143|/dev/wd4|Tribe bot',
+		'7144|/dev/ida/.inet|LRK',
+		'7145|/etc/{bin,sbin}/ava|Adore Rootkit',
+		'7146|/{tmp/{.bugtraq{,.c},.cinik,.b,httpd,.unlock,.font-unix/.cinik},tmp./update}|Slapper',
+		'7147|/tmp/{.uua,.a}|Scalper',
 	){
-		my ($AlertID, $Infection, $Name, $Type) = split('\|');
+		my ($AlertID, $Infection, $Name) = split('\|');
 
-		my ($Alert, $Info);
+		Info("Looking for '$Name' infection.");
+
+		my $Alert = '';
 		foreach (glob($Infection)){
 			next if grep({$_ eq $Name} @SkipRKs);
 
 			if (-e $_){
-				Alert(
-					$AlertID,
-					"Potential '$Name' $Type detected!",
-					'Seek immediate medical attention.'
-				) unless $Alert eq 'true';
+				push(@BadFiles, $_);
+
+				push(@FoundInfs, "$AlertID|$Name")
+					unless grep(/^$AlertID\|/, @FoundInfs);
 
 				$Alert = 'true'
-			}else{
-				Info("No sign of '$Name' found.")
-					unless $Info eq 'true' or $Alert eq 'true';
-
-				$Info = 'true'
 			}
 		}
 	}
+
+	foreach (sort(@FoundInfs)){
+		my ($AlertID, $Name) = split('\|');
+
+		Alert(
+			$AlertID,
+			"Potential '$Name' infection detected!",
+			'Please seek immediate medical attention.'
+		)
+	}
+
+	Info("File '$_' discovered.") foreach sort(@BadFiles)
 }
 
 #------------------------------------------------------------------User's Cache
@@ -1452,8 +1490,52 @@ if ($Thumbnails eq 'true'){
 	}
 }
 
+#------------------------------------------------------------DPKG Configuration
+
+if ($DpkgConf eq 'true'){
+	my $DpkgConfFile = '/etc/dpkg/dpkg.cfg';
+
+	if (-f $DpkgConfFile){
+		FileChk($DpkgConfFile);
+		open(my $FH, '<', $DpkgConfFile);
+
+		my ($FoundNoDebSig, $FoundLog);
+		while (<$FH>){
+			chomp();
+			next if /^(#|$)/;
+
+			$FoundNoDebSig = 'true' if /^no-debsig($|[[:space:]]+.*)/;
+			$FoundLog = 'true' if /^log /;
+		}
+
+		close($FH);
+
+		my $ChkStatus = grep({$_ eq 'no-debsig'} @SkipDpkgOpts);
+		unless ($FoundNoDebSig eq 'true' and not $ChkStatus){
+			Alert(
+				3790,
+				"Potentially-unsupported 'debsig' not disabled.",
+				"Recommended action is to verify it's supported."
+			)
+		}else{
+				Info("Configuration value 'no-debsig' found.");
+		}
+
+		$ChkStatus = grep({$_ eq 'log'} @SkipDpkgOpts);
+		unless ($FoundLog eq 'true' and not $ChkStatus){
+			Alert(
+				3791,
+				"Status changes and actions not being logged by DPKG.",
+				"Recommended action is to enable this feature."
+			)
+		}else{
+				Info("Configuration value 'log' found.");
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'DpkgConf' key.")
+	}
+}
+
 #------------------------------------------------------------------------Finish
 
-my $Word;
-$AlertCount > 0 ? $Word = 'times' : $Word = 'time';
-print("Alerted $AlertCount $Word.\n") if $AlertCount > 0;
+print("Alerted $AlertCount time(s).\n") if $AlertCount > 0;
