@@ -156,12 +156,22 @@ However you approach this issue, it's recommended that you sort it soon, because
 .
 Lastly, let's not forget that if the CPU is very hot, this is in turn heating up other components in your machine, which could lead to other failures, such as data loss from burned up storage devices.
 :9708
-Undocumented.
+When Debian packages are installed, they're cached to save re-downloading them if they're needed once more; this can vastly improve the speed of package installation and save on your bandwidth, but it comes at the cost of some disk space.
+.
+If you wish to remove the existing cached Debian packages, you can run `sudo apt-get clean`, assuming you have `sudo` available. You can also manually remove the files, over at `/var/cache/apt/archives`.
 :9188
 Undocumented.
-:7125,7126,7127,7128,7129,7129,7130,7131,7132,7133,7134,7135
+:7125,7126,7127,7128,7129,7130,7131,7132,7133,7134,7135,7136,7137,7138,7139,7140,7141,7142,7143,7144,7145,7146,7147
 Undocumented. Please refer to your search engine. Apologies for the inconvenience!
+.
+To see a list of triggered files and their absolute paths, re-run UbuChk with verbose mode ('--verbose|-V') enabled.
 :7619
 Undocumented.
 :7620
 Undocumented.
+:3790
+As in the dpkg(1) man page, via the `--no-debsig` option. Debian GPG signature verification has been long disabled because it's no longer supported. Enabling this feature (`dpkg-verify`) would result in every single package being rejected.
+.
+Please refer to the default DPKG configuration file UbuChk parsed in order to discover this value, stored in `/etc/dpkg/dpkg.cfg`.
+:3791
+Ordinarily, you want as much as possible logged, for security and diagnostic reasons. Since package management can get quite hairy, it would be wise to enable logging for DPKG, unless you're sure you don't need it or it otherwise doesn't apply to you.

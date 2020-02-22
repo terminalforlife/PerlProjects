@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-02-20)
+# User configuration file for UbuChk (>= 2020-02-22)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
@@ -17,24 +17,33 @@ DSLimit=90
 DiskSpace=true
 HomeCache=true
 HomeCacheMBLimit=100
-ThumbMBLimit=40
+ThumbsMBLimit=40
 Thumbnails=true
 
 # Package Management
+DpkgConf=true
 HardAPT=true
 PurgeChk=true
 SkipAPT=APT::Install-Recommends
-UnwantedPKGs=^kerneloops.*
+SkipDpkgOpts=
+UnwantedPKGs=^command-not-found
+UnwantedPKGs=^kerneloops
+UnwantedPKGs=^memtest86
 UnwantedPKGs=^popularity-contest
-UnwantedPKGs=^telnet.*
-UnwantedPKGs=^virtualbox-guest-.*
+UnwantedPKGs=^python3-commandnotfound$
+UnwantedPKGs=^telnet
+UnwantedPKGs=^time$
+UnwantedPKGs=^virtualbox-guest-
+UnwantedPKGs=^whoopsie
+UnwantedPKGs=^xul-ext-ubufox$
 
 # Kernel
 CustomKMs=
 KernMods=true
 KernParams=true
 SkipKMs=joydev
-SkipKP=
+SkipKP=fs.protected_hardlinks
+SkipKP=fs.protected_symlinks
 
 # Mode, Owner, and Group
 DirPerms=true
@@ -58,7 +67,7 @@ Laptop=true
 MountHome=true
 SkipMountOpts=
 
-# Temperatures
+# Sensors
 CPUTemp=true
 CoreTempCrit=70
 TempScale=C
