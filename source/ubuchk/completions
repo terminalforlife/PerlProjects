@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Tue 11 Feb 13:37:31 GMT 2020
+# Last Change       - Sun 23 Feb 00:56:25 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,11 +14,16 @@ _ubuchk(){
 	while read; do
 		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
 			Option=${REPLY%% - *}
+
+			case $Option in
+				*=*) Option="${REPLY%%=*}=" ;;
+			esac
+
 			for Arg in ${Option//,/}; {
 				Args+="${Arg##[^-]*} "
 			}
 		fi
-	done <<< "$(rmne -h)"
+	done <<< "$(ubuchk -h)"
 
 	COMPREPLY=(`compgen -W "$Args" -- "$2"`)
 
