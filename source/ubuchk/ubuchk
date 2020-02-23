@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 22 Feb 20:52:38 GMT 2020
+# Last Change       - Sun 23 Feb 01:00:25 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-22';
+my $CurVer = '2020-02-23';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -650,10 +650,11 @@ if ($PathPerms eq 'true'){
 				) unless $Mode <= 755;
 
 				# These executables should not be owned by a standard user, nor
-				# should they be in such a group. <1000 is for system users/groups.
-				# A stricter test (make optional?) would be to flag all non-0s.
-				# There are exceptions, however, such as the user having his or her
-				# own `bin` directory in their `/home` directory.
+				# should they be in such a group. <1000 is for system
+				# users/groups. A stricter test (make optional?) would be to
+				# flag all non-0s. There are exceptions, however, such as the
+				# user having his or her own `bin` directory in their `/home`
+				# directory.
 				Alert(
 					6005,
 					"File '$_' owned by '$Owner'.",
