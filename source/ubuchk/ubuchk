@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 24 Feb 17:30:58 GMT 2020
+# Last Change       - Mon 24 Feb 17:58:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -1408,7 +1408,22 @@ if ($RootKits eq 'true'){
 		'7159|/{dev/tux,usr/bin/{xsf,xchk}}|Tuxkit',
 		'7160|/usr/{doc/{.sl,.sp,.statnet,.logdsys,.dpct,.gifnocfi,.dnif,.nigol},include/rpc/_../{kit{,2}}}|Old rootkits',
 		'7161|/usr/include/._.|Kenga3 rootkit',
-		'7162|/lib/tcl5.3|ESRK rootkit'
+		'7162|/lib/tcl5.3|ESRK rootkit',
+		'7163|/{sbin/xc,usr/include/ivtype.h,bin/.lib}|Fu rootkit',
+		'7164|/{lib/security/.config,etc/ld.so.hash}|ShKit rootkit',
+		'7165|/{lib/.li{gh.gh,bgh.gh,bgh-gh},dev/{tux,tux/.{proc,file}}}|AjaKit rootkit',
+		'7166|/bin/{imin,imout}|zaRwT rootkit',
+		'7167|/usr/include/ice{key.h,conf.h,seed.h}|Madalin rootkit',
+		'7168|/{lib/libsh.so,usr/lib/libsh}|shv5 rootkit',
+		'7169|/etc/.bmbl{,/sk}|BMBL rootkit',
+		'7170|/tmp/{cback,derfiq}|Cback Linux worm',
+		'7171|/usr/share/.aPa|aPa Kit',
+		'7172|/etc/.enyelkmHIDE^IT.ko|enye-sec Rootkit',
+		'7173|/dev/grid-{hide-pid-,unhide-pid-,show-pids,hide-port-,unhide-port-}|Override Rootkit',
+		'7174|/{usr/share/.home*{,/tty},etc/host.ph1,bin/host.ph1}|PHALANX rootkit',
+		'7175|/{usr/share/.zk{,/zk},etc/1ssue.net,usr/X11R6/.{zk,zk/xfs,zk/echo},etc/sysconfig/console/load.zk}|ZK rootkit',
+		'7176|/var/{adm/{.profile,sa/.adm},spool/lp/{.profile,admins/.lp}}|Solaris worm',
+		'7177|/{dev/{.{arctic,golf,rd,xman},hd7,hdx1,hx2,ptyp,ptyr,ptyzg,ptyzx,rd/cdb,srd0,ttyof,ttyop,xdf1,xdf2},etc/rc.d/init.d/rc.modules,lib/{.fx,.so,lblip.tk,ldd.so},proc/kset,sbin/{pback,vobiscum},tmp/.{cheese,dump},usr/{X11R6/include/pain,bin/{.etc,atm,ddc,gib,ishit,jdc,kfl,ras2xm,snick,sourcemask,xstat},lib/{.fx,pt07},man/{man1/lib/.lib,man2/.man8,man3/psid,muie},sbin/{atd2,in.telnet,jcd}},var/{.x{,/psotnic},local/.lpd,run/.{pid,tmp}}}|Suspicious files',
 	){
 		my ($AlertID, $Infection, $Name) = split('\|');
 
