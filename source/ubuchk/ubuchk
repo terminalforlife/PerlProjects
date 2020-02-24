@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 23 Feb 01:00:25 GMT 2020
+# Last Change       - Mon 24 Feb 17:30:58 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-23';
+my $CurVer = '2020-02-24';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -1394,6 +1394,21 @@ if ($RootKits eq 'true'){
 		'7145|/etc/{bin,sbin}/ava|Adore Rootkit',
 		'7146|/{tmp/{.bugtraq{,.c},.cinik,.b,httpd,.unlock,.font-unix/.cinik},tmp./update}|Slapper',
 		'7147|/tmp/{.uua,.a}|Scalper',
+		'7148|/{proc/knark,dev/.{pizda,pula}}|Knark',
+		'7149|/{dev/.lib{,/1iOn.sh},bin/{mjt,in.telnetd},usr/info/torn}|Lion worm',
+		'7150|/{usr/{include/.../,lib/{.../,.bkit-},sbin/.../,bin/ntpsx},tmp/.bkp}|Bobkit',
+		'7151|/var/lib/games/.k|Hidrootkit',
+		'7152|/dev/ptyxx|Ark',
+		"7153|/usr/lib/locale/uboot|Mithra's rootkit",
+		'7154|/tmp/{xp,kidd0.c,kidd0}|LOC rootkit',
+		'7155|/usr/{info/.tc2k,bin/util,sbin/{initcheck,ldb}}|TC2 worm',
+		'7156|/usr/sbin/{mech,kswapd}|Anonoiyng rootkit',
+		'7157|/lib/{.x,sk}|SuckIt',
+		'7158|/usr/{local/bin/bin,man/.man10,sbin/arobia,lib/elm/arobia,local/bin/.../bktd}|Beastkit',
+		'7159|/{dev/tux,usr/bin/{xsf,xchk}}|Tuxkit',
+		'7160|/usr/{doc/{.sl,.sp,.statnet,.logdsys,.dpct,.gifnocfi,.dnif,.nigol},include/rpc/_../{kit{,2}}}|Old rootkits',
+		'7161|/usr/include/._.|Kenga3 rootkit',
+		'7162|/lib/tcl5.3|ESRK rootkit'
 	){
 		my ($AlertID, $Infection, $Name) = split('\|');
 
@@ -1403,7 +1418,7 @@ if ($RootKits eq 'true'){
 		foreach (glob($Infection)){
 			next if grep({$_ eq $Name} @SkipRKs);
 
-			if (-e $_){
+			if (-e $_ =~ tr/_/ /r){
 				push(@BadFiles, $_);
 
 				push(@FoundInfs, "$AlertID|$Name")
