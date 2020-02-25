@@ -124,7 +124,9 @@ While a user's own HOME area isn't quite as sensitive as many of the system dire
 :7541
 Not assigning a port for the SSH Daemon to use will still result in the default of '22', the use of which is strongly discouraged, as it is so often knocked on.
 :2850,2849
-Undocumented.
+Letting the battery completely die, while writes are being made to the storage device, could result in data loss, or at the very least, a corrupted filesystem. Since operating systems are typically performing lots of writes during operation, it's worth ensuring your device has ample juice.
+.
+If you wish to push the battery to its limit, but still want to avoid data loss, you should open up a terminal and execute the `sync` command, which will synchronise all cached writes to the disk(s), but this will not protect you after-the-fact.
 :4811
 Please use a search engine to look for the detected vulnerability and the version of Linux (the kernel) you're running. Chances are, lots of people are working on it across the board, and/or the threat is so low and specific that you needn't really worry.
 :7536
