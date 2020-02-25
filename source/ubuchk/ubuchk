@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 24 Feb 17:58:57 GMT 2020
+# Last Change       - Tue 25 Feb 20:51:28 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-24';
+my $CurVer = '2020-02-25';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -166,7 +166,7 @@ sub FileChk{ # Usage: [FILE]
 	my $Errs;
 	unless (-r $_[0]){
 		FErr(0, __LINE__, "File '$_[0]' unreadable."); $Errs++
-	}elsif (-B $_[0]){
+	}elsif (-B -s $_[0]){
 		FErr(0, __LINE__, "File '$_[0]' is binary."); $Errs++
 	}
 
@@ -1323,37 +1323,44 @@ if ($AptCache eq 'true'){
 #-----------------------------------------------------------------------LightDM
 
 if ($LightDM eq 'true'){
-	if (DepChk(':', 'lightdm') == 0){
-		my $Config = '/etc/lightdm/lightdm.conf.d/50-no-guest.conf';
+	my $Config = '/etc/lightdm/lightdm.conf.d/50-no-guest.conf';
 
-		if (-f $Config){
-			FileChk($Config);
-			open(my $FH, '<', $Config);
+	if (-f $Config){
+		FileChk($Config);
+		open(my $FH, '<', $Config);
 
-			my $AllowGuest;
-			while (<$FH>){
-				chomp();
+		my $AllowGuest;
+		while (<$FH>){
+			chomp();
 
-				# Correct, at least in Ubuntu 16.04.6 base.
-				if (/^\[SeatDefaults\] allow-guest=true$/){
-					$AllowGuest = 'true';
-					last
-				}
+			# Correct, at least in Ubuntu 16.04.6 base. Ubuntu 18.04.4 seems to
+			# not use this file by default, but it can still be found at:
+			#
+			#  /usr/share/lightdm/lightdm.conf.d/50-disable-guest.conf
+			#
+			if (/(^| )allow-guest=true( |$)/){
+				$AllowGuest = 'true'; last
+			}elsif (/(^| )allow-guest=false( |$)/){
+				$AllowGuest = 'false'; last
 			}
+		}
 
-			close($FH);
+		close($FH);
 
-			if ($AllowGuest eq 'true'){
-				Alert(
-					9188,
-					'Guest logins are allowed with LightDM.',
-					'Recommended action is to disable guest logins.'
-				);
-			}else{
-				Info('LightDM does not permit guest logins.')
-			}
+		if ($AllowGuest eq 'true'){
+			Alert(
+				9188,
+				'Guest logins are allowed with LightDM.',
+				'Recommended action is to disable guest logins.'
+			);
+		}elsif ($AllowGuest eq 'false'){
+			Info('LightDM does not permit guest logins.')
 		}else{
-			FErr(0, __LINE__, "File '$Config' not found.")
+			Alert(
+				9188,
+				'Guest logins may be allowed with LightDM.',
+				"Recommended action is to ensure it's disabled."
+			);
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'LightDM' key.")
