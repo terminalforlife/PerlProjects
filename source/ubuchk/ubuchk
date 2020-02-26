@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue 25 Feb 20:51:28 GMT 2020
+# Last Change       - Wed 26 Feb 01:20:47 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -19,7 +19,6 @@
 #TODO: Add check for X amount of space taken up in Trash.
 #TODO: Add check for fan speeds; alert when low/off.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
-#TODO: Add check(s) for swapfile permissions if it's detected in `/`.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for UFW service without the use of `systemctl` executable.
@@ -48,7 +47,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-25';
+my $CurVer = '2020-02-26';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -75,7 +74,7 @@ my (
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
-	@SkipDpkgOpts
+	@SkipDpkgOpts, $Swaps, $SwapMBMin
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -174,7 +173,7 @@ sub FileChk{ # Usage: [FILE]
 
 	my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
 	Info("Checking '$BaseName' file.")
-		unless $BaseName =~ /^(os-release$|status$|temp)/
+		unless $BaseName =~ /^(os-release$|status$|temp|swaps$)/
 }
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
@@ -490,6 +489,15 @@ if (-f -r -T $ConfigFile){
 			$DpkgConf = $Value
 		}elsif ($Key eq 'SkipDpkgOpts'){
 			push(@SkipDpkgOpts, $Value)
+		}elsif ($Key eq 'Swaps'){
+			Boolean($Value);
+			$Swaps = $Value
+		}elsif ($Key eq 'SwapMBMin'){
+			if ($Value =~ /^[0-9]+$/){
+				$SwapMBMin = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
 		}else{
 			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
@@ -645,8 +653,8 @@ if ($PathPerms eq 'true'){
 
 				Alert(
 					7869,
-					"File '$_' permits '$Mode'.",
-					"Recommended permissions are '755'."
+					"File '$_' is mode '$Mode'.",
+					"Recommended mode is '755'."
 				) unless $Mode <= 755;
 
 				# These executables should not be owned by a standard user, nor
@@ -657,13 +665,13 @@ if ($PathPerms eq 'true'){
 				# directory.
 				Alert(
 					6005,
-					"File '$_' owned by '$Owner'.",
+					"File '$_' is owned by '$Owner'.",
 					"Recommended owner is '0' ('root')."
 				) if $Owner >= 1000;
 
 				Alert(
 					3597,
-					"File '$_' in group '$Group'.",
+					"File '$_' is in group '$Group'.",
 					"Recommended group is '0' ('root')."
 				) if $Group >= 1000
 			}
@@ -753,19 +761,19 @@ if ($SSHClient eq 'true'){
 		Alert(
 			5431,
 			"Directory '$SSHDir' is mode '$Mode'.",
-			"Recommended permissions are '700'."
+			"Recommended mode is '700'."
 		) unless $Mode == 700;
 
 		Alert(
 			5438,
 			"Directory '$SSHDir' is owned by '$Owner'.",
-			"Recommended owner is your UID ('$<')."
+			"Recommended UID is '$<'."
 		) unless $Owner == $<;
 
 		Alert(
 			5439,
 			"Directory '$SSHDir' is in group '$Group'.",
-			"Recommended group is your GID ('$GID')."
+			"Recommended GID is '$GID'."
 		) unless $Group == $GID;
 	}else{
 		Info("Missing prerequisites -- skipping 'SSHClient' key.")
@@ -1037,7 +1045,7 @@ if ($DiskSpace eq 'true'){
 
 if ($DirPerms eq 'true'){
 	foreach ( # [ALERTID] [MODE] [UID] [GID]
-		"5440:700:$<:$GID:/home/$ENV{USER}",
+		"5440:700:$<:$GID:$ENV{HOME}",
 		'5436:700:0:0:/boot',
 		'5446:700:0:0:/root'
 	){
@@ -1053,19 +1061,19 @@ if ($DirPerms eq 'true'){
 		Alert(
 			$AlertID,
 			"Directory '$Path' is mode '$Mode'.",
-			"Recommended permissions are '$TargetMode'."
+			"Recommended mode is '$TargetMode'."
 		) unless $Mode == $TargetMode;
 
 		Alert(
 			$AlertID,
 			"Directory '$Path' is owned by '$Owner'.",
-			"Recommended owner is your UID ('$TargetUID')."
+			"Recommended UID is '$TargetUID'."
 		) unless $Owner == $TargetUID;
 
 		Alert(
 			$AlertID,
 			"Directory '$Path' is in group '$Group'.",
-			"Recommended group is your GID ('$TargetGID')."
+			"Recommended GID is '$TargetGID'."
 		) unless $Group == $TargetGID;
 	}
 }
@@ -1571,6 +1579,79 @@ if ($DpkgConf eq 'true'){
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'DpkgConf' key.")
+	}
+}
+
+#-------------------------------------------------------------------------Swaps
+
+if ($Swaps eq 'true'){
+	my $SwapFile = '/proc/swaps';
+
+	if (-f $SwapFile){
+		use Number::Bytes::Human 'format_bytes';
+		use POSIX 'ceil';
+
+		FileChk($SwapFile);
+		open(my $FH, '<', $SwapFile);
+
+		my (@Swaps, $SwapCount);
+		while (<$FH>){
+			chomp();
+
+			# Skip header.
+			next if $. == 1;
+
+			my ($File, $Type, $Size, $Used, $Priority) = split(' ');
+			my $HumSize = format_bytes($Size * 1024);
+			my $HumUsed = format_bytes($Used * 1024);
+			my $MRemains = ceil(($Size - $Used) / 1024);
+
+			if ($Type eq 'file'){
+				my ($Mode, $Owner, $Group) = (stat($File))[2,4,5];
+				$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
+
+				Alert(
+					6232,
+					"File '$File' is mode '$Mode'.",
+					"Recommended mode is '600'."
+				) unless $Mode == 600;
+
+				Alert(
+					6233,
+					"File '$File' is owned by '$Owner'.",
+					"Recommended UID is '0'."
+				) unless $Owner == 0;
+
+				Alert(
+					6234,
+					"File '$File' is in group '$Group'.",
+					"Recommended GID is '0'."
+				) unless $Group == 0;
+			}
+
+			# Just in-case the file is in the user's HOME.
+			$File = $File =~ s/$ENV{HOME}/~/r;
+
+			if ($MRemains >= $SwapMBMin){
+				Info("Swap $Type '$File' using $HumUsed/$HumSize.");
+			}else{
+				my $HumRemains = format_bytes(($Size - $Used) * 1024);
+
+				Alert(
+					8759,
+					"Only $HumRemains left on '$File' $Type.",
+					"Suggested action is to increase swap size."
+				)
+			}
+
+			$SwapCount++
+		}
+
+		Info("System has $SwapCount active swap areas.") if $SwapCount > 1;
+
+		close($FH)
+	}else{
+		Info("Missing prerequisites -- skipping 'Swaps' key.")
 	}
 }
 

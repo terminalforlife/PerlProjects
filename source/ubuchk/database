@@ -179,3 +179,7 @@ As in the dpkg(1) man page, via the `--no-debsig` option. Debian GPG signature v
 Please refer to the default DPKG configuration file UbuChk parsed in order to discover this value, stored in `/etc/dpkg/dpkg.cfg`.
 :3791
 Ordinarily, you want as much as possible logged, for security and diagnostic reasons. Since package management can get quite hairy, it would be wise to enable logging for DPKG, unless you're sure you don't need it or it otherwise doesn't apply to you.
+:8759
+Undocumented.
+:6232,6233,6234
+Undocumented.

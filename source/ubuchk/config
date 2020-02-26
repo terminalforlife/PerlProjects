@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-02-22)
+# User configuration file for UbuChk (>= 2020-02-26)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
@@ -76,7 +76,11 @@ TempScale=C
 RootKits=true
 SkipRKs=
 
+# RAM & Swap
+SwapMBMin=250
+Swaps=true
+
 # Miscellaneous
 Firewall=true
-ProcVuln=true
 LightDM=true
+ProcVuln=true
