@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 26 Feb 01:20:47 GMT 2020
+# Last Change       - Thu 27 Feb 01:42:07 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,7 +13,6 @@
 #
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
-#TODO: Add `Info()` for `Laptop` when it's plugged in and charging.
 #TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governor when using a laptop and regular PC.
 #TODO: Add check for X amount of space taken up in Trash.
@@ -22,7 +21,6 @@
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for UFW service without the use of `systemctl` executable.
-#TODO: Don't rely just on '50-no-guest.conf' file for LightDM guest check.
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
@@ -47,7 +45,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-26';
+my $CurVer = '2020-02-27';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -172,8 +170,6 @@ sub FileChk{ # Usage: [FILE]
 	exit(1) if $Errs > 0;
 
 	my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
-	Info("Checking '$BaseName' file.")
-		unless $BaseName =~ /^(os-release$|status$|temp|swaps$)/
 }
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
@@ -1081,30 +1077,86 @@ if ($DirPerms eq 'true'){
 #-----------------------------------------------------------------Laptop Checks
 
 if ($Laptop eq 'true'){
-	my $BatFile = '/sys/class/power_supply/BAT1/capacity';
+	my $BaseDir = '/sys/class/power_supply';
+	my $AdapTypeFile = "$BaseDir/ADP1/type";
+	my $AdapOnlineFile = "$BaseDir/ADP1/online";
 
-	if (-f $BatFile){
-		FileChk($BatFile);
-		open(my $FH, '<', $BatFile);
-		chomp(my $BatPerc = <$FH>);
+	my $AdapOnline;
+	if (-f $AdapTypeFile){
+		FileChk($AdapTypeFile);
+		open(my $FH, '<', $AdapTypeFile);
+		chomp(my $AdapType = <$FH>);
 		close($FH);
 
-		my $Battery = $BatFile =~ s/.*\/BAT([0-9]+)\/capacity$/$1/r;
+		if ($AdapType eq 'Mains'){
+			FileChk($AdapOnlineFile);
+			open(my $FH, '<', $AdapOnlineFile);
+			chomp($AdapOnline = <$FH>);
+			close($FH);
 
-		if ($BatPerc <= $BatCrit){
-			Alert(
-				2850,
-				"Battery #$Battery is at $BatPerc% capacity.",
-				"Save your work and shut down the computer."
-			)
-		}elsif ($BatPerc <= $BatLow){
-			Alert(
-				2849,
-				"Battery #$Battery is at $BatPerc% capacity.",
-				"Recommended action is to charge the battery."
-			)
-		}else{
-			Info("Battery #$Battery still has $BatPerc% left.")
+			if ($AdapOnline == 0){
+				Info("Device is NOT plugged in.")
+			}else{
+				Info("Device is plugged in.")
+			}
+		}
+	}
+
+	if (-d "$BaseDir/BAT1"){ # <-- Ensure at least one battery exists.
+		foreach (glob("$BaseDir/BAT[1-9]")){
+			my $BatFile = "$_/capacity";
+			my $KNowFile = "$_/charge_now";
+			my $KMaxFile = "$_/charge_full_design";
+
+			if (-f $BatFile){
+				FileChk($BatFile);
+				open(my $FH, '<', $BatFile);
+				chomp(my $BatPerc = <$FH>);
+				close($FH);
+
+				my $Battery = $BatFile =~ s/.*\/BAT([0-9]+)\/capacity$/$1/r;
+
+				my ($KNow, $KMax);
+				if (-f $KNowFile and -f $KMaxFile){
+					FileChk($KNowFile);
+					open(my $FH, '<', $KNowFile);
+					chomp($KNow = substr(<$FH>, 0, 4));
+					close($FH);
+
+					FileChk($KMaxFile);
+					open($FH, '<', $KMaxFile);
+					chomp($KMax = substr(<$FH>, 0, 4));
+					close($FH);
+				}
+
+				if ($BatPerc <= $BatCrit){
+					Alert(
+						2850,
+						"Battery #$Battery critical at $BatPerc% ($KNow mAh) capacity.",
+						"Save your work and shut down the computer."
+					) unless $AdapOnline == 1
+				}elsif ($BatPerc <= $BatLow){
+					if (length($KMax) > 0 and length($KNow) > 0){
+						Alert(
+							2849,
+							"Battery #$Battery low at $BatPerc% ($KNow mAh) capacity.",
+							"Suggested action is to charge the battery."
+						) unless $AdapOnline == 1
+					}else{
+						Alert(
+							2849,
+							"Battery #$Battery low at $BatPerc% capacity.",
+							"Suggested action is to charge the battery."
+						) unless $AdapOnline == 1
+					}
+				}else{
+					if (length($KMax) > 0 and length($KNow) > 0){
+						Info("Battery #$Battery still has $BatPerc% at $KNow mAh power.")
+					}else{
+						Info("Battery #$Battery still has $BatPerc% power left.")
+					}
+				}
+			}
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'Laptop' key.")
@@ -1217,64 +1269,67 @@ if ($MountHome eq 'true'){
 # dragging in another program, but for now, I'll program for this particular
 # method, adding additional ones as issues are reported.
 if ($CPUTemp eq 'true'){
-	my $Dir = '/sys/devices/platform/coretemp.0/hwmon/hwmon3';
-
-	if (-d $Dir){
-		FErr(1, __LINE__, "Directory '$Dir' unreadable.") unless -r $Dir;
-		FErr(1, __LINE__, "Directory '$Dir' denies execution.") unless -x $Dir;
-
-		# Gather a hash of (only) the core temperatures.
-		my (%TempData, $Temp);
-		foreach (glob("$Dir/temp*")){
-			next unless -f and m{/temp[0-9]+_(input|label)$};
-
-			FileChk($_);
-			open(my $FH, '<', $_);
-			chomp(my $Data = <$FH>);
-			close($FH);
-
-			# The files are ordered from input to label, so we need to process
-			# it backwards, otherwise the output would be borked.
-			if (/_input$/){
-				$Temp = $Data
-			}elsif (/_label$/){
-				$TempData{$Data} = $Temp
-			}
-		}
-
-		# Ensure we have the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
-		sub Suffix{ # Usage: [INT]
-			my $Num = $_[0] + 1;
-			return("${Num}st") if $Num =~ '1$';
-			return("${Num}nd") if $Num =~ '2$';
-			return("${Num}rd") if $Num =~ '3$';
-			return("${Num}th")
-		}
-
-		# Begin checking on each of the core temperatures, per the above hash.
-		foreach (sort(keys(%TempData))){
-			next unless /^Core [0-9]+$/;
-
-			# Initially, this value is in Celsius (unconfirmed).
-			my $TempInt = CelsFahr(
-				$TempScale, substr($TempData{$_}, 0, length($TempData{$_}) - 3)
-			);
-
-			my $TempStr = "$TempInt°$TempScale";
-			my $CoreInt = (m{(?:.* )(.*)})[0];
-			my $CoreStr = Suffix($CoreInt);
-			if ($TempInt >= $CoreTempCrit){
-				Alert(
-					6237,
-					"CPU's $CoreStr core critical at $TempStr.",
-					"Suggested action is to improve system cooling."
-				)
-			}else{
-				Info("CPU core #$CoreInt stable at $TempStr.")
-			}
-		}
+	my $Dir;
+	if (-d '/sys/devices/platform/coretemp.0/hwmon/hwmon3'){
+		$Dir = '/sys/devices/platform/coretemp.0/hwmon/hwmon3'
+	}elsif (-d '/sys/class/hwmon/hwmon1'){
+		$Dir = '/sys/class/hwmon/hwmon1'
 	}else{
 		Info("Missing prerequisites -- skipping 'CPUTemp' key.")
+	}
+
+	FErr(1, __LINE__, "Directory '$Dir' unreadable.") unless -r $Dir;
+	FErr(1, __LINE__, "Directory '$Dir' denies execution.") unless -x $Dir;
+
+	# Gather a hash of (only) the core temperatures.
+	my (%TempData, $Temp);
+	foreach (glob("$Dir/temp*")){
+		next unless -f and m{/temp[0-9]+_(input|label)$};
+
+		FileChk($_);
+		open(my $FH, '<', $_);
+		chomp(my $Data = <$FH>);
+		close($FH);
+
+		# The files are ordered from input to label, so we need to process
+		# it backwards, otherwise the output would be borked.
+		if (/_input$/){
+			$Temp = $Data
+		}elsif (/_label$/){
+			$TempData{$Data} = $Temp
+		}
+	}
+
+	# Ensure we have the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
+	sub Suffix{ # Usage: [INT]
+		my $Num = $_[0] + 1;
+		return("${Num}st") if $Num =~ '1$';
+		return("${Num}nd") if $Num =~ '2$';
+		return("${Num}rd") if $Num =~ '3$';
+		return("${Num}th")
+	}
+
+	# Begin checking on each of the core temperatures, per the above hash.
+	foreach (sort(keys(%TempData))){
+		next unless /^Core [0-9]+$/;
+
+		# Initially, this value is in Celsius (unconfirmed).
+		my $TempInt = CelsFahr(
+			$TempScale, substr($TempData{$_}, 0, length($TempData{$_}) - 3)
+		);
+
+		my $TempStr = "$TempInt°$TempScale";
+		my $CoreInt = (m{(?:.* )(.*)})[0];
+		my $CoreStr = Suffix($CoreInt);
+		if ($TempInt >= $CoreTempCrit){
+			Alert(
+				6237,
+				"CPU's $CoreStr core critical at $TempStr.",
+				"Suggested action is to improve system cooling."
+			)
+		}else{
+			Info("CPU core #$CoreInt stable at $TempStr.")
+		}
 	}
 }
 
