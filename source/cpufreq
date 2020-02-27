@@ -3,13 +3,22 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cpufreq
 # Started On        - Sat  4 May 15:51:08 BST 2019
-# Last Change       - Fri 31 Jan 23:47:12 GMT 2020
+# Last Change       - Thu 27 Feb 22:23:29 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
 # Dependencies:
 #
 #   libtfl-perl (>= 2020-01-03)
+#   perl (>= 5.22.1-9)
 #----------------------------------------------------------------------------------
 
 use strict;
@@ -19,29 +28,20 @@ use TFL 'Err';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-31";
-
-my $ProcFile = '/proc/cpuinfo';
+my $CurVer = '2020-02-27';
 
 sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+	print(qq{Usage: $TFL::PROGNAME [OPTS]
 
-		            Display the current CPU core frequencies.
-
-		SYNTAX:     $TFL::PROGNAME [OPTS]
-
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-
-		FILE:       $ProcFile
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
 	} =~ tr/\t//dr)
 }
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+foreach (@ARGV){
+	if (/^(--help|-h|-\?)$/){
 		Usage(); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	}elsif (/^(--version|-v)$/){
 		print("$CurVer\n"); exit(0)
 	}else{
 		Err(1, "Incorrect option(s) specified")
@@ -50,6 +50,8 @@ while (defined($ARGV[0])){
 	shift()
 }
 
+my $ProcFile = '/proc/cpuinfo';
+
 Err(1, "File '$ProcFile' not found.") unless -f $ProcFile;
 Err(1, "Read access for '$ProcFile' is denied.") unless -r $ProcFile;
 
@@ -57,11 +59,11 @@ open(my $FH, '<', $ProcFile);
 
 my $CoreCount = 0;
 while (<$FH>){
-	chomp(my @CurLine = split(':', $_));
-	next unless $CurLine[0] =~ '^cpu MHz';
+	chomp(my @Line = split(':'));
+	next unless $Line[0] =~ '^cpu MHz';
 
 	$CoreCount++;
-	printf("CORE_%d: %.3f\n", $CoreCount, $CurLine[1] =~ s/\s//gr)
+	printf("CORE_%d: %.3f\n", $CoreCount, $Line[1] =~ tr/ //dr)
 }
 
 close($FH)
