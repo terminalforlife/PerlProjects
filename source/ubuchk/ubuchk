@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 27 Feb 21:27:04 GMT 2020
+# Last Change       - Thu 27 Feb 21:54:45 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -335,11 +335,10 @@ if ($ListKeys eq 'true'){
 }elsif ($ListDbAlerts eq 'true'){
 	open(my $FH, '<', $Database);
 
-	my @Keys;
 	while (<$FH>){
 		chomp();
 		next unless substr($_, 0, 1) eq ':';
-		print(tr/:,/ /r =~ tr/ /\n/r)
+		print("$_\n") foreach split(' ', tr/:,/ /r)
 	}
 
 	close($FH);
