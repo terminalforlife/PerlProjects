@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/fix-ff-gtk (Fix Firefox GTK)
 # Started On        - Fri 10 Jan 19:32:40 GMT 2020
-# Last Change       - Sat  1 Feb 00:09:40 GMT 2020
+# Last Change       - Thu 27 Feb 02:16:08 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ use warnings;
 use autodie;
 use TFL 'Err', 'YNInput';
 
-my $CurVer = "2020-02-01";
+my $CurVer = "2020-02-27";
 
 my $File = '/usr/bin/firefox';
 my $Theme = 'Adwaita';
@@ -70,7 +70,7 @@ while (defined($ARGV[0])){
 	shift()
 }
 
-exit(1) unless YNInput("Make permanent changes to '$File'?") == 1;
+exit(1) unless YNInput("Make permanent changes to '$File'?");
 
 Err(1, 'Root access is required.') unless $< == 0;
 Err(1, "File '$File' not found.") unless -f $File;
