@@ -83,6 +83,7 @@ SwapMBMin=250
 Swaps=true
 
 # Miscellaneous
+CMOS=true
 Firewall=true
 LightDM=true
 ProcVuln=true

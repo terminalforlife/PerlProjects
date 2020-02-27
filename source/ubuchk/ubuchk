@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 27 Feb 16:46:00 GMT 2020
+# Last Change       - Thu 27 Feb 21:12:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -56,8 +56,10 @@ sub Usage{
 		  -v, --version            - Output the version datestamp.
 		  --force-reset            - Force generation of config file.
 		  --is-ubuntu              - Execute as though in Ubuntu.
-		  -Q, --query N            - Read about alert ID number N.
+		  --list-dbalerts          - List alerts found within the database.
+		  --list-keys              - List available configuration keys.
 		  --skip=N[,N ...]         - Skip one or more N alerts, by ID.
+		  -Q, --query N            - Read about alert ID number N.
 		  -V, --verbose            - Execute checks verbosely.
 	} =~ tr/\t//dr)
 }
@@ -72,7 +74,8 @@ my (
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
-	@SkipDpkgOpts, $Swaps, $SwapMBMin, $RAM, $RAMMBMin
+	@SkipDpkgOpts, $Swaps, $SwapMBMin, $RAM, $RAMMBMin, $CMOS, $ListKeys,
+	$ListDbAlerts
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -128,6 +131,10 @@ foreach (@ARGV){
 		$Verbose = 'true'
 	}elsif($ARGV[0] eq '--os-override'){
 		$OSOverride = 'true'
+	}elsif($ARGV[0] eq '--list-keys'){
+		$ListKeys = 'true'
+	}elsif($ARGV[0] eq '--list-dbalerts'){
+		$ListDbAlerts = 'true'
 	}elsif (/^-/){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
@@ -301,6 +308,42 @@ sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 
 		return(sort(@Packages))
 	}
+}
+
+#-----------------------List Keys and Gather Total Number of Alerts in Database
+
+if ($ListKeys eq 'true'){
+	open(my $FH, '<', $DefaultConfigFile);
+
+	my @Keys;
+	while (<$FH>){
+		next if /^(#|$)/;
+		my @Line = split('=');
+		push(@Keys, $Line[0])
+	}
+
+	close($FH);
+
+	my $Old;
+	foreach (sort(@Keys)){
+		print("$_\n") unless $Old eq $_;
+		$Old = $_
+	}
+
+	exit(0)
+}elsif ($ListDbAlerts eq 'true'){
+	open(my $FH, '<', $Database);
+
+	my @Keys;
+	while (<$FH>){
+		chomp();
+		next unless substr($_, 0, 1) eq ':';
+		print(tr/:,/ /r =~ tr/ /\n/r)
+	}
+
+	close($FH);
+
+	exit(0)
 }
 
 #-------------------------------------Configuration File Parsing and Generation
@@ -502,6 +545,9 @@ if (-f -r -T $ConfigFile){
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
+		}elsif ($Key eq 'CMOS'){
+			Boolean($Value);
+			$CMOS = $Value
 		}else{
 			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
@@ -1755,6 +1801,37 @@ if ($RAM eq 'true'){
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'RAM' key.")
+	}
+}
+
+#------------------------------------------------------------------CMOS Battery
+
+if ($CMOS eq 'true'){
+	my $RTCFile = '/proc/driver/rtc';
+
+	if (-f $RTCFile){
+		open(my $FH, '<', $RTCFile);
+
+		my $BatStatus;
+		while (<$FH>){
+			chomp();
+			my @Line = split(': ');
+			$BatStatus = $Line[1]
+		}
+
+		close($FH);
+
+		if ($BatStatus eq 'okay'){
+			Info("CMOS battery appears to be okay.")
+		}else{
+			Alert(
+				1118,
+				"Detected a non-'okay' CMOS battery status.",
+				"Recommended action is to physically check it."
+			)
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'CMOS' key.")
 	}
 }
 
