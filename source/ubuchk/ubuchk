@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 27 Feb 02:26:30 GMT 2020
+# Last Change       - Thu 27 Feb 02:59:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -25,6 +25,7 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: May be fixed now, but when battery mAh is < 1000 mAh, output breaks.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #
 # Dependencies:
@@ -1117,12 +1118,12 @@ if ($Laptop eq 'true'){
 				if (-f $KNowFile and -f $KMaxFile){
 					FileChk($KNowFile);
 					open(my $FH, '<', $KNowFile);
-					chomp($KNow = substr(<$FH>, 0, 4));
+					chomp($KNow = substr(<$FH>, 0, length($KNow) - 4));
 					close($FH);
 
 					FileChk($KMaxFile);
 					open($FH, '<', $KMaxFile);
-					chomp($KMax = substr(<$FH>, 0, 4));
+					chomp($KMax = substr(<$FH>, 0, length($KMax) - 4));
 					close($FH);
 				}
 
