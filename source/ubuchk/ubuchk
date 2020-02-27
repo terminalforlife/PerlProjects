@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 27 Feb 01:42:07 GMT 2020
+# Last Change       - Thu 27 Feb 02:00:17 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -231,17 +231,16 @@ sub QueryAlert{
 
 	$Text::Wrap::columns = (GetTerminalSize())[0] - 2;
 
-	print("Alert #$HelpAlertID:\n\n") unless length($_[1]) > 0;
+	print("Alert #$HelpAlertID:\n") unless length($_[1]) > 0;
 
-	print(' ' x $QueryIndent . "+\n");
+	print("\n");
 	foreach (@Body){
 		# Ensures paragraphing works properly. The database must have a
 		# single period (`.`) on an otherwise empty line, for this to work.
-		print(' ' x $QueryIndent . "|\n") and next if $_ eq '.';
+		print(' ' x $QueryIndent . '| ' . "\n") and next if $_ eq '.';
 
-		print(wrap(' ' x $QueryIndent . '|  ', ' ' x $QueryIndent . '|  ', "$_\n"));
+		print(wrap(' ' x $QueryIndent . '| ', ' ' x $QueryIndent . '| ', "$_\n"));
 	}
-	print(' ' x $QueryIndent . "+\n");
 
 	exit($_[0]) unless $_[1] > 0;
 
