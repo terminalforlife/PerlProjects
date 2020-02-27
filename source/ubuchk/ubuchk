@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 27 Feb 02:00:17 GMT 2020
+# Last Change       - Thu 27 Feb 02:26:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,7 +13,6 @@
 #
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
-#TODO: Add a stricter ownership PATH check, for the more paranoid.
 #TODO: Add check for CPU governor when using a laptop and regular PC.
 #TODO: Add check for X amount of space taken up in Trash.
 #TODO: Add check for fan speeds; alert when low/off.
@@ -644,7 +643,10 @@ if ($PathPerms eq 'true'){
 				my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
 				$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
-				Info("File '$_' is '$Mode' and '$Owner:$Group'.");
+				Info("File '$_' is '$Mode' and '$Owner:$Group'.")
+					if $Owner > 1 and $Owner < 1000
+					or $Group > 1 and $Group < 1000
+					or $Mode > 000 and $Mode < 755;
 
 				Alert(
 					7869,
@@ -703,12 +705,6 @@ if ($HardAPT eq 'true'){
 			my ($Key, $Value) = split('=');
 			$Value = $Value =~ tr/"';//dr;
 
-			unless (/=$/){
-				Info("Key '$Key' is '$Value'.");
-			}else{
-				Info("Key '$Key' is empty.");
-			}
-
 			$Settings{$Key} = $Value
 		}
 
@@ -734,6 +730,8 @@ if ($HardAPT eq 'true'){
 					"APT key '$Key' assigned '$Settings{$Key}'.",
 					"Recommended value is '$Target'."
 				)
+			}else{
+				Info("Key '$Key' is '$Settings{$Key}'.");
 			}
 		}
 	}else{
