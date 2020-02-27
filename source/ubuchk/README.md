@@ -4,7 +4,7 @@ UbuChk -- a vast upgrade to its old predecessor -- is an administrative tool to 
 
 Thanks to UbuChk being written in Perl, performance is a huge leap forward. This tool offers the potential additional portability, despite targeting Ubuntu users, allowing the user to roll the dice, forcing UbuChk to run as though in a supported Ubuntu installation of Linux.
 
-More care has been given to the user's experience, particularly to those whom are perhaps not so experienced with Linux. By default, for any given alert, text briefly recommending or suggesting an action or value is displayed to the user; this can be disabled, however. UbuChk also comes with a database, storing various `queries`, which are essentially tidbits of information the user can read to better understand why they were alerted, what they can do, and/or if it's worth doing anything at all. Ultimately, however, it's up the user.
+More care has been given to the user's experience, particularly to those whom are perhaps not so experienced with Linux. By default, for any of the 130+ given alerts, text briefly recommending or suggesting an action or value is displayed to the user; this can be disabled, however. UbuChk also comes with a database, storing various `queries`, which are essentially tidbits of information the user can read to better understand why they were alerted, what they can do, and/or if it's worth doing anything at all. Ultimately, however, it's up the user.
 
 The core concept of UbuChk is as it always has been: to inform the user, but _not_ to actually _do_ anything. UbuChk will _not_ delete critical files, mess with system settings, or do anything else of concern which can be hard to track, as you may find with other system health utilities; all of this is **entirely** left to the user's discretion.
 
@@ -16,7 +16,7 @@ The future of UbuChk looks bright, with development ongoing, and plenty of room 
 
 UbuChk has been developed for and used in Ubuntu 16.04 LTS and Ubuntu 18.04 LTS. Distributions based on regular Ubuntu (that one with GNOME 3), such as Linux Mint, Linux Lite, Peppermint OS, and Zorin OS, all should all be capable of running UbuChk, although some features may not work as intended.
 
-The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 42 user configuration keys.
+The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 47 user configuration keys.
 
 Thank you for your interest and time.
 

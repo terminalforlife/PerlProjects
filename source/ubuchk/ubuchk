@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 27 Feb 02:59:31 GMT 2020
+# Last Change       - Thu 27 Feb 16:46:00 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -72,7 +72,7 @@ my (
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
-	@SkipDpkgOpts, $Swaps, $SwapMBMin
+	@SkipDpkgOpts, $Swaps, $SwapMBMin, $RAM, $RAMMBMin
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -490,6 +490,15 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'SwapMBMin'){
 			if ($Value =~ /^[0-9]+$/){
 				$SwapMBMin = $Value
+			}else{
+				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+			}
+		}elsif ($Key eq 'RAM'){
+			Boolean($Value);
+			$RAM = $Value
+		}elsif ($Key eq 'RAMMBMin'){
+			if ($Value =~ /^[0-9]+$/){
+				$RAMMBMin = $Value
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
@@ -1705,6 +1714,47 @@ if ($Swaps eq 'true'){
 		close($FH)
 	}else{
 		Info("Missing prerequisites -- skipping 'Swaps' key.")
+	}
+}
+
+#---------------------------------------------------------------------------RAM
+
+if ($RAM eq 'true'){
+	my $MemFile = '/proc/meminfo';
+
+	if (-f $MemFile){
+		use Number::Bytes::Human 'format_bytes';
+		use POSIX 'ceil';
+
+		FileChk($MemFile);
+		open(my $FH, '<', $MemFile);
+
+		my ($BTotal, $BFree, $HumTotal, $HumFree);
+		while (<$FH>){
+			chomp(my @Line = split(' '));
+
+			if ($Line[0] eq 'MemTotal:'){
+				$BTotal = $Line[1] * 1024;
+				$HumTotal = format_bytes($BTotal)
+			}elsif ($Line[0] eq 'MemFree:'){
+				$BFree = $Line[1] * 1024;
+				$HumFree = format_bytes($BFree);
+			}
+		}
+
+		close($FH);
+
+		if (ceil($BFree / 1024 / 1024) >= $RAMMBMin){
+			Info("Detected $HumFree of $HumTotal free RAM.")
+		}else{
+			Alert(
+				8971,
+				"Only $HumFree RAM of $HumTotal remaining.",
+				"Please refer to: $TFL::PROGNAME -Q 8971"
+			)
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'RAM' key.")
 	}
 }
 
