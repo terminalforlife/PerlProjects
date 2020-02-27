@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Sun 23 Feb 01:17:07 GMT 2020
+# Last Change       - Thu 27 Feb 22:06:20 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -25,7 +25,13 @@ _ubuchk(){
 		fi
 	done <<< "$(ubuchk -h)"
 
-	COMPREPLY=(`compgen -W "$Args" -- "$2"`)
+	case $3 in
+			--query|-Q)
+				printf -v Args '%s ' `ubuchk --list-dbalerts`
+				COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
+			*)
+				COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
+	esac
 
 	unset Option Arg Args
 }
