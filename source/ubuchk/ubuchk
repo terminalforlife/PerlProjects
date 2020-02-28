@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 27 Feb 21:54:45 GMT 2020
+# Last Change       - Fri 28 Feb 02:51:40 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for UFW service without the use of `systemctl` executable.
+#TODO: Re-do the `Rootkits` section, regarding the checks; use a database!
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
 # Bugs:
@@ -46,7 +47,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-27';
+my $CurVer = '2020-02-28';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -76,7 +77,7 @@ my (
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $SwapMBMin, $RAM, $RAMMBMin, $CMOS, $ListKeys,
-	$ListDbAlerts
+	$ListDbAlerts, $ChkPasswd
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -548,6 +549,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'CMOS'){
 			Boolean($Value);
 			$CMOS = $Value
+		}elsif ($Key eq 'ChkPasswd'){
+			Boolean($Value);
+			$ChkPasswd = $Value
 		}else{
 			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
@@ -1490,6 +1494,7 @@ if ($RootKits eq 'true'){
 	#
 	#   https://github.com/ossec/ossec-hids
 	#
+	# Also inspired by various checks made by rkhunter(8).
 	my (@BadFiles, @FoundInfs);
 	foreach (
 		'7125|/tmp/{mcliZokhb,mclzaKmfa}|Bash door',
@@ -1506,51 +1511,67 @@ if ($RootKits eq 'true'){
 		'7134|/{usr/bin/{kr4p,n3tstat,chsh2,slice2},etc/rc.d/rsha}|RSHA',
 		'7135|/{bin/home,sbin/home,usr/sbin/in.slogind}|ShitC',
 		'7136|/dev/chr|Omega Worm',
-		'7137|/{bin/{.lpstree,.ps,ldu,lkillall,lnetstat},usr/bin/{cleaner,slice,vadim,.ps,.lpstree,ldu,lkillall,lnetstat}}|rh-sharpe',
+		"7137|/{bin/{.lpstree,.ps,ldu,lkillall,lnetstat},usr/bin/{cleaner,slice,vadim,.ps,.lpstree,ldu,lkillall,lnetstat}}|RH-Sharpe's Rootkit",
 		'7138|/usr/bin/mailrc|Maniac RK',
 		'7139|/usr/{sbin/{initdl,xntps},lib/{.{egcs,wormie,kinetic},liblog.o},include/{addr,file,proc,syslogs}.h}|Showtee / Romanian',
 		'7140|/usr/bin/{xchk,xsf}|Optickit',
-		'7141|/{dev/.kork,bin/.{login,ps}}|LDP worm',
+		'7141|/{dev/.kork,bin/.{login,ps}}|LDP Worm',
 		'7142|/{dev/hda06,usr/info/libc1.so}|Telekit',
 		'7143|/dev/wd4|Tribe bot',
 		'7144|/dev/ida/.inet|LRK',
-		'7145|/etc/{bin,sbin}/ava|Adore Rootkit',
+		'7145|/{usr/{doc/sys/{qrt,run,crond,kern/{var,string.o,ava,adore.o}},sbin/kfd,secure},etc/{bin,sbin}/ava,var/log/ssh/old}|Adore Rootkit',
 		'7146|/{tmp/{.bugtraq{,.c},.cinik,.b,httpd,.unlock,.font-unix/.cinik},tmp./update}|Slapper',
 		'7147|/tmp/{.uua,.a}|Scalper',
-		'7148|/{proc/knark,dev/.{pizda,pula}}|Knark',
-		'7149|/{dev/.lib{,/1iOn.sh},bin/{mjt,in.telnetd},usr/info/torn}|Lion worm',
+		'7148|/{proc/knark{,/pids},dev/.{pizda,pula}}|Knark Rootkit',
+		'7149|/{dev/.lib{,/1iOn.sh},bin/{mjt,in.telnetd},usr/info/torn}|Lion Worm',
 		'7150|/{usr/{include/.../,lib/{.../,.bkit-},sbin/.../,bin/ntpsx},tmp/.bkp}|Bobkit',
-		'7151|/var/lib/games/.k|Hidrootkit',
+		'7151|/var/lib/games/.k|Hid Rootkit',
 		'7152|/dev/ptyxx|Ark',
-		"7153|/usr/lib/locale/uboot|Mithra's rootkit",
-		'7154|/tmp/{xp,kidd0.c,kidd0}|LOC rootkit',
-		'7155|/usr/{info/.tc2k,bin/util,sbin/{initcheck,ldb}}|TC2 worm',
-		'7156|/usr/sbin/{mech,kswapd}|Anonoiyng rootkit',
+		"7153|/usr/lib/locale/uboot|Mithra's Rootkit",
+		'7154|/tmp/{xp,kidd0.c,kidd0}|LOC Rootkit',
+		'7155|/usr/{info/.tc2k,bin/util,sbin/{initcheck,ldb}}|TC2 Worm',
+		'7156|/usr/sbin/{mech,kswapd}|Anonoiyng Rootkit',
 		'7157|/lib/{.x,sk}|SuckIt',
 		'7158|/usr/{local/bin/bin,man/.man10,sbin/arobia,lib/elm/arobia,local/bin/.../bktd}|Beastkit',
 		'7159|/{dev/tux,usr/bin/{xsf,xchk}}|Tuxkit',
-		'7160|/usr/{doc/{.sl,.sp,.statnet,.logdsys,.dpct,.gifnocfi,.dnif,.nigol},include/rpc/_../{kit{,2}}}|Old rootkits',
-		'7161|/usr/include/._.|Kenga3 rootkit',
-		'7162|/lib/tcl5.3|ESRK rootkit',
-		'7163|/{sbin/xc,usr/include/ivtype.h,bin/.lib}|Fu rootkit',
-		'7164|/{lib/security/.config,etc/ld.so.hash}|ShKit rootkit',
-		'7165|/{lib/.li{gh.gh,bgh.gh,bgh-gh},dev/{tux,tux/.{proc,file}}}|AjaKit rootkit',
-		'7166|/bin/{imin,imout}|zaRwT rootkit',
-		'7167|/usr/include/ice{key.h,conf.h,seed.h}|Madalin rootkit',
-		'7168|/{lib/libsh.so,usr/lib/libsh}|shv5 rootkit',
-		'7169|/etc/.bmbl{,/sk}|BMBL rootkit',
-		'7170|/tmp/{cback,derfiq}|Cback Linux worm',
+		'7160|/usr/{doc/{.sl,.sp,.statnet,.logdsys,.dpct,.gifnocfi,.dnif,.nigol},include/rpc/_../{kit{,2}}}|Old Rootkits',
+		'7161|/usr/include/._.|Kenga3 Rootkit',
+		'7162|/lib/tcl5.3|ESRK Rootkit',
+		'7163|/{sbin/xc,usr/include/ivtype.h,bin/.lib}|Fu Rootkit',
+		'7164|/{lib/security/.config,etc/ld.so.hash}|ShKit Rootkit',
+		'7165|/{lib/.li{gh.gh,bgh.gh,bgh-gh},dev/{tux,tux/.{proc,file}}}|AjaKit Rootkit',
+		'7166|/bin/{imin,imout}|zaRwT Rootkit',
+		'7167|/usr/include/ice{key.h,conf.h,seed.h}|Madalin Rootkit',
+		'7168|/{lib/libsh.so,usr/lib/libsh}|shv5 Rootkit',
+		'7169|/etc/.bmbl{,/sk}|BMBL Rootkit',
+		'7170|/tmp/{cback,derfiq}|Cback Linux Worm',
 		'7171|/usr/share/.aPa|aPa Kit',
-		'7172|/etc/.enyelkmHIDE^IT.ko|enye-sec Rootkit',
+		'7172|/etc/.enyelkm{HIDE^IT,OCULTAR}.ko|ENYE LKM v1.1, v1.2',
 		'7173|/dev/grid-{hide-pid-,unhide-pid-,show-pids,hide-port-,unhide-port-}|Override Rootkit',
-		'7174|/{usr/share/.home*{,/tty},etc/host.ph1,bin/host.ph1}|PHALANX rootkit',
-		'7175|/{usr/share/.zk{,/zk},etc/1ssue.net,usr/X11R6/.{zk,zk/xfs,zk/echo},etc/sysconfig/console/load.zk}|ZK rootkit',
-		'7176|/var/{adm/{.profile,sa/.adm},spool/lp/{.profile,admins/.lp}}|Solaris worm',
-		'7177|/{dev/{.{arctic,golf,rd,xman},hd7,hdx1,hx2,ptyp,ptyr,ptyzg,ptyzx,rd/cdb,srd0,ttyof,ttyop,xdf1,xdf2},etc/rc.d/init.d/rc.modules,lib/{.fx,.so,lblip.tk,ldd.so},proc/kset,sbin/{pback,vobiscum},tmp/.{cheese,dump},usr/{X11R6/include/pain,bin/{.etc,atm,ddc,gib,ishit,jdc,kfl,ras2xm,snick,sourcemask,xstat},lib/{.fx,pt07},man/{man1/lib/.lib,man2/.man8,man3/psid,muie},sbin/{atd2,in.telnet,jcd}},var/{.x{,/psotnic},local/.lpd,run/.{pid,tmp}}}|Suspicious files',
+		'7174|/{uNFuNF,{usr/share/.home.ph1/{tty,kebab,cb,phalanx},etc/host.ph1,bin/host.ph1}}|Phalanx Rootkit',
+		'7193|/{etc/{cron.d/zupzzplaceholder,lolzz.p2/.{p2rc,phalanx2,sniff},khubd.p2/{.p2rc,.phalanx2,.sniff,sshgrab.py}},usr/lib/zupzz.p2/{.p-2.3d,.p2rc}}|Phalanx2 Rootkit',
+		'7175|/{usr/share/.zk{,/zk},etc/1ssue.net,usr/X11R6/.{zk,zk/xfs,zk/echo},etc/sysconfig/console/load.zk}|ZK Rootkit',
+		'7176|/var/{adm/{.profile,sa/.adm},spool/lp/{.profile,admins/.lp}}|Solaris Worm',
+		'7178|/usr/bin/duarawkz{,/loginpass}|Duarawkz Rootkit',
+		'7179|/{dev/..0{,/backup},etc/ld.so.hash,lib/security/.config/ssh/{sshd_config,ssh_host_key,ssh_host_key.pub,ssh_random_seed},usr/{lib/ldlib{ns,ps,pst,du,ct}.so,bin/ssh2d}}|Flea Linux Rootkit',
+		'7180|/{dev/{pty{q,r,s,t},fd/.{88/freeshb-bsd,freesht,zxsniff,zxsniff.log,99/{.tty{f00,p00,q00,s00},.pwsx00}}},etc/.acid,usr/lib/.fx/{sched_host.2,random_d.2,set_pid.2,setrgrp.2,TOHIDE,cons.saver,adore/{ava/ava,adore/adore.ko}},bin/sysback,usr/local/bin/sysback}|FreeBSD Rootkit',
+		'7181|/{dev/proc/{toolz,{.bash_profile,.bashrc,.cshrc},fuckit/{hax0r,hax0rshell,config/{lports,rports,rkconf,password,progs},system-bins/init}},usr/lib/lib{cps,tty}.a}|Fuckit Rootkit',
+		'7182|/dev/dev/gaskit/sshd/sshdd|GasKit Rootkit',
+		'7183|/dev/.hijackerz|HjC Kit Rootkit',
+		'7184|/{lib/defs/{p,q,r,s,t},usr/lib/{defs/{p,q,r,s,t},.libigno/{pkunsec,.igno/psybnc/psybnc}}}|ignoKit Rootkit',
+		'7185|/Users/{w0rm-support.tgz,InqTest.class,comm.openbundle.plist,com.pwned.plist,libavetanaBT.jnilib,de,javax}|OSX Inqtana (Variant A)',
+		'7186|/Users/{w0rms.love.apples.tgz,InqTest.{java,class},InqTanaHandler{,/.bundle},libavetanaBT.jnilib,de,javax}|OSX Inqtana (Variant B)',
+		'7187|/Users/{applec0re.tgz,InqTest.{java,class},libavetanaBT.jnilib,environment.plist,pwned.c,pwned.dylib,de,javax}|OSX Inqtana (Variant C)',
+		'7188|/dev/pts/01/{backup,etc,tmp}|Irix Rootkit',
+		'7189|/usr/_h4x_/{ipsecs-kbeast-v1.ko,_h4x_bd,acctlog}|KBeast (Kernel Beast) Rootkit',
+		'7190|/usr/src/redhat/SRPMS/...|Kitko Rootkit',
+		'7191|/{sbin/init__mood-nt-_-_cthulhu,_cthulhu/mood-nt.{init,conf,sniff}}|Mood-NT Rootkit',
+		'7192|/dev/.oz/.nap/rkit/terror|Oz Rootkit',
+		'7177|/{dev/{.{arctic,golf,rd,xman},hd7,hdx1,hx2,ptyp,ptyr,ptyzg,ptyzx,rd/cdb,srd0,ttyof,ttyop,xdf1,xdf2},etc/rc.d/init.d/rc.modules,lib/{.fx,.so,lblip.tk,ldd.so},proc/kset,sbin/{pback,vobiscum},tmp/.{cheese,dump},usr/{X11R6/include/pain,bin/{.etc,atm,ddc,gib,ishit,jdc,kfl,ras2xm,snick,sourcemask,xstat},lib/{.fx,pt07},man/{man1/lib/.lib,man2/.man8,man3/psid,muie},sbin/{atd2,in.telnet,jcd}},var/{.x{,/psotnic},local/.lpd,run/.{pid,tmp}}}|Suspicious Files',
 	){
 		my ($AlertID, $Infection, $Name) = split('\|');
 
-		Info("Looking for '$Name' infection.");
+		Info("Searching: $Name");
 
 		my $Alert = '';
 		foreach (glob($Infection)){
@@ -1832,6 +1853,26 @@ if ($CMOS eq 'true'){
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'CMOS' key.")
+	}
+}
+
+#-------------------------------------------------------------------/etc/passwd
+
+if ($ChkPasswd eq 'true'){
+	my $PasswdFile = '/etc/passwd';
+
+	if (-f $PasswdFile){
+		open(my $FH, '<', $PasswdFile);
+
+		while (<$FH>){
+			chomp();
+
+			print("$_\n") if /w0rm/
+		}
+
+		close($FH);
+	}else{
+		Info("Missing prerequisites -- skipping 'ChkPasswd' key.")
 	}
 }
 
