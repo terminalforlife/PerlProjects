@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri 28 Feb 02:51:40 GMT 2020
+# Last Change       - Fri 28 Feb 03:03:21 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -1864,13 +1864,22 @@ if ($ChkPasswd eq 'true'){
 	if (-f $PasswdFile){
 		open(my $FH, '<', $PasswdFile);
 
+		my $WormFound;
 		while (<$FH>){
-			chomp();
-
-			print("$_\n") if /w0rm/
+			$WormFound = 'true' if /w0rm/
 		}
 
 		close($FH);
+
+		unless ($WormFound eq 'true'){
+			Info("Cannot see 'w0rm' in '$PasswdFile' file.")
+		}else{
+			Alert(
+				1428,
+				"Found 'w0rm' in '$PasswdFile' file.",
+				"Please refer to a search engine."
+			)
+		}
 	}else{
 		Info("Missing prerequisites -- skipping 'ChkPasswd' key.")
 	}

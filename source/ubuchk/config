@@ -84,6 +84,7 @@ Swaps=true
 
 # Miscellaneous
 CMOS=false
+ChkPasswd=true
 Firewall=true
 LightDM=true
 ProcVuln=true
