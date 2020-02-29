@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 29 Feb 17:51:41 GMT 2020
+# Last Change       - Sat 29 Feb 18:19:21 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ my (
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
-	@SkipDpkgOpts, $Swaps, $SwapMBMin, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
+	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
 	$ListDbAlerts, $ChkPasswd
 );
 
@@ -534,9 +534,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'Swaps'){
 			Boolean($Value);
 			$Swaps = $Value
-		}elsif ($Key eq 'SwapMBMin'){
+		}elsif ($Key eq 'MBMaxSwap'){
 			if ($Value =~ /^[0-9]+$/){
-				$SwapMBMin = $Value
+				$MBMaxSwap = $Value
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
@@ -1409,7 +1409,7 @@ if ($AptCache eq 'true'){
 			$FileCount++;
 
 			if ($Verbose eq 'true'){
-				my $Human = format_bytes($Size);
+				my $Human = format_bytes($Size, 'bs' => 1024);
 				my $BaseName = ($_ =~ m{(?:.*/)(.*)})[0];
 
 				Info("Found '$BaseName', using $Human.");
@@ -1417,7 +1417,7 @@ if ($AptCache eq 'true'){
 		}
 
 		if ($Size > 0){
-			my $Human = format_bytes($Size);
+			my $Human = format_bytes($Size, 'bs' => 1024);
 			if ($Size / 1024 / 1024 >= $AptCacheMBLimit){
 				if (DepChk(':', 'sudo') == 0){
 					Alert(
@@ -1624,7 +1624,7 @@ if ($HomeCache eq 'true'){
 			}else{
 				use Number::Bytes::Human 'format_bytes';
 
-				my $Human = format_bytes($Size);
+				my $Human = format_bytes($Size, 'bs' => 1024);
 
 				Info("User '$ENV{USER}' caches only $Human.")
 			}
@@ -1656,7 +1656,7 @@ if ($Thumbnails eq 'true'){
 			}else{
 				use Number::Bytes::Human 'format_bytes';
 
-				my $Human = format_bytes($Size);
+				my $Human = format_bytes($Size, 'bs' => 1024);
 
 				Info("User '$ENV{USER}' thumbnails take up only $Human.")
 			}
@@ -1734,8 +1734,8 @@ if ($Swaps eq 'true'){
 			next if $. == 1;
 
 			my ($File, $Type, $Size, $Used, $Priority) = split(' ');
-			my $HumSize = format_bytes($Size * 1024);
-			my $HumUsed = format_bytes($Used * 1024);
+			my $HumSize = format_bytes($Size * 1024, 'bs' => 1024);
+			my $HumUsed = format_bytes($Used * 1024, 'bs' => 1024);
 			my $MRemains = ceil(($Size - $Used) / 1024);
 
 			if ($Type eq 'file'){
@@ -1764,10 +1764,12 @@ if ($Swaps eq 'true'){
 			# Just in-case the file is in the user's HOME.
 			$File = $File =~ s/$ENV{HOME}/~/r;
 
-			if ($MRemains >= $SwapMBMin){
+			if ($MRemains >= $MBMaxSwap){
 				Info("Swap $Type '$File' using $HumUsed/$HumSize.");
 			}else{
-				my $HumRemains = format_bytes(($Size - $Used) * 1024);
+				my $HumRemains = format_bytes(
+					($Size - $Used) * 1024, 'bs' => 1024
+				);
 
 				Alert(
 					8759,
@@ -1800,8 +1802,8 @@ if ($RAM eq 'true'){
 		open(my $FH, '<', $MemFile);
 
 		my (
-			$BShared, $BSwap, $BTotal, $BFree, $BBuf,
-			$BCache, $HumTotal, $HumFree, $BSRec
+			$BShared, $BSwap, $BTotal, $BFree,
+			$BCache, $HumFree, $BSRec, $BBuf
 		);
 
 		while (<$FH>){
