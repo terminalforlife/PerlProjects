@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/TFL.pm
 # Started On        - Mon  6 May 19:29:05 BST 2019
-# Last Change       - Thu 20 Feb 03:23:58 GMT 2020
+# Last Change       - Sat 29 Feb 19:36:23 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -39,13 +39,12 @@ use warnings;
 use vars '@EXPORT', '$VERSION';
 
 @EXPORT = (
-	'$PROGNAME', '$AUTHOR', '$GITHUB', 'FErr', 'Err', 'KeyVal',
-	'GitTopLevel', 'DepChk', 'KeyDef', 'UsageCPU', 'UnderLine',
-	'Boolean', 'YNInput', 'ReadFile', 'WriteFile', 'InitialDirs',
-	'CelsFahr', 'GetDirSize'
+	'$PROGNAME', '$AUTHOR', '$GITHUB', 'FErr', 'Err', 'KeyVal', 'GitTopLevel',
+	'DepChk', 'KeyDef', 'UsageCPU', 'UnderLine', 'Boolean', 'YNInput',
+	'ReadFile', 'WriteFile', 'CelsFahr', 'GetDirSize'
 );
 
-$VERSION = '2020-02-20';
+$VERSION = '2020-02-29';
 
 our ($PROGNAME) = $0 =~ m{(?:.*/)?([^/]*)};
 our $AUTHOR = 'Written by terminalforlife <terminalforlife@yahoo.com>';
@@ -259,32 +258,23 @@ sub GitTopLevel{
 	}
 }
 
-=item InitialDirs()
-
-Return an array consisting of all -- hidden or otherwise -- directories within the first argument's path. This is primarily useful for recursive directory crawling.
-
-=cut
-
-sub InitialDirs{
-	my @Dirs;
-	foreach (glob("$_[0]\{,/{*,.*}}")){
-		next if m{/(\.\.|\.)$};
-		push(@Dirs, $_) if -d -x
-	}
-
-	return(@Dirs)
-}
-
 =item GetDirSize()
 
-Return the size, in bytes, of the first argument's path.
+Return the size, in (bs=1024) bytes, of the first argument's path.
 
 =cut
 
 sub GetDirSize{
-	my @Dirs = InitialDirs($_[0]);
+	my (@Dirs, $Size);
+	foreach (glob("$_[0]/{*,.*}")){
+		next if m{/(\.\.|\.)$};
+		next if -l; # <-- Avoid infinite loop.
 
-	my $Size;
+		push(@Dirs, $_) if -d -x;
+
+		$Size += -s if -f
+	}
+
 	foreach (@Dirs){
 		foreach (glob("$_/{*,.*}")){
 			next if m{/(\.\.|\.)$};
@@ -318,6 +308,12 @@ sub CelsFahr{
 =back
 
 =head1 CHANGES
+
+=head2 2020-02-29
+
+Removed InitialDirs().
+
+Improved GetDirSize().
 
 =head2 2020-02-20
 

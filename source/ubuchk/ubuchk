@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 29 Feb 18:19:21 GMT 2020
+# Last Change       - Sat 29 Feb 19:44:24 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,6 +18,7 @@
 #TODO: Add check for X amount of space taken up in Trash.
 #TODO: Add check for fan speeds; alert when low/off.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
+#TODO: Add keys for block size 1000 and 1024, and for SI toggling.
 #TODO: Add option to allow user to add config keys as arguments.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for APT options without the use of `apt-config` executable.
@@ -166,6 +167,14 @@ unless ($OSOverride eq 'true'){
 my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
 
 #-----------------------------------------------------Miscellaneous Subroutines
+
+sub Human{
+	use Number::Bytes::Human 'format_bytes';
+
+	return(
+		format_bytes($_[0], 'bs' => 1024, 'si' => 1, 'round_style' => 'round')
+	)
+}
 
 sub Info{ # Usage: [STRING]
 	print("$_[0]\n") if $Verbose eq 'true'
@@ -1399,8 +1408,6 @@ if ($AptCache eq 'true'){
 	my $Dir = '/var/cache/apt/archives';
 
 	if (-d $Dir){
-		use Number::Bytes::Human 'format_bytes';
-
 		# Ignoring `partial` directory, as it often needs root access to use.
 		# The same goes for files like `lock`, as they're irrelevant here.
 		my ($FileCount, $Size);
@@ -1409,7 +1416,7 @@ if ($AptCache eq 'true'){
 			$FileCount++;
 
 			if ($Verbose eq 'true'){
-				my $Human = format_bytes($Size, 'bs' => 1024);
+				my $Human = Human($Size);
 				my $BaseName = ($_ =~ m{(?:.*/)(.*)})[0];
 
 				Info("Found '$BaseName', using $Human.");
@@ -1417,7 +1424,7 @@ if ($AptCache eq 'true'){
 		}
 
 		if ($Size > 0){
-			my $Human = format_bytes($Size, 'bs' => 1024);
+			my $Human = Human($Size);
 			if ($Size / 1024 / 1024 >= $AptCacheMBLimit){
 				if (DepChk(':', 'sudo') == 0){
 					Alert(
@@ -1614,18 +1621,15 @@ if ($HomeCache eq 'true'){
 		if ($Size > 0){
 			use POSIX 'ceil';
 
-			my $SizeMB = ceil($Size / 1024 / 1024);
+			my $SizeMB = ceil($Size / (1024 * 1024));
+			my $Human = Human($Size);
 			if ($SizeMB >= $HomeCacheMBLimit){
 				Alert(
 					7619,
-					"User '$ENV{USER}' has a cache total of ${SizeMB}M.",
+					"User '$ENV{USER}' has a cache total of $Human.",
 					"Suggested action is to remove unneeded files."
 				)
 			}else{
-				use Number::Bytes::Human 'format_bytes';
-
-				my $Human = format_bytes($Size, 'bs' => 1024);
-
 				Info("User '$ENV{USER}' caches only $Human.")
 			}
 		}else{
@@ -1647,17 +1651,14 @@ if ($Thumbnails eq 'true'){
 			use POSIX 'ceil';
 
 			my $SizeMB = ceil($Size / 1024 / 1024);
+			my $Human = Human($Size);
 			if ($SizeMB >= $ThumbsMBLimit){
 				Alert(
 					7620,
-					"User '$ENV{USER}' has a cache total of ${SizeMB}M.",
+					"User '$ENV{USER}' has a cache total of $Human.",
 					"Suggested action is to remove unneeded files."
 				)
 			}else{
-				use Number::Bytes::Human 'format_bytes';
-
-				my $Human = format_bytes($Size, 'bs' => 1024);
-
 				Info("User '$ENV{USER}' thumbnails take up only $Human.")
 			}
 		}else{
@@ -1720,7 +1721,6 @@ if ($Swaps eq 'true'){
 	my $SwapFile = '/proc/swaps';
 
 	if (-f $SwapFile){
-		use Number::Bytes::Human 'format_bytes';
 		use POSIX 'ceil';
 
 		FileChk($SwapFile);
@@ -1734,8 +1734,8 @@ if ($Swaps eq 'true'){
 			next if $. == 1;
 
 			my ($File, $Type, $Size, $Used, $Priority) = split(' ');
-			my $HumSize = format_bytes($Size * 1024, 'bs' => 1024);
-			my $HumUsed = format_bytes($Used * 1024, 'bs' => 1024);
+			my $HumSize = Human($Size * 1024);
+			my $HumUsed = Human($Used * 1024);
 			my $MRemains = ceil(($Size - $Used) / 1024);
 
 			if ($Type eq 'file'){
@@ -1767,9 +1767,7 @@ if ($Swaps eq 'true'){
 			if ($MRemains >= $MBMaxSwap){
 				Info("Swap $Type '$File' using $HumUsed/$HumSize.");
 			}else{
-				my $HumRemains = format_bytes(
-					($Size - $Used) * 1024, 'bs' => 1024
-				);
+				my $HumRemains = Human(($Size - $Used) * 1024);
 
 				Alert(
 					8759,
@@ -1795,7 +1793,6 @@ if ($RAM eq 'true'){
 	my $MemFile = '/proc/meminfo';
 
 	if (-f $MemFile){
-		use Number::Bytes::Human 'format_bytes';
 		use POSIX 'ceil';
 
 		FileChk($MemFile);
@@ -1828,14 +1825,14 @@ if ($RAM eq 'true'){
 
 		close($FH);
 
-		my $HumTotal = format_bytes($BTotal, 'bs' => 1024);
+		my $HumTotal = Human($BTotal);
 
-		# Ignore shared memory, buffers, and cache. (similar approach to HTop)
-		my $BUsed = ($BTotal - $BFree) - ($BBuf + $BCache + $BShared + $BSRec);
+		# Ignore shared memory, buffers, and cache, similar to htop(1).
+		my $BUsed = ($BTotal - $BFree) - ($BBuf + $BCache + $BSRec);
 
 		# As the free(1) utility shows by default.
 		my $MUsed = ceil($BUsed / (1024 * 1024));
-		my $HumUsed = format_bytes($BUsed, 'bs' => 1024);
+		my $HumUsed = Human($BUsed);
 
 		if ($MUsed <= $MBMaxRAM){
 			Info("Using only $HumUsed of $HumTotal available RAM.")
