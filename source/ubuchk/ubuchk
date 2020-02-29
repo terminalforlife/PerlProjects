@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 29 Feb 19:44:24 GMT 2020
+# Last Change       - Sat 29 Feb 20:08:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -1848,8 +1848,6 @@ if ($RAM eq 'true'){
 	}
 }
 
-exit(0);
-
 #------------------------------------------------------------------CMOS Battery
 
 if ($CMOS eq 'true'){
@@ -1891,17 +1889,17 @@ if ($ChkPasswd eq 'true'){
 
 		my $WormFound;
 		while (<$FH>){
-			$WormFound = 'true' if /w0rm/
+			$WormFound = $. if /w0rm/
 		}
 
 		close($FH);
 
-		unless ($WormFound eq 'true'){
+		unless (length($WormFound) > 0){
 			Info("Cannot see 'w0rm' in '$PasswdFile' file.")
 		}else{
 			Alert(
 				1428,
-				"Found 'w0rm' in '$PasswdFile' file.",
+				"Found 'w0rm' on line #$WormFound in '$PasswdFile' file.",
 				"Please refer to a search engine."
 			)
 		}

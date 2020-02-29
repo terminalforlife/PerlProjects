@@ -77,10 +77,10 @@ RootKits=true
 SkipRKs=
 
 # RAM & Swap
-RAM=true
-RAMMBMin=128
-SwapMBMin=250
-Swaps=true
+RAM=false
+MBMaxRAM=2048
+MBMaxSwap=512
+Swaps=false
 
 # Miscellaneous
 CMOS=false
