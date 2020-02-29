@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 29 Feb 17:48:15 GMT 2020
+# Last Change       - Sat 29 Feb 17:51:41 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -28,6 +28,8 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: Inaccurate `~/.cache` size. I'm seeing 21M, when there's actually 11M.
+#TODO: Inconsistent sizing, because `format_bytes()` uses bs=1000 by default.
 #TODO: May be fixed now, but when battery mAh is < 1000 mAh, output breaks.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #
