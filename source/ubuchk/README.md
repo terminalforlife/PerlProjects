@@ -35,7 +35,7 @@ If you're not sure what UbuChk is, check out [this](https://youtu.be/CZ4Kn0gtHaM
 
 # Dependencies
 
-  * [libtfl-perl](https://github.com/terminalforlife/PerlProjects/blob/master/source/TFL.pm) (>= 2020-02-20)
+  * [libtfl-perl](https://github.com/terminalforlife/PerlProjects/blob/master/source/TFL.pm) (>= 2020-02-29)
   * libfilesys-diskspace-perl (>= 0.05-16)
   * libnumber-bytes-human-perl (>= 0.09-1)
   * libterm-readkey-perl (>= 2.33-1build1)
