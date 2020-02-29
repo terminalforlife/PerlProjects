@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 29 Feb 00:22:31 GMT 2020
+# Last Change       - Sat 29 Feb 17:48:15 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -77,7 +77,7 @@ my (
 	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
-	@SkipDpkgOpts, $Swaps, $SwapMBMin, $RAM, $RAMMBMin, $CMOS, $ListKeys,
+	@SkipDpkgOpts, $Swaps, $SwapMBMin, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
 	$ListDbAlerts, $ChkPasswd
 );
 
@@ -541,9 +541,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'RAM'){
 			Boolean($Value);
 			$RAM = $Value
-		}elsif ($Key eq 'RAMMBMin'){
+		}elsif ($Key eq 'MBMaxRAM'){
 			if ($Value =~ /^[0-9]+$/){
-				$RAMMBMin = $Value
+				$MBMaxRAM = $Value
 			}else{
 				FErr(1, __LINE__, "Key '$Key' requires an integer.");
 			}
@@ -1797,27 +1797,48 @@ if ($RAM eq 'true'){
 		FileChk($MemFile);
 		open(my $FH, '<', $MemFile);
 
-		my ($BTotal, $BFree, $HumTotal, $HumFree);
+		my (
+			$BShared, $BSwap, $BTotal, $BFree, $BBuf,
+			$BCache, $HumTotal, $HumFree, $BSRec
+		);
+
 		while (<$FH>){
 			chomp(my @Line = split(' '));
 
 			if ($Line[0] eq 'MemTotal:'){
-				$BTotal = $Line[1] * 1024;
-				$HumTotal = format_bytes($BTotal)
+				$BTotal = $Line[1] * 1024
 			}elsif ($Line[0] eq 'MemFree:'){
-				$BFree = $Line[1] * 1024;
-				$HumFree = format_bytes($BFree);
+				$BFree = $Line[1] * 1024
+			}elsif ($Line[0] eq 'Buffers:'){
+				$BBuf = $Line[1] * 1024
+			}elsif ($Line[0] eq 'Cached:'){
+				$BCache = $Line[1] * 1024
+			}elsif ($Line[0] eq 'Shmem:'){
+				$BShared = $Line[1] * 1024
+			}elsif ($Line[0] eq 'SwapTotal:'){
+				$BSwap = $Line[1] * 1024
+			}elsif ($Line[0] eq 'SReclaimable:'){
+				$BSRec = $Line[1] * 1024
 			}
 		}
 
 		close($FH);
 
-		if (ceil($BFree / 1024 / 1024) >= $RAMMBMin){
-			Info("Detected $HumFree of $HumTotal free RAM.")
+		my $HumTotal = format_bytes($BTotal, 'bs' => 1024);
+
+		# Ignore shared memory, buffers, and cache. (similar approach to HTop)
+		my $BUsed = ($BTotal - $BFree) - ($BBuf + $BCache + $BShared + $BSRec);
+
+		# As the free(1) utility shows by default.
+		my $MUsed = ceil($BUsed / (1024 * 1024));
+		my $HumUsed = format_bytes($BUsed, 'bs' => 1024);
+
+		if ($MUsed <= $MBMaxRAM){
+			Info("Using only $HumUsed of $HumTotal available RAM.")
 		}else{
 			Alert(
 				8971,
-				"Only $HumFree RAM of $HumTotal remaining.",
+				"Using $HumUsed of $HumTotal available RAM.",
 				"Please refer to: $TFL::PROGNAME -Q 8971"
 			)
 		}
@@ -1825,6 +1846,8 @@ if ($RAM eq 'true'){
 		Info("Missing prerequisites -- skipping 'RAM' key.")
 	}
 }
+
+exit(0);
 
 #------------------------------------------------------------------CMOS Battery
 
