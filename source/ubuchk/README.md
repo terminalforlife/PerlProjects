@@ -28,10 +28,11 @@ You'll find Cito at [Extra/source/cito](https://github.com/terminalforlife/Extra
 sudo mkdir -p --mode=755 /usr/share/ubuchk
 sudo cito -M 644 -O 0 -G 0 -T /usr/share/man/man8/ubuchk.8.gz -r terminalforlife PerlProjects master source/ubuchk/ubuchk.8.gz
 sudo cito -M 644 -O 0 -G 0 -T /usr/share/ubuchk/database -r terminalforlife PerlProjects master source/ubuchk/database
-sudo cito -r terminalforlife PerlProjects master source/ubuchk/{ubuchk,config}
+sudo cito -r terminalforlife PerlProjects master source/ubuchk/{ubuchk{,-db},config,completions}
+sudo ln -s /usr/share/bash-completion/completions/ubuchk{,-db}
 ```
 
-If you're not sure what UbuChk is, check out [this](https://youtu.be/CZ4Kn0gtHaM) video, over on YouTube.
+If you're not sure what UbuChk is, check out its first [video](https://youtu.be/CZ4Kn0gtHaM), over on YouTube, or check out a much more updated one over [here](https://youtu.be/-BpyYHLGPeY), showing off lots of cool features.
 
 # Dependencies
 
@@ -41,6 +42,12 @@ If you're not sure what UbuChk is, check out [this](https://youtu.be/CZ4Kn0gtHaM
   * libterm-readkey-perl (>= 2.33-1build1)
   * libtext-wrapi18n-perl (>= 0.06-7.1)
   * perl (>= 5.22.1-9)
+
+If you use `ubuntu-db`, or install via the UbuChk Debian package, you'll also need what's mentioned below.
+
+  * coreutils (>= 8.25-2)
+  * libtflbp-sh (>= 2019-12-10)
+  * wget (>= 1.17.1-1) | curl (>= 7.47.0-1) | [cito](https://github.com/terminalforlife/Extra/blob/master/source/cito) (>= 2020-02-29)
 
 If you're on an Ubuntu or similar system, you can use `sudo apt-get install -f` to get all of the remaining dependencies sorted, but **only** after the TFL module is installed, which can be done with the below Cito command.
 
