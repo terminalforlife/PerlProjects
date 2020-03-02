@@ -3,37 +3,42 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Thu 27 Feb 22:06:20 GMT 2020
+# Last Change       - Mon  2 Mar 16:03:35 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# This is the bash completion script for `ubuchk`.
+# This is the bash completion script for `ubuchk` & `ubuchk-db`.
 #------------------------------------------------------------------------------
 
 _ubuchk(){
-	while read; do
-		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
-			Option=${REPLY%% - *}
+	case $1 in
+		ubuchk)
+			while read; do
+				if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+					Option=${REPLY%% - *}
 
-			case $Option in
-				*=*) Option="${REPLY%%=*}=" ;;
+					case $Option in
+						*=*) Option="${REPLY%%=*}=" ;;
+					esac
+
+					for Arg in ${Option//,/}; {
+						Args+="${Arg##[^-]*} "
+					}
+				fi
+			done <<< "$($1 -h)"
+
+			case $3 in
+					--query|-Q)
+						printf -v Args '%s ' `ubuchk --list-dbalerts`
+						COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
+					*)
+						COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
 			esac
 
-			for Arg in ${Option//,/}; {
-				Args+="${Arg##[^-]*} "
-			}
-		fi
-	done <<< "$(ubuchk -h)"
-
-	case $3 in
-			--query|-Q)
-				printf -v Args '%s ' `ubuchk --list-dbalerts`
-				COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
-			*)
-				COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
+			unset Option Arg Args ;;
+		ubuchk-db)
+			COMPREPLY=(`compgen -W '-h --help -v --version' -- "$2"`) ;;
 	esac
-
-	unset Option Arg Args
 }
 
-complete -F _ubuchk ubuchk
+complete -F _ubuchk ubuchk{,-db}

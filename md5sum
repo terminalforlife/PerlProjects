@@ -28,9 +28,10 @@ eade09b4413ebc944a87b83e98ed295d  source/previewer
 ba9afb7dddd3e74ebe15aef61f9bd91b  source/TFL.pm
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
-06e6958589f69d818e4b24f6b695c7cd  source/ubuchk/completions
+47e0cecae975b5fca1eee06874fa09bf  source/ubuchk/completions
 9651201ddc91eda4b7c3594b2067eafa  source/ubuchk/config
 6fde6908383570eccee702280209c529  source/ubuchk/database
+dca516681719d0aa3f196c483d649bc2  source/ubuchk/postinstall
 e846b6010415135c89f1a232db2c51b3  source/ubuchk/ubuchk
 a71f230a9259319908689defa0b4813d  source/ubuchk/ubuchk.8.gz
 e95500b742bc34a02364b35e7d5b7eeb  source/ubuchk/ubuchk-db

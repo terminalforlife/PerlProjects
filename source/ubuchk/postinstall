@@ -1,0 +1,39 @@
+#!/bin/sh
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/ubuchk/postinstall
+# Started On        - Mon  2 Mar 16:05:09 GMT 2020
+# Last Change       - Mon  2 Mar 16:20:03 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This short script simply creates a symbolic link for Bash completion
+# support, and is mainly, but not solely, for use with UbuChk Debian packages.
+#------------------------------------------------------------------------------
+
+CompFile='/usr/share/bash-completion/completions/ubuchk'
+
+if [ -f "$CompFile" ]; then
+	if ! [ -w "${CompFile%/*}" ]; then
+		printf "ERROR: Root access required.\n" 1>&2
+		exit 1
+	else
+		if ! [ -f "${CompFile}-db" ]; then
+			if ! command -v ln 1> /dev/null 2>&1; then
+				printf "ERROR: Command 'ln' not found.\n" 1>&2
+				exit 1
+			fi
+
+			if ! ln -s "$CompFile" "${CompFile}-db"; then
+				printf 'ERROR: Failed to create symbolic link.\n' 1>&2
+				exit 1
+			fi
+		else
+			printf "Symbolic link for 'ubuchk-db' already exists.\n"
+			exit 0
+		fi
+	fi
+else
+	printf 'ERROR: Bash completion file `ubuchk` not found.\n' 1>&2
+	exit 1
+fi
