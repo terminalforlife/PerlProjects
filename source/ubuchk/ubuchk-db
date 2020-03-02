@@ -1,0 +1,72 @@
+#!/bin/sh
+#cito M:755 O:0 G:0 T:/usr/bin/ubuchk-db
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/ubuchk/ubuchk-db
+# Started On        - Mon  2 Mar 15:21:20 GMT 2020
+# Last Change       - Mon  2 Mar 15:48:38 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Bourne shell script responsible for updating the UbuChk database. I chose to
+# use shell rather than Perl because I'm feeling lazy; besides, it'll suffice.
+#
+# Dependencies:
+#
+#   coreutils (>= 8.25-2)
+#   libtflbp-sh (>= 2019-12-10)
+#   wget (>= 1.17.1-1) | curl (>= 7.47.0-1) | cito (>= 2020-02-29)
+#------------------------------------------------------------------------------
+
+set -e
+. /usr/lib/tflbp-sh/Err
+. /usr/lib/tflbp-sh/ChkDep
+. /usr/lib/tflbp-sh/YNInput
+set +e
+
+CurVer='2020-03-02'
+Progrm=${0##*/}
+
+while [ "$1" ]; do
+	case $1 in
+		--help|-h)
+			printf 'Usage: %s [-h, --help | -v, --version]\n' "$Progrm"
+			exit 0 ;;
+		--version|-v)
+			printf '%s\n' "$CurVer"; exit 0 ;;
+		*)
+			Err 1 'Incorrect option(s) specified.' ;;
+	esac
+	shift
+done
+
+ChkDep id
+
+[ `id -u` -eq 0 ] || Err 1 'Root access is required.'
+
+if YNInput 'Update UbuChk alert database?'; then
+	GHUser='terminalforlife'
+	if ! command -v cito 1> /dev/null 2>&1; then
+		DBPath="/usr/share/${Progrm%-*}/database"
+		URL='https://raw.githubusercontent.com'
+
+		if command -v wget 1> /dev/null 2>&1; then
+			DLoader="wget -qO '$DBPath'"
+		elif command -v curl 1> /dev/null 2>&1; then
+			DLoader="curl -so '$DBPath'"
+		else
+			Err 1 "Neither 'curl' nor 'wget' were found."
+		fi
+
+		FullURL="$URL/$GHUser/PerlProjects/master/source/ubuchk/database"
+		if $DLoader "$FullURL"; then
+			printf 'Database successfully updated.\n'
+		else
+			Err 1 "File '${FullURL##*/}' failed download via ${DLoader%% *}."
+		fi
+	else
+		printf "Cito found; handing '$Progrm' to it instead.\n"
+		cito -c -r "$GHUser" PerlProjects master source/ubuchk/database
+	fi
+else
+	printf 'Database update declined -- exiting.\n'
+fi
