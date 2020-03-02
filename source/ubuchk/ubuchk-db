@@ -3,12 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-db
 # Started On        - Mon  2 Mar 15:21:20 GMT 2020
-# Last Change       - Mon  2 Mar 15:48:38 GMT 2020
+# Last Change       - Mon  2 Mar 15:54:34 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Bourne shell script responsible for updating the UbuChk database. I chose to
 # use shell rather than Perl because I'm feeling lazy; besides, it'll suffice.
+#
+# If Cito is found, it'll use that instead, with the `--clobber` flag.
 #
 # Dependencies:
 #
