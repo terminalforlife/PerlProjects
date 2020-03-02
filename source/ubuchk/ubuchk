@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 29 Feb 20:08:46 GMT 2020
+# Last Change       - Mon  2 Mar 22:51:40 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -19,7 +19,6 @@
 #TODO: Add check for fan speeds; alert when low/off.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add keys for block size 1000 and 1024, and for SI toggling.
-#TODO: Add option to allow user to add config keys as arguments.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for UFW service without the use of `systemctl` executable.
@@ -29,9 +28,6 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
-#TODO: Inaccurate `~/.cache` size. I'm seeing 21M, when there's actually 11M.
-#TODO: Inconsistent sizing, because `format_bytes()` uses bs=1000 by default.
-#TODO: May be fixed now, but when battery mAh is < 1000 mAh, output breaks.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #
 # Dependencies:
@@ -51,7 +47,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-29';
+my $CurVer = '2020-03-02';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -67,6 +63,7 @@ sub Usage{
 		  --skip=N[,N ...]         - Skip one or more N alerts, by ID.
 		  -Q, --query N            - Read about alert ID number N.
 		  -V, --verbose            - Execute checks verbosely.
+		  -k, --key K=V            - Override key K with value V.
 	} =~ tr/\t//dr)
 }
 
@@ -81,7 +78,7 @@ my (
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
-	$ListDbAlerts, $ChkPasswd
+	$ListDbAlerts, $ChkPasswd, %KeyOpt
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -141,6 +138,11 @@ foreach (@ARGV){
 		$ListKeys = 'true'
 	}elsif($ARGV[0] eq '--list-dbalerts'){
 		$ListDbAlerts = 'true'
+	}elsif(/--key|-k/){
+		shift();
+
+		my ($Key, $Value) = split('=', $ARGV[0]);
+		$KeyOpt{$Key} = $Value
 	}elsif (/^-/){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
@@ -371,6 +373,10 @@ if (-f -r -T $ConfigFile){
 	while (<$FH>){
 		chomp(my ($Key, $Value) = split('='));
 		next if /^(#|$)/;
+
+		# If the current key was provided to the `--key|-k` option, then
+		# override the user's configuration file for this key.
+		$Value = $KeyOpt{$Key} if grep({$_ eq $Key} keys(%KeyOpt));
 
 		if ($Key eq 'KernParams'){
 			Boolean($Value);
