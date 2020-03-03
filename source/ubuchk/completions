@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Mon  2 Mar 16:03:35 GMT 2020
+# Last Change       - Tue  3 Mar 00:24:32 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -31,6 +31,11 @@ _ubuchk(){
 					--query|-Q)
 						printf -v Args '%s ' `ubuchk --list-dbalerts`
 						COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
+					--key|-k)
+						compopt -o nospace
+
+						printf -v Args '%s ' `ubuchk --list-keys`
+						COMPREPLY=(`compgen -S '=' -W "$Args" -- "$2"`) ;;
 					*)
 						COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
 			esac
