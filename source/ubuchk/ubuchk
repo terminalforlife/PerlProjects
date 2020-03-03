@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  2 Mar 22:51:40 GMT 2020
+# Last Change       - Tue  3 Mar 00:28:40 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -29,6 +29,7 @@
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
+#TODO: The undocumented `--os-override` flag doesn't work at all.
 #
 # Dependencies:
 #
@@ -47,7 +48,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-02';
+my $CurVer = '2020-03-03';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
