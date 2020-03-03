@@ -31,7 +31,8 @@ ba9afb7dddd3e74ebe15aef61f9bd91b  source/TFL.pm
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
 9651201ddc91eda4b7c3594b2067eafa  source/ubuchk/config
 a57be1b2f859378ad2e0c77e2010d8b3  source/ubuchk/database
-dca516681719d0aa3f196c483d649bc2  source/ubuchk/postinstall
+199b43e5fc4fb28c937d46df7f960560  source/ubuchk/postinst
+11591805ecd3b4f31752a2a4158cd780  source/ubuchk/postrm
 f74702855ce637a0c2e98fa749a3eb42  source/ubuchk/ubuchk
 90ea0347433e24bc0cb6e05337b6dde4  source/ubuchk/ubuchk.8.gz
 e95500b742bc34a02364b35e7d5b7eeb  source/ubuchk/ubuchk-db

@@ -1,9 +1,9 @@
 #!/bin/sh
 
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/ubuchk/postinstall
+# Project Name      - PerlProjects/source/ubuchk/postinst
 # Started On        - Mon  2 Mar 16:05:09 GMT 2020
-# Last Change       - Mon  2 Mar 16:20:03 GMT 2020
+# Last Change       - Tue  3 Mar 01:32:22 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -27,13 +27,14 @@ if [ -f "$CompFile" ]; then
 			if ! ln -s "$CompFile" "${CompFile}-db"; then
 				printf 'ERROR: Failed to create symbolic link.\n' 1>&2
 				exit 1
+			else
+				printf "Symbolic link for '${CompFile##*/}-db' created.\n"
 			fi
 		else
-			printf "Symbolic link for 'ubuchk-db' already exists.\n"
-			exit 0
+			printf "Symbolic link for '${CompFile##*/}-db' already exists.\n"
 		fi
 	fi
 else
-	printf 'ERROR: Bash completion file `ubuchk` not found.\n' 1>&2
+	printf 'ERROR: Bash completion file '${CompFile##*/}' not found.\n' 1>&2
 	exit 1
 fi
