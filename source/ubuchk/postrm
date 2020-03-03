@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/postrm
 # Started On        - Mon  2 Mar 16:05:09 GMT 2020
-# Last Change       - Tue  3 Mar 01:43:48 GMT 2020
+# Last Change       - Tue  3 Mar 01:48:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 
 CompFile='/usr/share/bash-completion/completions/ubuchk-db'
 
-if [ -f "$CompFile" ]; then
+if [ -f "${CompFile%-db}" ]; then
 	if ! [ -w "${CompFile%/*}" ]; then
 		printf "ERROR: Root access required.\n" 1>&2
 		exit 1
