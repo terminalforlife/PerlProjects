@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/postrm
 # Started On        - Mon  2 Mar 16:05:09 GMT 2020
-# Last Change       - Tue  3 Mar 01:48:46 GMT 2020
+# Last Change       - Tue  3 Mar 01:56:10 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 
 CompFile='/usr/share/bash-completion/completions/ubuchk-db'
 
-if [ -f "${CompFile%-db}" ]; then
+if [ -L "$CompFile" ]; then
 	if ! [ -w "${CompFile%/*}" ]; then
 		printf "ERROR: Root access required.\n" 1>&2
 		exit 1
@@ -37,6 +37,5 @@ if [ -f "${CompFile%-db}" ]; then
 		fi
 	fi
 else
-	printf "ERROR: Bash completion file '${CompFile##*/}' not found.\n" 1>&2
-	exit 1
+	printf "Symbolic link '${CompFile##*/}' not found.\n"
 fi
