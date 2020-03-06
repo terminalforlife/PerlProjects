@@ -86,8 +86,11 @@ Swaps=false
 ChkPasswd=true
 ID0NonRoots=true
 
+# Units/Services
+AppArmor=true
+Firewall=true
+
 # Miscellaneous
 CMOS=false
-Firewall=true
 LightDM=true
 ProcVuln=true

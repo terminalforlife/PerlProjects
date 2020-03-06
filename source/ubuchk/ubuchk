@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  6 Mar 04:08:12 GMT 2020
+# Last Change       - Fri  6 Mar 21:21:10 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -38,7 +38,6 @@
 #TODO: Check it's not possible to log in as the `root` user.
 #TODO: Check most of the system for files writeable by anybody.
 #TODO: Check the `/etc/shadow` file for empty user passwords.
-#TODO: Check to see if SELinux is available & enabled.
 #TODO: Parse `/etc/{logrotate.conf,logrotate.d/*}` to suggest reducing logs.
 #TODO: Parse files, like `sources.list`, for abnormals, like 'Proposed' & PPAs.
 #TODO: Re-do the `Rootkits` section, regarding the checks; use a database!
@@ -91,7 +90,7 @@ sub Usage{
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
-	$SSHDConfig, $Verbose, $Firewall, $SystemD, $KernMods, @CustomKMs,
+	$SSHDConfig, $Verbose, $UFW, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
@@ -99,7 +98,7 @@ my (
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
-	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots
+	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -431,9 +430,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'Verbose'){
 			Boolean($Value);
 			$Verbose = $Value unless $Verbose eq 'true'
-		}elsif ($Key eq 'Firewall'){
+		}elsif ($Key eq 'UFW'){
 			Boolean($Value);
-			$Firewall = $Value
+			$UFW = $Value
 		}elsif ($Key eq 'SystemD'){
 			Boolean($Value);
 			$SystemD = $Value
@@ -594,6 +593,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'ID0NonRoots'){
 			Boolean($Value);
 			$ID0NonRoots = $Value
+		}elsif ($Key eq 'AppArmor'){
+			Boolean($Value);
+			$AppArmor = $Value
 		}else{
 			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
@@ -668,7 +670,7 @@ QueryAlert(0) if $Query eq 'true';
 #-------------------------------------------------------------Kernel Parameters
 
 # Developer line.
-if (0){
+#if (0){
 
 if ($KernParams eq 'true'){
 	my ($Value, $AlertID, $GoodValue, $Path, $ShowKey);
@@ -962,27 +964,6 @@ if (@UnwantedPKGs > 0){
 			"Package(s) matching '$CurPKG' installed.",
 			"Suggested action is to uninstall the package(s)."
 		) if grep(/$CurPKG/, @Installed)
-	}
-}
-
-#------------------------------------------------------------UFW Firewall Check
-
-if ($Firewall eq 'true'){
-	if (DepChk(':', 'systemctl', 'ufw') == 0){
-		Info('Finding out if UFW unit is active.');
-
-		chomp(my $Result = `systemctl is-active ufw 2> /dev/null`);
-		unless ($Result eq 'active'){
-			Alert(
-				5541,
-				'The UFW service is inactive.',
-				"Recommended action is to enable the service, ASAP."
-			)
-		}else{
-			Info('Active UFW service detected.')
-		}
-	}else{
-		Info("Missing prerequisites -- skipping 'Firewall' key.")
 	}
 }
 
@@ -1914,9 +1895,6 @@ if ($CMOS eq 'true'){
 	}
 }
 
-# Developer line.
-}
-
 #-------------------------------------------------------------------/etc/passwd
 
 if ($ChkPasswd eq 'true'){
@@ -1984,6 +1962,67 @@ if ($ChkPasswd eq 'true'){
 	}
 }
 
+#--------------------------------------------------------SystemD Units/Services
+
+if ($UFW eq 'true'){
+	if (DepChk(':', 'systemctl') == 0){
+		chomp(my $Active = `systemctl is-active ufw 2> /dev/null`);
+		unless ($Active eq 'active'){
+			Alert(
+				5541,
+				"UFW is installed but its service inactive.",
+				"Recommended action is to start the UFW service."
+			)
+		}else{
+			Info('The UFW service is active.')
+		}
+
+		chomp(my $Enabled = `systemctl is-enabled ufw 2> /dev/null`);
+		unless ($Enabled eq 'enabled'){
+			Alert(
+				5542,
+				"UFW is installed but its service disabled.",
+				"Recommended action is to enable the UFW service."
+			)
+		}else{
+			Info('The UFW service is enabled.')
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'UFW' key.")
+	}
+}
+
+if ($AppArmor eq 'true'){
+	if (DepChk(':', 'systemctl') == 0){
+		chomp(my $Active = `systemctl is-active apparmor 2> /dev/null`);
+		unless ($Active eq 'active'){
+			Alert(
+				1298,
+				"AppArmor is installed but its service inactive.",
+				"Recommended action is to start the AppArmor service."
+			)
+		}else{
+			Info('The AppArmor service active.')
+		}
+
+		chomp(my $Enabled = `systemctl is-enabled apparmor 2> /dev/null`);
+		unless ($Enabled eq 'enabled'){
+			Alert(
+				1299,
+				"AppArmor is installed but its service disabled.",
+				"Recommended action is to enable the AppArmor service."
+			)
+		}else{
+			Info('The AppArmor service is enabled.')
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'AppArmor' key.")
+	}
+}
+
 #------------------------------------------------------------------------Finish
+
+# Developer line.
+#}
 
 print("Alerted $AlertCount time(s).\n") if $AlertCount > 0;

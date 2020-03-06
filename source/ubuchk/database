@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Fri  6 Mar 04:15:05 GMT 2020
+# Last Change       - Fri  6 Mar 21:22:02 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -75,8 +75,8 @@ PasswordAuthentication, PermitEmptyPasswords -- A must-have during setup, and fo
 There are a number of packages often made readily available in Ubuntu-based distributions which aren't required by most people, this alert simply means you've found one or more of these packages.
 .
 To find out about a given package, open up a terminal and run `apt-cache show PKG`, where 'PKG' is the package name about which you which to learn.
-:5541
-The Uncomplicated FireWall, the front-end to `iptables` is disabled (as it usually is by default), but this doesn't necessarily mean that you're now rendered super-vulnerable to every whack-job with a computer and a grudge to bear, but you are probably best to enable it, just in-case.
+:5541,5542
+The Uncomplicated FireWall, the front-end to `iptables` is disabled and/or inactive (as it usually is by default), but this doesn't necessarily mean that you're now rendered super-vulnerable to every whack-job with a computer and a grudge to bear, but you are probably best to enable it, just in-case.
 .
 This poster says it aptly:
 .
@@ -212,4 +212,6 @@ By default, `root` login via SSH is disabled, according to ubuntu18.com, however
 :6980
 Undocumented. For now, please refer to alert #6990.
 :6991,6992
+Undocumented.
+:1298,1299
 Undocumented.
