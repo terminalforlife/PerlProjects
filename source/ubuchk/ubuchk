@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  6 Mar 21:39:26 GMT 2020
+# Last Change       - Fri  6 Mar 21:46:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -2034,7 +2034,7 @@ if ($FailedLogins eq 'true'){
 				'Please execute the faillog(8) command.'
 			)
 		}else{
-			Info('')
+			Info('No failed login attempts detected.')
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'FailedLogins' key.")
