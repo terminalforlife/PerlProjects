@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  6 Mar 03:53:02 GMT 2020
+# Last Change       - Fri  6 Mar 04:08:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -906,10 +906,12 @@ if ($SSHServer eq 'true'){
 
 		close($FH);
 
-		foreach ( # [TARGET_VALUE] [KEY]
-			'6998|6995|no|X11Forwarding',
-			'6997|6994|no|PasswordAuthentication',
+		foreach ( # [ALERT_ID_1] [ALERT_ID_2] [TARGET_VALUE] [KEY]
+			'6990|6980|no|PermitRootLogin',
+			'6991|6992|2|Protocol',
 			'6996|6993|no|PermitEmptyPasswords',
+			'6997|6994|no|PasswordAuthentication',
+			'6998|6995|no|X11Forwarding'
 		){
 			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 

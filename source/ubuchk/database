@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Fri  6 Mar 03:49:34 GMT 2020
+# Last Change       - Fri  6 Mar 04:15:05 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -207,3 +207,9 @@ You now have the option to lock the user account using passwd(1), remove the acc
 Disconnect your Internet & any critical storage devices, immediately perform a full image back up using something like Clonezilla, then proceed to scour the drive, hoping to find what the mystery hijacker has done, if anything.
 .
 Anything which has been connected to the system should be assumed infected and unsafe, so be sure to scan them in a safe environment. Refer to the Interwebs (on a different machine, obviously) for thorough guides on how to analyse the data and determine if any damage has been done.
+:6990
+By default, `root` login via SSH is disabled, according to ubuntu18.com, however, it's best to err on the side of caution. Explicitly disable PermitRootLogin, by setting its value to `no` in the `/etc/ssh/sshd_config` file, or whichever file is appropriate to your setup.
+:6980
+Undocumented. For now, please refer to alert #6990.
+:6991,6992
+Undocumented.
