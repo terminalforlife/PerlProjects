@@ -33,7 +33,7 @@ ba9afb7dddd3e74ebe15aef61f9bd91b  source/TFL.pm
 a57be1b2f859378ad2e0c77e2010d8b3  source/ubuchk/database
 bb8ca0937564e47110c881ca8938b250  source/ubuchk/postinst
 3c32433722e6de48d5f1607f212108fa  source/ubuchk/postrm
-f74702855ce637a0c2e98fa749a3eb42  source/ubuchk/ubuchk
+39f9ef82526bb0afb29cf2ead1551e50  source/ubuchk/ubuchk
 90ea0347433e24bc0cb6e05337b6dde4  source/ubuchk/ubuchk.8.gz
 e95500b742bc34a02364b35e7d5b7eeb  source/ubuchk/ubuchk-db
 209d3c1907da506010a2dffaab6bb27b  source/vignify
