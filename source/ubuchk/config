@@ -17,8 +17,8 @@ DSLimit=90
 DiskSpace=true
 HomeCache=true
 HomeCacheMBLimit=100
-ThumbsMBLimit=40
 Thumbnails=true
+ThumbsMBLimit=40
 
 # Package Management
 DpkgConf=true
@@ -92,5 +92,6 @@ Firewall=true
 
 # Miscellaneous
 CMOS=false
+FailedLogins=true
 LightDM=true
 ProcVuln=true

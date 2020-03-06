@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  6 Mar 21:21:10 GMT 2020
+# Last Change       - Fri  6 Mar 21:39:26 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -26,10 +26,8 @@
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Alert of all SUID (+4000) and SGID (+2000) files in PATH.
 #TODO: Check (almost) entire system for non-group & non-user files.
-#TODO: Check faillog(8) for failed login attempts; alert if detected.
 #TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for Flash & Java (OpenJDK & Oracle Java) to suggest removal.
-#TODO: Check for SSH protocol version 2 (good?) via the `SSHServer` key.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Check for Wine packages and (separately) Mono packages; suggest removal.
 #TODO: Check for installation of fonts unrelated to the user's region/language.
@@ -98,7 +96,7 @@ my (
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
-	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor
+	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor, $FailedLogins,
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -596,6 +594,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'AppArmor'){
 			Boolean($Value);
 			$AppArmor = $Value
+		}elsif ($Key eq 'FailedLogins'){
+			Boolean($Value);
+			$FailedLogins = $Value
 		}else{
 			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
@@ -2017,6 +2018,26 @@ if ($AppArmor eq 'true'){
 		}
 	}else{
 		Info("Missing prerequisites -- skipping 'AppArmor' key.")
+	}
+}
+
+#---------------------------------------------------------Failed Login Attempts
+
+if ($FailedLogins eq 'true'){
+	my $FailFile = '/var/log/faillog';
+
+	if (-f $FailFile){
+		unless (-s $FailFile){
+			Alert(
+				2223,
+				'Detected possible failed login attempts.',
+				'Please execute the faillog(8) command.'
+			)
+		}else{
+			Info('')
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'FailedLogins' key.")
 	}
 }
 
