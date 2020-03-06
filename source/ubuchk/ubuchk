@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  6 Mar 03:07:09 GMT 2020
+# Last Change       - Fri  6 Mar 03:53:02 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -26,7 +26,6 @@
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Alert of all SUID (+4000) and SGID (+2000) files in PATH.
 #TODO: Check (almost) entire system for non-group & non-user files.
-#TODO: Check `/etc/passwd` for non-`root` users with the UID/GID of `0`.
 #TODO: Check faillog(8) for failed login attempts; alert if detected.
 #TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for Flash & Java (OpenJDK & Oracle Java) to suggest removal.
@@ -100,7 +99,7 @@ my (
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
-	$ListDbAlerts, $ChkPasswd, %KeyOpt
+	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -592,6 +591,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'ChkPasswd'){
 			Boolean($Value);
 			$ChkPasswd = $Value
+		}elsif ($Key eq 'ID0NonRoots'){
+			Boolean($Value);
+			$ID0NonRoots = $Value
 		}else{
 			FErr(0, __LINE__, "Key '$Key' unrecognised.");
 
@@ -664,6 +666,9 @@ unless ($IsUbuntu eq 'true'){
 QueryAlert(0) if $Query eq 'true';
 
 #-------------------------------------------------------------Kernel Parameters
+
+# Developer line.
+if (0){
 
 if ($KernParams eq 'true'){
 	my ($Value, $AlertID, $GoodValue, $Path, $ShowKey);
@@ -1907,6 +1912,9 @@ if ($CMOS eq 'true'){
 	}
 }
 
+# Developer line.
+}
+
 #-------------------------------------------------------------------/etc/passwd
 
 if ($ChkPasswd eq 'true'){
@@ -1915,9 +1923,17 @@ if ($ChkPasswd eq 'true'){
 	if (-f $PasswdFile){
 		open(my $FH, '<', $PasswdFile);
 
-		my $WormFound;
+		my ($WormFound, @Roots);
 		while (<$FH>){
-			$WormFound = $. if /w0rm/
+			$WormFound = $. if /w0rm/;
+
+			if ($ID0NonRoots eq 'true'){
+				chomp(my @Line = split(':'));
+
+				if ($Line[2] == 0 or $Line[3] == 0){
+					push(@Roots, $Line[0]) unless grep({$_ eq $Line[0]} @Roots);
+				}
+			}
 		}
 
 		close($FH);
@@ -1931,8 +1947,38 @@ if ($ChkPasswd eq 'true'){
 				"Please refer to a search engine."
 			)
 		}
+
+		if ($ID0NonRoots eq 'true'){
+			unless (@Roots > 1){
+				Info("Just 'root' with '0:0' found in '$PasswdFile' file.")
+			}else{
+				if (@Roots > 1){
+					my ($Wording1, $Wording2);
+					if (@Roots == 2){
+						$Wording1 = 'user';
+						$Wording2 = 'this user is'
+					}else{
+						$Wording1 = 'users';
+						$Wording2 = 'these users are'
+					}
+
+					Alert(
+						9848,
+						"Non-root $Wording1 with '0' UID/GID in '$PasswdFile' file.",
+						"Recommended action is to confirm $Wording2 legitimate."
+					);
+
+					foreach (@Roots){
+						Info("User '$_' has '0' UID/GID.") unless $_ eq 'root'
+					}
+				}
+			}
+		}
 	}else{
-		Info("Missing prerequisites -- skipping 'ChkPasswd' key.")
+		Info("Missing prerequisites -- skipping 'ChkPasswd' key.");
+
+		Info("Missing prerequisites -- skipping 'ID0NonRoots' key.")
+			if $ID0NonRoots eq 'true'
 	}
 }
 

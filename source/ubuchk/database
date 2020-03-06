@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Mon  2 Mar 17:16:57 GMT 2020
+# Last Change       - Fri  6 Mar 03:49:34 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -199,3 +199,11 @@ While these Lithium-Ion coin cell batteries (uncommonly other kinds) are often d
 To remove the CMOS battery, please refer to your motherboard's manual.
 :1428
 Undocumented.
+:9848
+Ordinarily, only the `root` user should ever be assigned a UID and GID or `0`, so if another user with such an ID pops up, be on high alert!
+.
+You now have the option to lock the user account using passwd(1), remove the account completely using usermod(8), or throw your computer out of the window, never to speak of this day again. Maybe all of the above, in order.
+.
+Disconnect your Internet & any critical storage devices, immediately perform a full image back up using something like Clonezilla, then proceed to scour the drive, hoping to find what the mystery hijacker has done, if anything.
+.
+Anything which has been connected to the system should be assumed infected and unsafe, so be sure to scan them in a safe environment. Refer to the Interwebs (on a different machine, obviously) for thorough guides on how to analyse the data and determine if any damage has been done.

@@ -82,9 +82,12 @@ MBMaxRAM=2048
 MBMaxSwap=512
 Swaps=false
 
+# `/etc/passwd`
+ChkPasswd=true
+ID0NonRoots=true
+
 # Miscellaneous
 CMOS=false
-ChkPasswd=true
 Firewall=true
 LightDM=true
 ProcVuln=true
