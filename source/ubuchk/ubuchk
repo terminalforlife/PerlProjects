@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 00:17:59 GMT 2020
+# Last Change       - Sat  7 Mar 00:24:17 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -45,7 +45,8 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
-#TODO: If `--os-override` or `--is-ubuntu`, other flags won't work properly.
+#TODO: If `--is-ubuntu` is used after other flags, it's nullified.
+#TODO: If `--is-ubuntu` is used before other flags, they won't work properly.
 #TODO: Key `CPUTemp` has a logic fail, at start, resulting in an `FErr()` call.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
