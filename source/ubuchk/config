@@ -4,7 +4,7 @@
 
 # Core Settings
 AutoQuery=false
-IsUbuntu=false
+ForceRun=false
 QueryIndent=8
 Recommend=true
 SkipIDs=
@@ -88,7 +88,7 @@ ID0NonRoots=true
 
 # Units/Services
 AppArmor=true
-Firewall=true
+UFW=true
 
 # Miscellaneous
 CMOS=false

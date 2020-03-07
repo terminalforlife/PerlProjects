@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 00:53:07 GMT 2020
+# Last Change       - Sat  7 Mar 00:58:17 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ sub Usage{
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  --force-reset            - Force generation of config file.
-		  --is-ubuntu              - Execute as though in Ubuntu.
+		  --force-run              - Execute as though in Ubuntu Linux.
 		  --list-dbalerts          - List alerts found within the database.
 		  --list-keys              - List available configuration keys.
 		  --skip=N[,N ...]         - Skip one or more N alerts, by ID.
@@ -152,7 +152,7 @@ foreach (@ARGV){
 			FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
 				unless /^[0-9]{4}$/;
 		}
-	}elsif(/^(--is-ubuntu|-U)$/){
+	}elsif($ARGV[0] eq '--force-run'){
 		$ForceRun = 'true'
 	}elsif(/^(--verbose|-V)$/){
 		$Verbose = 'true'
