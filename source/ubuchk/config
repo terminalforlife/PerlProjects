@@ -26,11 +26,9 @@ HardAPT=true
 PurgeChk=true
 SkipAPT=APT::Install-Recommends
 SkipDpkgOpts=
-UnwantedPKGs=^command-not-found
 UnwantedPKGs=^kerneloops
-UnwantedPKGs=^memtest86
 UnwantedPKGs=^popularity-contest
-UnwantedPKGs=^python3-commandnotfound$
+UnwantedPKGs=^rsh-
 UnwantedPKGs=^telnet
 UnwantedPKGs=^time$
 UnwantedPKGs=^virtualbox-guest-
@@ -77,9 +75,9 @@ RootKits=true
 SkipRKs=
 
 # RAM & Swap
-RAM=false
 MBMaxRAM=2048
 MBMaxSwap=512
+RAM=false
 Swaps=false
 
 # `/etc/passwd`

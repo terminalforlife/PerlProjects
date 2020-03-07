@@ -29,7 +29,7 @@ ba9afb7dddd3e74ebe15aef61f9bd91b  source/TFL.pm
 7ff2d8ae49e84f033cb08c22a21b3c25  source/tozero
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
-0816b1dd5f196aea3f9532f883ee03f4  source/ubuchk/config
+7ce589623c2c31d60d8d35e08a0852e4  source/ubuchk/config
 d8c04a72a7b19cb78cd01aea6fcf6739  source/ubuchk/database
 bb8ca0937564e47110c881ca8938b250  source/ubuchk/postinst
 3c32433722e6de48d5f1607f212108fa  source/ubuchk/postrm
