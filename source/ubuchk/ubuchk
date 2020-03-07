@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 00:24:17 GMT 2020
+# Last Change       - Sat  7 Mar 00:53:07 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -45,8 +45,11 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#
+#      These two fail regardless of the distribution or OS.
 #TODO: If `--is-ubuntu` is used after other flags, it's nullified.
 #TODO: If `--is-ubuntu` is used before other flags, they won't work properly.
+#
 #TODO: Key `CPUTemp` has a logic fail, at start, resulting in an `FErr()` call.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
@@ -90,7 +93,7 @@ sub Usage{
 
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
-	@UnwantedPKGs, $IsUbuntu, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
+	@UnwantedPKGs, $ForceRun, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
 	$SSHDConfig, $Verbose, $UFW, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
@@ -150,7 +153,7 @@ foreach (@ARGV){
 				unless /^[0-9]{4}$/;
 		}
 	}elsif(/^(--is-ubuntu|-U)$/){
-		$IsUbuntu = 'true'
+		$ForceRun = 'true'
 	}elsif(/^(--verbose|-V)$/){
 		$Verbose = 'true'
 	}elsif($ARGV[0] eq '--list-keys'){
@@ -174,16 +177,45 @@ foreach (@ARGV){
 	shift()
 }
 
-unless ($IsUbuntu eq 'true'){
-	if (-f -r '/proc/version'){
-		open(my $FH, '<', '/proc/version');
-		my $OS = (split(' ', <$FH>))[0];
+#---------------------------------------------------------------OS & LSB Checks
+
+unless ($ForceRun eq 'true'){
+	if ($^O ne 'linux'){
+		# Second & final chance to determine the OS type.
+		my $VerFile = '/proc/version';
+		if (-f -r $VerFile){
+			open(my $FH, '<', $VerFile);
+			my $OS = (split(' ', <$FH>))[0];
+			close($FH);
+
+			FErr(1, __LINE__, "Sorry, $OS is not supported by UbuChk.")
+				unless $OS eq 'Linux'
+		}else{
+			FErr(1, __LINE__, "Unrecognised OS -- refer to $TFL::PROGNAME(8).")
+		}
+	}
+
+	my $OSRelFile = '/etc/os-release';
+	if (-f -r $OSRelFile){
+		open(my $FH, '<', $OSRelFile);
+
+		my ($LSB, $Found);
+		while (<$FH>){
+			chomp();
+			next if /^(#|$)/;
+			next unless $_ eq 'ID=ubuntu';
+
+			$Found = 'true';
+
+			last
+		}
+
 		close($FH);
 
-		FErr(1, __LINE__, "Sorry, $OS is not supported by UbuChk.")
-			unless $OS eq 'Linux'
+		FErr(1, __LINE__, "Your distribution is not supported.")
+			unless $Found eq 'true'
 	}else{
-		FErr(1, __LINE__, 'Unable to determine OS -- refer to ubuchk(8).')
+		FErr(1, __LINE__, "Unrecognised LSB -- refer to $TFL::PROGNAME(8).")
 	}
 }
 
@@ -413,9 +445,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'PurgeChk'){
 			Boolean($Value);
 			$PurgeChk = $Value
-		}elsif ($Key eq 'IsUbuntu'){
+		}elsif ($Key eq 'ForceRun'){
 			Boolean($Value);
-			$IsUbuntu = $Value unless $IsUbuntu eq 'true'
+			$ForceRun = $Value unless $ForceRun eq 'true'
 		}elsif ($Key eq 'HardAPT'){
 			Boolean($Value);
 			$HardAPT = $Value
@@ -642,31 +674,6 @@ if (@SkipIDs > 0){
 
 @NotPurged = sort(ParseDpkgStatus('deinstallokconfig-files'))
 	if $PurgeChk eq 'true';
-
-#---------------------------------------------------------------------LSB Check
-
-unless ($IsUbuntu eq 'true'){
-	my $OSRelease = '/etc/os-release';
-
-	FileChk($OSRelease);
-	open(my $FH, '<', $OSRelease);
-
-	my ($LSB, $Found);
-	while (<$FH>){
-		chomp();
-		next if /^(#|$)/;
-		next unless $_ eq 'ID=ubuntu';
-
-		$Found = 'true';
-
-		last
-	}
-
-	close($FH);
-
-	FErr(1, __LINE__, "Your distribution is not supported.")
-		unless $Found eq 'true'
-}
 
 #-------------------------------------------------------------Querying an Alert
 
