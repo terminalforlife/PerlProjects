@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 01:15:30 GMT 2020
+# Last Change       - Sat  7 Mar 13:41:58 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,6 +13,7 @@
 #
 #TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
+#TODO: Add `AllowUsers` check to `SSHServer` key.
 #TODO: Add `kernel.exec-shield` parameter; recommend value of `1`.
 #TODO: Add `kernel.randomize_va_space` parameter; recommend value of `1`.
 #TODO: Add a voltage check for the CMOS battery.
@@ -45,7 +46,6 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
-#TODO: Key `CPUTemp` has a logic fail, at start, resulting in an `FErr()` call.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
 #
@@ -110,9 +110,9 @@ my $GID = (split(' ', $())[0];
 mkdir($MainDir) unless -d $MainDir;
 
 while (defined($ARGV[0])){
-	if (/^(--help|-h|-\?)$/){
+	if ($ARGV[0] =~ /^(--help|-h|-\?)$/){
 		Usage(); exit(0)
-	}elsif (/^(--version|-v)$/){
+	}elsif ($ARGV[0] =~ /^(--version|-v)$/){
 		print("$CurVer\n"); exit(0)
 	}elsif($ARGV[0] =~ /^(--config|-c)$/){
 		unless (length($ARGV[1]) > 0){

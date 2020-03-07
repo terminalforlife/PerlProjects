@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/postinst
 # Started On        - Mon  2 Mar 16:05:09 GMT 2020
-# Last Change       - Tue  3 Mar 01:43:56 GMT 2020
+# Last Change       - Sat  7 Mar 03:34:18 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -38,3 +38,6 @@ else
 	printf 'ERROR: Bash completion file '${CompFile##*/}' not found.\n' 1>&2
 	exit 1
 fi
+
+# Generate initial `config` file for the current user, unless already present.
+[ -f "$HOME/.config/ubuchk/config" ] || ubuchk 1> /dev/null 2>&1

@@ -26,14 +26,19 @@ HardAPT=true
 PurgeChk=true
 SkipAPT=APT::Install-Recommends
 SkipDpkgOpts=
+UnwantedPKGs=^atftpd$
 UnwantedPKGs=^kerneloops
+UnwantedPKGs=^nis$
 UnwantedPKGs=^popularity-contest
 UnwantedPKGs=^rsh-
 UnwantedPKGs=^telnet
+UnwantedPKGs=^tftpd
 UnwantedPKGs=^time$
 UnwantedPKGs=^virtualbox-guest-
 UnwantedPKGs=^whoopsie
+UnwantedPKGs=^xinetd$
 UnwantedPKGs=^xul-ext-ubufox$
+UnwantedPKGs=^yp-tools$
 
 # Kernel
 CustomKMs=
