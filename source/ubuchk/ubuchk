@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  6 Mar 21:46:57 GMT 2020
+# Last Change       - Sat  7 Mar 00:06:59 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -45,8 +45,9 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: Key `CPUTemp` has a logic fail, at start, resulting in an `FErr()` call.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
-#TODO: The undocumented `--os-override` flag doesn't work at all.
+#TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
 #
 # Dependencies:
 #
@@ -65,7 +66,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-06';
+my $CurVer = '2020-03-07';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -114,22 +115,22 @@ foreach (@ARGV){
 	}elsif (/^(--version|-v)$/){
 		print("$CurVer\n"); exit(0)
 	}elsif(/^(--config|-c)$/){
-		shift();
-
-		unless (length($ARGV[0]) > 0){
-			FErr(1, __LINE__, "Option '--config|-c' requires a PATH.")
-		}elsif (not -f -r $ARGV[0]){
+		unless (length($ARGV[1]) > 0){
+			FErr(1, __LINE__, "Option '$ARGV[0]' requires a PATH.")
+		}elsif (not -f -r $ARGV[1]){
 			FErr(1, __LINE__, "Alternative configuration file missing or inaccessible.")
 		}
+
+		shift();
 
 		$ConfigFile = $ARGV[0]
 	}elsif(/^(--force-reset|-F)$/){
 		$ForceReset = 'true'
 	}elsif(/^(--query|-Q)$/){
-		shift();
+		FErr(1, __LINE__, "Option '$ARGV[0]' requires an alert ID.")
+			unless length($ARGV[1]) > 0;
 
-		FErr(1, __LINE__, "Option '--query|-Q' requires an alert ID.")
-			unless length($ARGV[0]) > 0;
+		shift();
 
 		FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
 			unless $ARGV[0] =~ '^[0-9]{4}$';
@@ -157,6 +158,9 @@ foreach (@ARGV){
 	}elsif($ARGV[0] eq '--list-dbalerts'){
 		$ListDbAlerts = 'true'
 	}elsif(/--key|-k/){
+		FErr(1, __LINE__, "Option '$ARGV[0]' requires a key.")
+			unless length($ARGV[1]) > 0;
+
 		shift();
 
 		my ($Key, $Value) = split('=', $ARGV[0]);
@@ -641,7 +645,7 @@ if (@SkipIDs > 0){
 
 #---------------------------------------------------------------------LSB Check
 
-unless ($IsUbuntu eq 'true'){
+unless ($IsUbuntu eq 'true' or $OSOverride eq 'true'){
 	my $OSRelease = '/etc/os-release';
 
 	FileChk($OSRelease);
@@ -1364,57 +1368,59 @@ if ($CPUTemp eq 'true'){
 		Info("Missing prerequisites -- skipping 'CPUTemp' key.")
 	}
 
-	FErr(1, __LINE__, "Directory '$Dir' unreadable.") unless -r $Dir;
-	FErr(1, __LINE__, "Directory '$Dir' denies execution.") unless -x $Dir;
+	if (defined($Dir)){
+		FErr(1, __LINE__, "Directory '$Dir' unreadable.") unless -r $Dir;
+		FErr(1, __LINE__, "Directory '$Dir' denies execution.") unless -x $Dir;
 
-	# Gather a hash of (only) the core temperatures.
-	my (%TempData, $Temp);
-	foreach (glob("$Dir/temp*")){
-		next unless -f and m{/temp[0-9]+_(input|label)$};
+		# Gather a hash of (only) the core temperatures.
+		my (%TempData, $Temp);
+		foreach (glob("$Dir/temp*")){
+			next unless -f and m{/temp[0-9]+_(input|label)$};
 
-		FileChk($_);
-		open(my $FH, '<', $_);
-		chomp(my $Data = <$FH>);
-		close($FH);
+			FileChk($_);
+			open(my $FH, '<', $_);
+			chomp(my $Data = <$FH>);
+			close($FH);
 
-		# The files are ordered from input to label, so we need to process
-		# it backwards, otherwise the output would be borked.
-		if (/_input$/){
-			$Temp = $Data
-		}elsif (/_label$/){
-			$TempData{$Data} = $Temp
+			# The files are ordered from input to label, so we need to process
+			# it backwards, otherwise the output would be borked.
+			if (/_input$/){
+				$Temp = $Data
+			}elsif (/_label$/){
+				$TempData{$Data} = $Temp
+			}
 		}
-	}
 
-	# Ensure we have the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
-	sub Suffix{ # Usage: [INT]
-		my $Num = $_[0] + 1;
-		return("${Num}st") if $Num =~ '1$';
-		return("${Num}nd") if $Num =~ '2$';
-		return("${Num}rd") if $Num =~ '3$';
-		return("${Num}th")
-	}
+		# Ensure we have the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
+		sub Suffix{ # Usage: [INT]
+			my $Num = $_[0] + 1;
+			return("${Num}st") if $Num =~ '1$';
+			return("${Num}nd") if $Num =~ '2$';
+			return("${Num}rd") if $Num =~ '3$';
+			return("${Num}th")
+		}
 
-	# Begin checking on each of the core temperatures, per the above hash.
-	foreach (sort(keys(%TempData))){
-		next unless /^Core [0-9]+$/;
+		# Begin checking on each of the core temperatures, per the above hash.
+		foreach (sort(keys(%TempData))){
+			next unless /^Core [0-9]+$/;
 
-		# Initially, this value is in Celsius (unconfirmed).
-		my $TempInt = CelsFahr(
-			$TempScale, substr($TempData{$_}, 0, length($TempData{$_}) - 3)
-		);
+			# Initially, this value is in Celsius (unconfirmed).
+			my $TempInt = CelsFahr(
+				$TempScale, substr($TempData{$_}, 0, length($TempData{$_}) - 3)
+			);
 
-		my $TempStr = "$TempInt°$TempScale";
-		my $CoreInt = (m{(?:.* )(.*)})[0];
-		my $CoreStr = Suffix($CoreInt);
-		if ($TempInt >= $CoreTempCrit){
-			Alert(
-				6237,
-				"CPU's $CoreStr core critical at $TempStr.",
-				"Suggested action is to improve system cooling."
-			)
-		}else{
-			Info("CPU core #$CoreInt stable at $TempStr.")
+			my $TempStr = "$TempInt°$TempScale";
+			my $CoreInt = (m{(?:.* )(.*)})[0];
+			my $CoreStr = Suffix($CoreInt);
+			if ($TempInt >= $CoreTempCrit){
+				Alert(
+					6237,
+					"CPU's $CoreStr core critical at $TempStr.",
+					"Suggested action is to improve system cooling."
+				)
+			}else{
+				Info("CPU core #$CoreInt stable at $TempStr.")
+			}
 		}
 	}
 }
@@ -2003,7 +2009,7 @@ if ($AppArmor eq 'true'){
 				"Recommended action is to start the AppArmor service."
 			)
 		}else{
-			Info('The AppArmor service active.')
+			Info('The AppArmor service is active.')
 		}
 
 		chomp(my $Enabled = `systemctl is-enabled apparmor 2> /dev/null`);
