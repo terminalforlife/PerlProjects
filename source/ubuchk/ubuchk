@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 00:58:17 GMT 2020
+# Last Change       - Sat  7 Mar 01:15:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -45,11 +45,6 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
-#
-#      These two fail regardless of the distribution or OS.
-#TODO: If `--is-ubuntu` is used after other flags, it's nullified.
-#TODO: If `--is-ubuntu` is used before other flags, they won't work properly.
-#
 #TODO: Key `CPUTemp` has a logic fail, at start, resulting in an `FErr()` call.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
@@ -114,12 +109,12 @@ my $GID = (split(' ', $())[0];
 
 mkdir($MainDir) unless -d $MainDir;
 
-foreach (@ARGV){
+while (defined($ARGV[0])){
 	if (/^(--help|-h|-\?)$/){
 		Usage(); exit(0)
 	}elsif (/^(--version|-v)$/){
 		print("$CurVer\n"); exit(0)
-	}elsif(/^(--config|-c)$/){
+	}elsif($ARGV[0] =~ /^(--config|-c)$/){
 		unless (length($ARGV[1]) > 0){
 			FErr(1, __LINE__, "Option '$ARGV[0]' requires a PATH.")
 		}elsif (not -f -r $ARGV[1]){
@@ -129,9 +124,11 @@ foreach (@ARGV){
 		shift();
 
 		$ConfigFile = $ARGV[0]
-	}elsif(/^(--force-reset|-F)$/){
+	}elsif($ARGV[0] =~ /^(--force-reset|-F)$/){
 		$ForceReset = 'true'
-	}elsif(/^(--query|-Q)$/){
+	}elsif($ARGV[0] eq '--force-run'){
+		$ForceRun = 'true'
+	}elsif($ARGV[0] =~ /^(--query|-Q)$/){
 		FErr(1, __LINE__, "Option '$ARGV[0]' requires an alert ID.")
 			unless length($ARGV[1]) > 0;
 
@@ -142,7 +139,7 @@ foreach (@ARGV){
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
-	}elsif(/^--skip=/){
+	}elsif($ARGV[0] =~ /^--skip=/){
 		@SkipIDs = split(',', $ARGV[0] =~ s/^--skip=//r);
 
 		FErr(1, __LINE__, "Option '--skip=' requires at least one alert ID.")
@@ -152,15 +149,13 @@ foreach (@ARGV){
 			FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
 				unless /^[0-9]{4}$/;
 		}
-	}elsif($ARGV[0] eq '--force-run'){
-		$ForceRun = 'true'
-	}elsif(/^(--verbose|-V)$/){
+	}elsif($ARGV[0] =~ /^(--verbose|-V)$/){
 		$Verbose = 'true'
 	}elsif($ARGV[0] eq '--list-keys'){
 		$ListKeys = 'true'
 	}elsif($ARGV[0] eq '--list-dbalerts'){
 		$ListDbAlerts = 'true'
-	}elsif(/--key|-k/){
+	}elsif($ARGV[0] =~ /--key|-k/){
 		FErr(1, __LINE__, "Option '$ARGV[0]' requires a key.")
 			unless length($ARGV[1]) > 0;
 
@@ -168,7 +163,7 @@ foreach (@ARGV){
 
 		my ($Key, $Value) = split('=', $ARGV[0]);
 		$KeyOpt{$Key} = $Value
-	}elsif (/^-/){
+	}elsif ($ARGV[0] =~ /^-/){
 		FErr(1, __LINE__, "Incorrect option(s) specified.")
 	}else{
 		last
