@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Fri  6 Mar 21:39:57 GMT 2020
+# Last Change       - Sat  7 Mar 15:01:14 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -186,11 +186,19 @@ Please refer to the default DPKG configuration file UbuChk parsed in order to di
 :3791
 Ordinarily, you want as much as possible logged, for security and diagnostic reasons. Since package management can get quite hairy, it would be wise to enable logging for DPKG, unless you're sure you don't need it or it otherwise doesn't apply to you.
 :8759
-Undocumented.
+Chances are, your RAM is/was low, and/or the `vm.swappiness` kernel parameter is misconfigured for your setup, resulting in Swap being used.
+.
+If you're running your Swap partition or file on an SSD, the performance hit of using Swap over RAM won't be nearly as noticeable (if at all) as if on a HDD. None-the-less, using Swap is certainly not the goal.
+.
+There's heavy debate within the Linux community as to whether you even need Swap at all. In my opinion, the answer is yes, you do need at least some Swap space, but it's contextual; it really depends on the use-case, hardware, and software. In your case, since you've hit the limit, either the default or one of your own specification, Swap space is potentially very important to you and should not at all be disabled.
+.
+"The Linux Kernel divides RAM into chunks of memories and the swapping process is when the Linux Kernel uses a hard disk [storage] space (swap space) to store information from RAM and thus releases some RAM space. That is why when you install a Linux distribution, the installation wizard usually asks you to assign some space for the system and another for the swap." -- averagelinuxuser.com
+.
+These days, it's common for a Swap file to be used instead of a partition, which former of which is much more convenient due to its flexibility.
 :6232,6233,6234
 Undocumented.
 :8971
-Undocumented.
+The system's RAM usage has reached the amount specified in the current user's ubuchk(8) configuration file (or overridden on the command line). You may wish to run a lighter desktop environment, opt for lighter software, and/or perhaps upgrade the total amount of RAM in your machine.
 :1118
 These little 3.6v, non-rechargeable CMOS batteries help to keep your CMOS RAM (non-volatile BIOS memory) alive; without it, your BIOS or UEFI cannot remember its settings following a loss of power, including the time and date.
 .
@@ -198,7 +206,11 @@ While these Lithium-Ion coin cell batteries (uncommonly other kinds) are often d
 .
 To remove the CMOS battery, please refer to your motherboard's manual.
 :1428
-Undocumented.
+Please refer to your search engine of choice. Rest assured, this is not something you want to take lightly, as it very likely indicates that your system has been compromised.
+.
+Ensure that you run security tools like chkrootkit(1) and rkhunter(1) alongside perhaps also ensuring you've ran ubuchk(8) with the `RootKit` key enabled.
+.
+Alert #9849 contains information which may also be relevant here.
 :9848
 Ordinarily, only the `root` user should ever be assigned a UID and GID or `0`, so if another user with such an ID pops up, be on high alert!
 .
@@ -210,10 +222,24 @@ Anything which has been connected to the system should be assumed infected and u
 :6990
 By default, `root` login via SSH is disabled, according to ubuntu18.com, however, it's best to err on the side of caution. Explicitly disable PermitRootLogin, by setting its value to `no` in the `/etc/ssh/sshd_config` file, or whichever file is appropriate to your setup.
 :6980
-Undocumented. For now, please refer to alert #6990.
+The `root` user has access to everything; the keys of Kingdom, so naturally, allowing such an important, vital user to be accessible remotely, is almost always an unnecessary risk. It seems agreed world-wide that `root` access via SSH should be explicitly disabled from the get-go.
+.
+If you still must obtain elevated privileges via SSH remote connections, which is certainly commonplace, then simply resort to a utility like sudo(8) or doas(1).
+.
+Refer also to alert #6990.
 :6991,6992
-Undocumented.
-:1298,1299
-Undocumented.
+To quote the ssh_config(5) man page: "Protocol 1 suffers from a number of cryptographic weaknesses and should not be used." It's available to "support legacy devices", so ensure you're using the 2nd protocol.
+.
+Although the aforementioned man page states that the default value is `2`, it couldn't hurt to be cautious by explicitly specifying the 2nd protocol.
+:1298
+You can activate the AppArmor service by running, if using SystemD `systemctl start apparmor`, or if using an older SysV init system, you can run `service apparmor start`.
+.
+For further information, refer to apparmor(7), apparmor.d(5), and maybe even apparmor_status(8).
+:1299
+The Mandatory Access Control (MAC) system, apparmor(7), makes use of the Linux Security module to restrict software. Although UbuChk has detected that it's installed, it's currently not enabled at boot-time.
+.
+To enable AppArmor, if using SystemD, execute `systemctl enable apparmor` using a terminal, or if on the older SysV init system, you can execute `service apparmor enable`.
+.
+Refer also to alert #1298 for more information, such as a list of useful man pages.
 :2223
-Undocumented.
+Refer to the faillog(8) man page. You will also want to open up `/var/log/faillog` for information on the failed login attempts.
