@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/postinst
 # Started On        - Mon  2 Mar 16:05:09 GMT 2020
-# Last Change       - Sat  7 Mar 03:34:18 GMT 2020
+# Last Change       - Sat  7 Mar 16:32:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,17 +16,17 @@ CompFile='/usr/share/bash-completion/completions/ubuchk'
 if [ -f "$CompFile" ]; then
 	if ! [ -w "${CompFile%/*}" ]; then
 		printf "ERROR: Root access required.\n" 1>&2
-		exit 1
+		exit 0
 	else
 		if ! [ -L "${CompFile}-db" ]; then
 			if ! command -v ln 1> /dev/null 2>&1; then
 				printf "ERROR: Command 'ln' not found.\n" 1>&2
-				exit 1
+				exit 0
 			fi
 
 			if ! ln -s "$CompFile" "${CompFile}-db"; then
 				printf 'ERROR: Failed to create symbolic link.\n' 1>&2
-				exit 1
+				exit 0
 			else
 				printf "Symbolic link for '${CompFile##*/}-db' created.\n"
 			fi
@@ -36,7 +36,7 @@ if [ -f "$CompFile" ]; then
 	fi
 else
 	printf 'ERROR: Bash completion file '${CompFile##*/}' not found.\n' 1>&2
-	exit 1
+	exit 0
 fi
 
 # Generate initial `config` file for the current user, unless already present.

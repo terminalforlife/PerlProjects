@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 14:29:48 GMT 2020
+# Last Change       - Sat  7 Mar 16:00:31 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,8 +46,10 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
+#TODO: The user's generated `config` file shouldn't have (global) Cito line.
 #
 # Dependencies:
 #

@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/postrm
 # Started On        - Mon  2 Mar 16:05:09 GMT 2020
-# Last Change       - Tue  3 Mar 01:56:10 GMT 2020
+# Last Change       - Sat  7 Mar 16:32:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,17 +17,17 @@ CompFile='/usr/share/bash-completion/completions/ubuchk-db'
 if [ -L "$CompFile" ]; then
 	if ! [ -w "${CompFile%/*}" ]; then
 		printf "ERROR: Root access required.\n" 1>&2
-		exit 1
+		exit 0
 	else
 		if [ -L "$CompFile" ]; then
 			if ! command -v rm 1> /dev/null 2>&1; then
 				printf "ERROR: Command 'rm' not found.\n" 1>&2
-				exit 1
+				exit 0
 			fi
 
 			if ! rm "$CompFile"; then
 				printf 'ERROR: Failed to remove old symbolic link.\n' 1>&2
-				exit 1
+				exit 0
 			else
 				printf "Symbolic link for '${CompFile##*/}' removed.\n"
 			fi
