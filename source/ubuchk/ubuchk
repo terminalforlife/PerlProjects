@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 00:06:59 GMT 2020
+# Last Change       - Sat  7 Mar 00:17:59 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -45,6 +45,7 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: If `--os-override` or `--is-ubuntu`, other flags won't work properly.
 #TODO: Key `CPUTemp` has a logic fail, at start, resulting in an `FErr()` call.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
@@ -93,11 +94,11 @@ my (
 	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
 	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
 	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
-	$OSOverride, $MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit,
+	$MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit, $FailedLogins,
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
-	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor, $FailedLogins,
+	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor,
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -151,8 +152,6 @@ foreach (@ARGV){
 		$IsUbuntu = 'true'
 	}elsif(/^(--verbose|-V)$/){
 		$Verbose = 'true'
-	}elsif($ARGV[0] eq '--os-override'){
-		$OSOverride = 'true'
 	}elsif($ARGV[0] eq '--list-keys'){
 		$ListKeys = 'true'
 	}elsif($ARGV[0] eq '--list-dbalerts'){
@@ -174,7 +173,7 @@ foreach (@ARGV){
 	shift()
 }
 
-unless ($OSOverride eq 'true'){
+unless ($IsUbuntu eq 'true'){
 	if (-f -r '/proc/version'){
 		open(my $FH, '<', '/proc/version');
 		my $OS = (split(' ', <$FH>))[0];
@@ -645,7 +644,7 @@ if (@SkipIDs > 0){
 
 #---------------------------------------------------------------------LSB Check
 
-unless ($IsUbuntu eq 'true' or $OSOverride eq 'true'){
+unless ($IsUbuntu eq 'true'){
 	my $OSRelease = '/etc/os-release';
 
 	FileChk($OSRelease);
