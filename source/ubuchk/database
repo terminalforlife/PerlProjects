@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Sat  7 Mar 15:01:14 GMT 2020
+# Last Change       - Sat  7 Mar 15:18:13 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -123,8 +123,22 @@ It's recommended for the `~/.ssh` directory itself have permissions of no more t
   -- George MGeorge M, April 23rd, 2012, on unix.stackexchange.com
 :4612
 A disk is almost full. Hunt down some stuff you don't need, then remove it. You could also make a backup somewhere, then delete the backed-up files. There are many ways in which to save disk space, so you'll have plenty of options available to you. You could even resort to compression via archives, such as Tar, Zip, 7Zip, etc.
-:5436,5446
-Undocumented.
+:5436
+The `/boot` directory typically contains important and potentially sensitive boot information, the knowledge of which could theoretically provide a hacker or would-be nuisance with ammunition.
+.
+You've really very little to lose by simply ensuring only the `root` user (and/or users with such access) can really view or do anything with these files.
+.
+Running the `chmod 700 /boot` command, as the `root` user (using something like `sudo` or `doas` prefixed), should suffice.
+:5446
+Typically, every users has his or her own somewhat (or entirely) private HOME area, into which files and directories can be stored. The `root` user (like `Administrator` in Micro$oft Windows) is no exception, but this special user, with a user ID of `0`, has its HOME area in `/root` to keep it entirely separate from the rest of the users.
+.
+Given the nature of the `root` account, it would seem common sense to lock this directory and its contents right down, which is exactly the default in what should be all distributions and iterations of Linux or indeed any similar OS!
+.
+However, if you've received this alert, it means the mode (permissions) for this highly sensitive directory are above the recommended `700` (`rwx------`). To rectify this, simply execute `chmod 700 /root` within a terminal. Note that this will of course usually require `root` access in the first place.
+.
+You may wish to ensure the `/root` directory is owned by `root` and in the `root` group, by running `chown 0:0 /root`.
+.
+For information on the chown(1) and chmod(1) commands, refer to their respective man pages.
 :5440
 While a user's own HOME area isn't quite as sensitive as many of the system directories, it still can contain personal, identifiable, and otherwise sensitive files better kept private, such as SSH keys and entire user-specific web browsing data.
 :7541
