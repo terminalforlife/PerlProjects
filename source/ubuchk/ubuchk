@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 16:00:31 GMT 2020
+# Last Change       - Sat  7 Mar 16:54:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,6 +46,7 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: Failing to install properly in Elementary OS 15.1 (ownership-related).
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
@@ -108,6 +109,11 @@ my $Database = '/usr/share/ubuchk/database';
 my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/config";
 
 my $GID = (split(' ', $())[0];
+
+# Developer lines to check for sane permissions/ownership.
+#print("User:   $ENV{USER}\n");
+#print("UID:    $<\n");
+#print("GID:    $GID\n");
 
 mkdir($MainDir) unless -d $MainDir;
 
