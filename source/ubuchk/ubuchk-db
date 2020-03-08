@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-db
 # Started On        - Mon  2 Mar 15:21:20 GMT 2020
-# Last Change       - Mon  2 Mar 15:54:34 GMT 2020
+# Last Change       - Sun  8 Mar 17:16:44 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ set -e
 . /usr/lib/tflbp-sh/YNInput
 set +e
 
-CurVer='2020-03-02'
+CurVer='2020-03-08'
 Progrm=${0##*/}
 
 while [ "$1" ]; do
@@ -49,21 +49,21 @@ if YNInput 'Update UbuChk alert database?'; then
 	GHUser='terminalforlife'
 	if ! command -v cito 1> /dev/null 2>&1; then
 		DBPath="/usr/share/${Progrm%-*}/database"
-		URL='https://raw.githubusercontent.com'
+		URL="https://raw.githubusercontent.com/$GHUser"
 
 		if command -v wget 1> /dev/null 2>&1; then
-			DLoader="wget -qO '$DBPath'"
+			DLoader="wget -qO $DBPath"
 		elif command -v curl 1> /dev/null 2>&1; then
-			DLoader="curl -so '$DBPath'"
+			DLoader="curl -so $DBPath"
 		else
 			Err 1 "Neither 'curl' nor 'wget' were found."
 		fi
 
-		FullURL="$URL/$GHUser/PerlProjects/master/source/ubuchk/database"
+		FullURL="$URL/PerlProjects/master/source/ubuchk/database"
 		if $DLoader "$FullURL"; then
 			printf 'Database successfully updated.\n'
 		else
-			Err 1 "File '${FullURL##*/}' failed download via ${DLoader%% *}."
+			Err 1 "File '${FullURL##*/}' failed to download via ${DLoader%% *}(1)."
 		fi
 	else
 		printf "Cito found; handing '$Progrm' to it instead.\n"
