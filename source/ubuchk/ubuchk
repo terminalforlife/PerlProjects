@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  8 Mar 17:08:37 GMT 2020
+# Last Change       - Sun  8 Mar 23:03:50 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -1705,7 +1705,7 @@ if ($Thumbnails eq 'true'){
 			if ($SizeMB >= $ThumbsMBLimit){
 				Alert(
 					7620,
-					"User '$ENV{USER}' has a cache total of $Human.",
+					"User '$ENV{USER}' has a thumbnails total of $Human.",
 					"Suggested action is to remove unneeded files."
 				)
 			}else{
