@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Sat  7 Mar 15:18:13 GMT 2020
+# Last Change       - Sun  8 Mar 17:04:24 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -210,7 +210,11 @@ There's heavy debate within the Linux community as to whether you even need Swap
 .
 These days, it's common for a Swap file to be used instead of a partition, which former of which is much more convenient due to its flexibility.
 :6232,6233,6234
-Undocumented.
+A Swap file (or 'Pagefile', as it's known in Windows) is a sensitive component to an OS, as is its partition variant, therefore ensuring more locked-down permissions, ownership, and group of the Swap file, is very, very important. It's possible to glean sensitive information from a Swap file.
+.
+When creating a Swap file, if it's too permissive, or not owned by and in the group of the `root` user, then you'll likely be notified and told to rectify it before being able to continue.
+.
+You may also find alert #8759 an interesting read.
 :8971
 The system's RAM usage has reached the amount specified in the current user's ubuchk(8) configuration file (or overridden on the command line). You may wish to run a lighter desktop environment, opt for lighter software, and/or perhaps upgrade the total amount of RAM in your machine.
 :1118
