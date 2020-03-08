@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat  7 Mar 16:54:57 GMT 2020
+# Last Change       - Sun  8 Mar 15:27:24 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -31,6 +31,8 @@
 #TODO: Check for Flash & Java (OpenJDK & Oracle Java) to suggest removal.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Check for Wine packages and (separately) Mono packages; suggest removal.
+#TODO: Check for `apparmor=1` and `security=apparmor` in GRUB command line.
+#TODO: Check for `apparmor=1` and `security=apparmor` in LILO command line.
 #TODO: Check for installation of fonts unrelated to the user's region/language.
 #TODO: Check for periodic filesystem check. (EXT2/3/4)
 #TODO: Check if the Secure Boot is enabled; suggest disabling it, if so.
@@ -69,7 +71,7 @@ use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-07';
+my $CurVer = '2020-03-08';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
