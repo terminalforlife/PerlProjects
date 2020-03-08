@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Sun  8 Mar 23:14:26 GMT 2020
+# Last Change       - Sun  8 Mar 23:38:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -164,7 +164,7 @@ While setting this mount option will add an additional layer of security, there 
 .
 This is one of the many reasons why setting `sudo` to ignore the need to enter a password in order to gain elevated privileges can be a grave error in judgement. A similar problem occurs when setting things up in such a way that a user can log in without the need to even enter a password.
 :1357
-Undocumented.
+The `nodev` mount(8) option, disallows devices to be mounted to a path within the associated filesystem; the use of this option bolsters security.
 :1358
 Undocumented.
 :6237
@@ -185,8 +185,12 @@ If you wish to remove the existing cached Debian packages, you can run `sudo apt
 SystemD users should not use guest logins, because they're not "being confined", as is briefly explained within one of the configurations files provided with LightDM, alongside mention of CVE-2017-8900 and the following link:
 .
 https://bugs.launchpad.net/bugs/1663157
-:7125,7126,7127,7128,7129,7130,7131,7132,7133,7134,7135,7136,7137,7138,7139,7140,7141,7142,7143,7144,7145,7146,7147,7148,7149,7150,7151,7152,7153,7154,7155,7156,7157,7158,7159,7160,7161,7162,7163,7164,7165,7166,7167,7168,7169,7170,7171,7172,7173,7174,7175,7176,7177,7178,7179,7180,7181,7182,7183,7184,7185,7186,7187,7188,7189,7190,7191,7192,7193
-Undocumented. Please refer to your search engine. Apologies for the inconvenience!
+:7125,7126,7127,7128,7129,7130,7131,7132,7133,7134,7135,7136,7137,7138,7139,7140,7141,7142,7143,7144,7145,7146,7147,7148,7149,7150,7151,7152,7153,7154,7155,7156,7157,7158,7159,7160,7161,7162,7163,7164,7165,7166,7167,7168,7169,7170,7171,7172,7173,7174,7175,7176,7177,7178,7179,7180,7181,7182,7183,7184,7185,7186,7187,7188,7189,7190,7191,7192,7193,7194
+A potential trojan, rootkit, or worm has been discovered. Do note, that this is strictly a potentiality, so before panic-deleting, look further into the possible infections by referring to your search engine and/or known credible sources.
+.
+For a general overview as to what these words even mean, check out the following link:
+.
+https://www.guidingtech.com/8888/difference-between-malware-virus-rootkits-trojans-worm-spyware
 .
 To see a list of triggered files and their absolute paths, re-run UbuChk with verbose mode ('--verbose|-V') enabled.
 :7619
