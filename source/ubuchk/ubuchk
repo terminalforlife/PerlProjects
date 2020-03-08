@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  8 Mar 15:27:24 GMT 2020
+# Last Change       - Sun  8 Mar 16:46:33 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,15 +20,20 @@
 #TODO: Add check for CPU governor when using a laptop and regular PC.
 #TODO: Add check for X amount of space taken up in Trash.
 #TODO: Add check for fan speeds; alert when low/off.
-#TODO: Add check for listening TCP ports, via netstat(8) or ss(8).
+#TODO: Add check for listening TCP/UDP ports, via netstat(8) or ss(8).
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add checks for unsecure network-related packages. (RSH, for example)
 #TODO: Add keys for block size 1000 and 1024, and for SI toggling.
+#TODO: Add netstat(8) and ss(8) port and/or address security checks.
 #TODO: Add update feature, because it's important to keep this updated.
 #TODO: Alert of all SUID (+4000) and SGID (+2000) files in PATH.
 #TODO: Check (almost) entire system for non-group & non-user files.
+#TODO: Check `/etc/inetd.conf` for malicious lines. (IE: Ramen Worm; '^asp')
+#TODO: Check `/proc/kallsyms` file for malicious lines. ('(adore|sebek)')
+#TODO: Check chklastlog(1) & chkwtmp(1) executables.
 #TODO: Check for APT options without the use of `apt-config` executable.
 #TODO: Check for Flash & Java (OpenJDK & Oracle Java) to suggest removal.
+#TODO: Check for SSH scanners, via `/{var/tmp,tmp}/{vuln.txt,ssh-scan,pscan2}`.
 #TODO: Check for UFW service without the use of `systemctl` executable.
 #TODO: Check for Wine packages and (separately) Mono packages; suggest removal.
 #TODO: Check for `apparmor=1` and `security=apparmor` in GRUB command line.
@@ -44,6 +49,15 @@
 #TODO: Re-do the `Rootkits` section, regarding the checks; use a database!
 #TODO: Somehow check for reduction in SystemD log file, via journalctl(1).
 #TODO: Somehow handle the first digit in `stat()` mode.
+#
+# Ports for which to add a check (omit leading zeroes):
+#
+# 00114, 00145, 00465, 00511, 00600, 01008, 01524, 01978, 01999, 02881, 03049,
+# 03133, 03879, 04000, 04369, 05190, 05665, 06667, 07222, 10008, 12321, 23132,
+# 27374, 29364, 30999, 31336, 31337, 37998, 45454, 47017, 47889, 60001
+#
+# Those ports can be found via the REGEX '[0-9:]443', with `netstat -tunla` or
+# `ss ss -tunla`), and for which are also searched in chkrootkit(1).
 #
 # Bugs:
 #
@@ -193,7 +207,7 @@ unless ($ForceRun eq 'true'){
 			my $OS = (split(' ', <$FH>))[0];
 			close($FH);
 
-			FErr(1, __LINE__, "Sorry, $OS is not supported by UbuChk.")
+			FErr(1, __LINE__, "Unsupported OS -- refer to $TFL::PROGNAME(8).")
 				unless $OS eq 'Linux'
 		}else{
 			FErr(1, __LINE__, "Unrecognised OS -- refer to $TFL::PROGNAME(8).")
@@ -204,7 +218,7 @@ unless ($ForceRun eq 'true'){
 	if (-f -r $OSRelFile){
 		open(my $FH, '<', $OSRelFile);
 
-		my ($LSB, $Found);
+		my $Found;
 		while (<$FH>){
 			chomp();
 			next if /^(#|$)/;
@@ -217,7 +231,7 @@ unless ($ForceRun eq 'true'){
 
 		close($FH);
 
-		FErr(1, __LINE__, "Your distribution is not supported.")
+		FErr(1, __LINE__, "Unsupported LSB -- refer to $TFL::PROGNAME(8).")
 			unless $Found eq 'true'
 	}else{
 		FErr(1, __LINE__, "Unrecognised LSB -- refer to $TFL::PROGNAME(8).")
@@ -1554,7 +1568,7 @@ if ($RootKits eq 'true'){
 		'7133|/dev/cuc|Sadmind/IIS Worm',
 		'7134|/{lib/defs,usr/lib/libpikapp.a}|Monkit',
 		'7134|/{usr/bin/{kr4p,n3tstat,chsh2,slice2},etc/rc.d/rsha}|RSHA',
-		'7135|/{bin/home,sbin/home,usr/sbin/in.slogind}|ShitC',
+		'7135|/{bin/home,sbin/home,usr/sbin/in.slogind}|ShitC Worm',
 		'7136|/dev/chr|Omega Worm',
 		"7137|/{bin/{.lpstree,.ps,ldu,lkillall,lnetstat},usr/bin/{cleaner,slice,vadim,.ps,.lpstree,ldu,lkillall,lnetstat}}|RH-Sharpe's Rootkit",
 		'7138|/usr/bin/mailrc|Maniac RK',
@@ -1565,18 +1579,18 @@ if ($RootKits eq 'true'){
 		'7143|/dev/wd4|Tribe bot',
 		'7144|/dev/ida/.inet|LRK',
 		'7145|/{usr/{doc/sys/{qrt,run,crond,kern/{var,string.o,ava,adore.o}},sbin/kfd,secure},etc/{bin,sbin}/ava,var/log/ssh/old}|Adore Rootkit',
-		'7146|/{tmp/{.bugtraq{,.c},.cinik,.b,httpd,.unlock,.font-unix/.cinik},tmp./update}|Slapper',
-		'7147|/tmp/{.uua,.a}|Scalper',
+		'7146|/{tmp/{.bugtraq{,.c},.cinik,.b,httpd,.unlock,.font-unix/.cinik},tmp./update}|Slapper Worm',
+		'7147|/tmp/{.uua,.a}|Scalper Worm',
 		'7148|/{proc/knark{,/pids},dev/.{pizda,pula}}|Knark Rootkit',
 		'7149|/{dev/.lib{,/1iOn.sh},bin/{mjt,in.telnetd},usr/info/torn}|Lion Worm',
 		'7150|/{usr/{include/.../,lib/{.../,.bkit-},sbin/.../,bin/ntpsx},tmp/.bkp}|Bobkit',
 		'7151|/var/lib/games/.k|Hid Rootkit',
 		'7152|/dev/ptyxx|Ark',
-		"7153|/usr/lib/locale/uboot|Mithra's Rootkit",
+		"7153|/usr/lib/locale/uboot|MithRa's Rootkit",
 		'7154|/tmp/{xp,kidd0.c,kidd0}|LOC Rootkit',
 		'7155|/usr/{info/.tc2k,bin/util,sbin/{initcheck,ldb}}|TC2 Worm',
-		'7156|/usr/sbin/{mech,kswapd}|Anonoiyng Rootkit',
-		'7157|/lib/{.x,sk}|SuckIt',
+		'7156|/usr/sbin/{mech*,kswapd}|Anonoiyng Rootkit',
+		'7157|/lib/{.x,sk}|SuckIt Rootkit',
 		'7158|/usr/{local/bin/bin,man/.man10,sbin/arobia,lib/elm/arobia,local/bin/.../bktd}|Beastkit',
 		'7159|/{dev/tux,usr/bin/{xsf,xchk}}|Tuxkit',
 		'7160|/usr/{doc/{.sl,.sp,.statnet,.logdsys,.dpct,.gifnocfi,.dnif,.nigol},include/rpc/_../{kit{,2}}}|Old Rootkits',
@@ -1595,7 +1609,7 @@ if ($RootKits eq 'true'){
 		'7173|/dev/grid-{hide-pid-,unhide-pid-,show-pids,hide-port-,unhide-port-}|Override Rootkit',
 		'7174|/{uNFuNF,{usr/share/.home.ph1/{tty,kebab,cb,phalanx},etc/host.ph1,bin/host.ph1}}|Phalanx Rootkit',
 		'7193|/{etc/{cron.d/zupzzplaceholder,lolzz.p2/.{p2rc,phalanx2,sniff},khubd.p2/{.p2rc,.phalanx2,.sniff,sshgrab.py}},usr/lib/zupzz.p2/{.p-2.3d,.p2rc}}|Phalanx2 Rootkit',
-		'7175|/{usr/share/.zk{,/zk},etc/1ssue.net,usr/X11R6/.{zk,zk/xfs,zk/echo},etc/sysconfig/console/load.zk}|ZK Rootkit',
+		'7175|/{usr/share/.zk{,/zk},etc/1ssue.net,usr/X11R6/.{zk,zk/xfs,zk/echo},etc/sysconfig/console/load*}|ZK Rootkit',
 		'7176|/var/{adm/{.profile,sa/.adm},spool/lp/{.profile,admins/.lp}}|Solaris Worm',
 		'7178|/usr/bin/duarawkz{,/loginpass}|Duarawkz Rootkit',
 		'7179|/{dev/..0{,/backup},etc/ld.so.hash,lib/security/.config/ssh/{sshd_config,ssh_host_key,ssh_host_key.pub,ssh_random_seed},usr/{lib/ldlib{ns,ps,pst,du,ct}.so,bin/ssh2d}}|Flea Linux Rootkit',
@@ -1612,6 +1626,8 @@ if ($RootKits eq 'true'){
 		'7190|/usr/src/redhat/SRPMS/...|Kitko Rootkit',
 		'7191|/{sbin/init__mood-nt-_-_cthulhu,_cthulhu/mood-nt.{init,conf,sniff}}|Mood-NT Rootkit',
 		'7192|/dev/.oz/.nap/rkit/terror|Oz Rootkit',
+		'7193|/Library/Internet\ Plug-Ins/{QuickTime.xpt,plugins.settings}|OSX.RSPlug.A Trojan Horse',
+		'7194|/usr/bin/ishit|Gold2 Rootkit',
 		'7177|/{dev/{.{arctic,golf,rd,xman},hd7,hdx1,hx2,ptyp,ptyr,ptyzg,ptyzx,rd/cdb,srd0,ttyof,ttyop,xdf1,xdf2},etc/rc.d/init.d/rc.modules,lib/{.fx,.so,lblip.tk,ldd.so},proc/kset,sbin/{pback,vobiscum},tmp/.{cheese,dump},usr/{X11R6/include/pain,bin/{.etc,atm,ddc,gib,ishit,jdc,kfl,ras2xm,snick,sourcemask,xstat},lib/{.fx,pt07},man/{man1/lib/.lib,man2/.man8,man3/psid,muie},sbin/{atd2,in.telnet,jcd}},var/{.x{,/psotnic},local/.lpd,run/.{pid,tmp}}}|Suspicious Files',
 	){
 		my ($AlertID, $Infection, $Name) = split('\|');
