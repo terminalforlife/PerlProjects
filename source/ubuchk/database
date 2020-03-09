@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Sun  8 Mar 23:38:30 GMT 2020
+# Last Change       - Mon  9 Mar 00:00:55 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -271,3 +271,5 @@ To enable AppArmor, if using SystemD, execute `systemctl enable apparmor` using 
 Refer also to alert #1298 for more information, such as a list of useful man pages.
 :2223
 Refer to the faillog(8) man page. You will also want to open up `/var/log/faillog` for information on the failed login attempts.
+:8760
+Incomplete query. For now, please refer to alert #8759 for relevant information.

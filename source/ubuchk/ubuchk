@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  8 Mar 23:03:50 GMT 2020
+# Last Change       - Sun  8 Mar 23:59:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,6 +21,7 @@
 #TODO: Add check for X amount of space taken up in Trash.
 #TODO: Add check for fan speeds; alert when low/off.
 #TODO: Add check for listening TCP/UDP ports, via netstat(8) or ss(8).
+#TODO: Add check for not having any swap area at all.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add checks for unsecure network-related packages. (RSH, for example)
 #TODO: Add keys for block size 1000 and 1024, and for SI toggling.
@@ -1829,7 +1830,15 @@ if ($Swaps eq 'true'){
 			$SwapCount++
 		}
 
-		Info("System has $SwapCount active swap areas.") if $SwapCount > 1;
+		if ($SwapCount > 1){
+			Info("System has $SwapCount active swap areas.")
+		}elsif ($SwapCount == 0){
+			Alert(
+				8760,
+				"Detected no available space area on the system.",
+				"Suggested action is to add a swap file or partition."
+			)
+		}
 
 		close($FH)
 	}else{
