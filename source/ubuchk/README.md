@@ -4,6 +4,8 @@ UbuChk -- a vast upgrade to its old predecessor -- is an administrative tool to 
 
 Thanks to UbuChk being written in Perl, performance is a huge leap forward. This tool offers the potential additional portability, despite targeting Ubuntu users, allowing the user to roll the dice, forcing UbuChk to run as though in a supported Ubuntu installation of Linux.
 
+![image](screenshots/Screenshot_2020-03-10_00:37:13.jpg)
+
 More care has been given to the user's experience, particularly to those whom are perhaps not so experienced with Linux. By default, for any of the 160+ given alerts, text briefly recommending or suggesting an action or value is displayed to the user; this can be disabled, however. UbuChk also comes with a database, storing various `queries`, which are essentially tidbits of information the user can read to better understand why they were alerted, what they can do, and/or if it's worth doing anything at all. Ultimately, however, it's up the user.
 
 The core concept of UbuChk is as it always has been: to inform the user, but _not_ to actually _do_ anything. UbuChk will _not_ delete critical files, mess with system settings, or do anything else of concern which can be hard to track, as you may find with other system health utilities; all of this is **entirely** left to the user's discretion.
