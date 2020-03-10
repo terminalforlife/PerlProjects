@@ -21,9 +21,9 @@ Alerts are each assigned an Alert ID consisting of a 4-digit integer, which can 
 
 The future of UbuChk looks bright, with development ongoing, and plenty of room for further expansion.
 
-UbuChk has been developed for and used in Ubuntu 16.04 LTS and Ubuntu 18.04 LTS. Distributions based on regular Ubuntu (that one with GNOME 3), such as Linux Mint, Linux Lite, Peppermint OS, and Zorin OS, all should all be capable of running UbuChk, although some features may not work as intended.
+UbuChk has been developed for and used in Ubuntu 16.04 LTS (desktop) and Ubuntu 18.04 LTS (laptop). Distributions based on regular Ubuntu (that one with GNOME 3), such as Linux Mint, Linux Lite, Peppermint OS, and Zorin OS, all should all be capable of running UbuChk, although some features may not work as intended.
 
-The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 49 user configuration keys.
+The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 60+ user configuration keys.
 
 Thank you for your interest and time.
 
