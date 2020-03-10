@@ -36,7 +36,21 @@ sudo cito -r terminalforlife PerlProjects master source/ubuchk/{ubuchk{,-db},con
 sudo ln -s /usr/share/bash-completion/completions/ubuchk{,-db}
 ```
 
+You may also want to download and run the `postinst` file for additional post-installation set up of UbuChk, such as setting appropriate default values of various configuration keys. This file is included as standard and executed as part of the UbuChk Debian package, except in the earlier versions.
+
 If you're not sure what UbuChk is, check out its first [video](https://youtu.be/CZ4Kn0gtHaM), over on YouTube, or check out a much more updated one over [here](https://youtu.be/-BpyYHLGPeY), showing off lots of cool features.
+
+Uninstalling UbuChk can be done with the following one-liner, assuming a bash(1) or similar shell:
+
+```
+sudo rm -vr /usr/share/{ubuchk,man/man8/ubuchk.8.gz,bash-completion/completions/ubuchk{,-db}}
+```
+
+If you wish to also remove the current user's own UbuChk configuration file, you can run:
+
+```
+rm -vr "$HOME/.config/ubuchk"
+```
 
 # Dependencies
 
