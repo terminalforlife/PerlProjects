@@ -78,4 +78,4 @@ sudo cito -r terminalforlife PerlProjects master source/TFL.pm
 
 # Want to Take Part?
 
-Whether you wish to contribute code, add to the database, or report bugs and other issues, your support here would be appreciated. As of 2020-03-06, there are currently 14 undocumented queries in the alert database, so don't hesitate to contribute if you can and have the time!
+Whether you wish to contribute code, add to the database, or report bugs and other issues, your support here would be appreciated. As of 2020-03-10, there is currently 1 undocumented query in the alert database, so don't hesitate to contribute if you can and have the time!
