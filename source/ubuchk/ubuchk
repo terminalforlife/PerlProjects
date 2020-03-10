@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  8 Mar 17:08:37 GMT 2020
+# Last Change       - Mon  9 Mar 23:25:26 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,7 +11,6 @@
 #
 # Features:
 #
-#TODO: Add ANSI color support and configuration items for it.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `AllowUsers` check to `SSHServer` key.
 #TODO: Add `kernel.exec-shield` parameter; recommend value of `1`.
@@ -44,6 +43,7 @@
 #TODO: Check it's not possible to log in as the `root` user.
 #TODO: Check most of the system for files writeable by anybody.
 #TODO: Check the `/etc/shadow` file for empty user passwords.
+#TODO: Have `postinst` shell script check for appropriate default settings.
 #TODO: Parse `/etc/{logrotate.conf,logrotate.d/*}` to suggest reducing logs.
 #TODO: Parse files, like `sources.list`, for abnormals, like 'Proposed' & PPAs.
 #TODO: Re-do the `Rootkits` section, regarding the checks; use a database!
@@ -63,6 +63,7 @@
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
+#TODO: Not checking for valid `Color_*` and `Char_*` keys.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
 #TODO: The user's generated `config` file shouldn't have (global) Cito line.
@@ -80,11 +81,12 @@
 use strict;
 use warnings;
 use autodie;
-use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
+use TFL qw{Err FErr Boolean DepChk CelsFahr GetDirSize};
+use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-08';
+my $CurVer = '2020-03-09';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -115,7 +117,8 @@ my (
 	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @SkipRKs,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
-	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor,
+	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor, %ColorHash,
+	$ANSIColors, $Char_Margin, %Syms
 );
 
 my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
@@ -332,9 +335,21 @@ sub QueryAlert{
 	foreach (@Body){
 		# Ensures paragraphing works properly. The database must have a
 		# single period (`.`) on an otherwise empty line, for this to work.
-		print(' ' x $QueryIndent . '| ' . "\n") and next if $_ eq '.';
+		print(
+			' ' x $QueryIndent .
+			$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') . "\n"
+		) and next if $_ eq '.';
 
-		print(wrap(' ' x $QueryIndent . '| ', ' ' x $QueryIndent . '| ', "$_\n"));
+		print(
+			wrap(
+				' ' x $QueryIndent .
+				$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') .
+				$ColorHash{'Color_QueryText'}, ' ' x $QueryIndent .
+				$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') .
+				$ColorHash{'Color_QueryText'},
+				$ColorHash{'Color_QueryText'} . "$_" . color('reset') . "\n"
+			)
+		);
 	}
 
 	exit($_[0]) unless $_[1] > 0;
@@ -347,8 +362,18 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 	unless (grep({$_ eq $_[0]} @SkipIDs)){
 		$AlertCount++;
 
-		printf("[A%0.4d] %s\n", $_[0], $_[1]);
-		printf("        %s\n", $_[2]) if $Recommend eq 'true';
+		printf(
+			$ColorHash{'Color_AlertBracket'} . "[" . color('reset') .
+			$ColorHash{'Color_AlertID'} . "A%0.4d" . color('reset').
+			$ColorHash{'Color_AlertBracket'} . "]" . color('reset') .
+			$ColorHash{'Color_AlertText'} . " %s\n" . color('reset'),
+			$_[0], $_[1]
+		);
+
+		printf(
+			$ColorHash{'Color_AlertRecommend'} . ' ' x 8 .
+			"%s\n" . color('reset'), $_[2]
+		) if $Recommend eq 'true';
 
 		if ($AutoQuery eq 'true'){
 			# Don't want to keep showing the same query.
@@ -358,6 +383,8 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 				print("\n")
 			}
 		}
+	}else{
+		Info("Skipping alert #$_[0], as requested.")
 	}
 }
 
@@ -446,11 +473,30 @@ if (-f -r -T $ConfigFile){
 		chomp(my ($Key, $Value) = split('='));
 		next if /^(#|$)/;
 
+
 		# If the current key was provided to the `--key|-k` option, then
 		# override the user's configuration file for this key.
 		$Value = $KeyOpt{$Key} if grep({$_ eq $Key} keys(%KeyOpt));
 
-		if ($Key eq 'KernParams'){
+		if ($Key =~ '^Color_.*'){
+			FErr(1, __LINE__, "Invalid color '$Value' detected.")
+				unless colorvalid($Value);
+
+			next if $ANSIColors eq 'false';
+
+			$ColorHash{$Key} = color($Value =~ tr/['"]//dr)
+		}elsif ($Key eq 'ANSIColors'){
+			Boolean($Value);
+			$ANSIColors = $Value
+		}elsif ($Key =~ '^Char_.*'){
+			if (length($Value) > 1){
+				FErr(1, __LINE__, "Invalid 'Char_*' value detected.")
+			}elsif (length($Value) == 0){
+				next
+			}else{
+				$Syms{$Key} = $Value =~ tr/['"]//dr
+			}
+		}elsif ($Key eq 'KernParams'){
 			Boolean($Value);
 			$KernParams = $Value
 		}elsif ($Key eq 'PathPerms'){
@@ -467,7 +513,9 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$ForceRun = $Value unless $ForceRun eq 'true'
 		}elsif ($Key eq 'HardAPT'){
-			Boolean($Value);
+			Err(1, "Invalid boolean '$Value' detected.")
+				unless $Value =~ '^([01]|true|false)$';
+
 			$HardAPT = $Value
 		}elsif ($Key eq 'SSHDConfig'){
 			$SSHDConfig = $Value
@@ -842,33 +890,43 @@ if ($HardAPT eq 'true'){
 			my ($Key, $Value) = split('=');
 			$Value = $Value =~ tr/"';//dr;
 
+			# APT also accepts integer booleans.
+			$Value = 'false' if $Value eq '0';
+			$Value = 'true' if $Value eq '1';
+
 			$Settings{$Key} = $Value
 		}
 
+		my ($Word, $Integer);
 		foreach ( # [TARGET_VALUE] [KEY]
-			'6135|6131|false|APT::Get::AllowUnauthenticated',
-			'6136|6132|false|Acquire::http::AllowRedirect',
-			'6137|6133|false|APT::Install-Suggests',
-			'6138|6134|false|APT::Install-Recommends'
+			'6135|6131|Recommended|false|APT::Get::AllowUnauthenticated',
+			'6136|6132|Recommended|false|Acquire::http::AllowRedirect',
+			'6137|6133|Recommended|false|APT::Install-Suggests',
+			'6138|6134|Suggested|false|APT::Install-Recommends'
 		){
-			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
+			my ($AlertID1, $AlertID2, $RecSug, $Target, $Key) = split('\|');
 
 			next if grep({$_ eq $Key} @SkipAPT);
+
+			$Word = 'enabled' if $Settings{$Key} eq 'true';
+			$Word = 'disabled' if $Settings{$Key} eq 'false';
+			$Integer = 0 if $Target eq 'false';
+			$Integer = 1 if $Target eq 'true';
 
 			unless (exists($Settings{$Key})){
 				Alert(
 					$AlertID1,
-					"APT key '$Key' not assigned.",
-					"Recommended action is to assign it '$Target'."
+					"APT key '$Key' is unassigned.",
+					"$RecSug action is to assign it '$Target' or '$Integer'."
 				)
 			}elsif ($Settings{$Key} ne $Target){
 				Alert(
 					$AlertID2,
-					"APT key '$Key' assigned '$Settings{$Key}'.",
-					"Recommended value is '$Target'."
+					"APT key '$Key' is $Word.",
+					"$RecSug value is '$Target' or '$Integer'."
 				)
 			}else{
-				Info("Key '$Key' is '$Settings{$Key}'.");
+				Info("Key '$Key' is $Word.");
 			}
 		}
 	}else{
@@ -952,7 +1010,7 @@ if ($SSHServer eq 'true'){
 			unless (exists($Settings{$Key})){
 				Alert(
 					$AlertID1,
-					"SSH daemon key '$Key' not assigned.",
+					"SSH daemon key '$Key' may not assigned.",
 					"Recommended action is to assign it '$Target'."
 				)
 			}elsif ($Settings{$Key} ne $Target){
@@ -968,7 +1026,7 @@ if ($SSHServer eq 'true'){
 		unless (exists($Settings{'Port'})){
 			Alert(
 				7541,
-				"SSH daemon key 'Port' not assigned.",
+				"SSH daemon key 'Port' may not assigned.",
 				"Recommended action is NOT to assign it '22'."
 			)
 		}elsif ($Settings{'Port'} eq 22){
@@ -1033,7 +1091,7 @@ if ($SystemD eq 'true'){
 			unless (exists($Settings{$Key})){
 				Alert(
 					$AlertID1,
-					"SystemD key '$Key' not assigned.",
+					"SystemD key '$Key' may not assigned.",
 					"Recommended action is to assign it '$Target'."
 				)
 			}elsif ($Settings{$Key} ne $Target){
@@ -2079,4 +2137,10 @@ if ($FailedLogins eq 'true'){
 # Developer line.
 #}
 
-print("Alerted $AlertCount time(s).\n") if $AlertCount > 0;
+print(
+	$ColorHash{'Color_AlertTTLText'} . "Alerted " . color('reset') .
+	$ColorHash{'Color_AlertTTL'} . "$AlertCount" . color('reset') .
+	$ColorHash{'Color_AlertTTLText'} . " time(s).\n" . color('reset')
+) if $AlertCount > 0;
+
+#print("Alerted $AlertCount time(s).\n") if $AlertCount > 0;
