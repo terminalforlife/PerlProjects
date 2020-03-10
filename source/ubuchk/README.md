@@ -1,3 +1,6 @@
+**MASTER** - _Hopefully stable branch._\
+**DEV** - _Development Branch (latest changes)_
+
 # Introduction
 
 UbuChk -- a vast upgrade to its old predecessor -- is an administrative tool to determine various aspects of the system health, with a focus on security. Whether it's checking CPU temperatures, PATH executables, disk space, security settings for APT, over 70 rootkits, potentially unwanted packages, or questionable kernel parameters, UbuChk is looking out for you.
