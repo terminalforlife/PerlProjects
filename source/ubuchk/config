@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-03-09)
+# User configuration file for UbuChk (>= 2020-03-10)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
@@ -19,7 +19,7 @@ Color_AlertBracket=red
 Color_AlertID=bright_red
 Color_AlertTTL=bright_white
 Color_AlertTTLText=white
-Color_AlertText=
+Color_AlertText=bright_white
 Color_AlertRecommend=bright_green
 Color_QueryText=white
 Color_QueryMargin=bright_black
