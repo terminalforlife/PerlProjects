@@ -1,0 +1,185 @@
+#!/bin/sh
+#cito M:755 O:0 G:0 T:/usr/bin/ubuchk-installer
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
+# Started On        - Thu 12 Mar 14:54:26 GMT 2020
+# Last Change       - Thu 12 Mar 17:00:38 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Simple, but pretty and mindful Bourne Shell installer for UbuChk, for those
+# unable or unwilling to use the provided Debian packages available in the
+# DEB-Packages repository.
+#
+# To use this installer, you can either:
+#
+#   Clone the repository, using git(1) command.
+#
+#     OR
+#
+#   Download the archive of it directly from GitHub, then extract its contents.
+#
+# Either way, ensure you're in the root of the repository, meaning that you
+# should be at the top-level of it, toegher with the main `README.md` file.
+#
+# Why as `root`? Because making system-wide changes, such as installing the
+# UbuChk man page, bash(1) completion support, alert database, and default
+# configuration file typically (and should) all require elevated privileges.
+#
+# If you want a HOME-only installation, you'll have to either use Cito, or
+# otherwise install it manually, but you'll miss out on a lot of features.
+#
+# NOTE: This installer will not make use of `postinst` as in the packages.
+#
+# Dependencies:
+#
+#   coreutils (>= 8.25-2)
+#   curl (>= 7.47.0-1) | wget (>= 1.17.1-1)
+#------------------------------------------------------------------------------
+
+if command -v curl 1> /dev/null 2>&1; then
+	DLCMD='curl -so'
+elif command -v wget 1> /dev/null 2>&1; then
+	DLCMD='wget -qO'
+else
+	printf "ERROR: Neither 'wget' nor 'curl' are available.\n" 1>&2
+	exit 1
+fi
+
+if [ `id -u` -ne 0 ]; then
+	printf "ERROR: Root access is required for system-wide changes.\n" 1>&2
+	exit 1
+fi
+
+printf 'Install latest version of UbuChk? [Y/N] '
+read Answer
+case $Answer in
+	[Yy]|[Yy][Ee][Ss])
+		printf 'Continuing with installation.\n' ;;
+	[Nn]|[Nn][Oo])
+		printf 'Abandoning installation.\n'
+		exit 0 ;;
+	*)
+		printf 'ERROR: Invalid response -- quitting.\n' 1>&2
+		exit 2 ;;
+esac
+
+LogFile="$HOME/ubuchk-install.log"
+TmpDir=`mktemp -d --suffix '_tfl'`
+
+URL='https://raw.githubusercontent.com/terminalforlife'
+URL="$URL/PerlProjects/master/source/ubuchk"
+
+SigHandler(){
+	Sig=$?
+
+	printf 'Cleaning up temporary files:\n'
+	printf '* Removing '%s' ... ' "$TmpDir"
+	ErrCount=0
+	if rm -r "$TmpDir" 2>> "$LogFile"; then
+		printf '\033[32m[OK]\033[0m\n'
+	else
+		printf '\033[31m[ERR]\033[0m\n'
+	fi
+
+	if [ -s "$LogFile" ]; then
+		printf "Done! -- errors logged in: '~${LogFile#$HOME}'\n"
+	else
+		printf 'Done!\n'
+	fi
+
+	exit $Sig
+}
+
+trap SigHandler EXIT INT QUIT ABRT TERM KILL
+
+printf 'Fetching files from GitHub:\n'
+ErrCount=0
+for File in\
+\
+	'completions' 'config' 'database' 'ubuchk' 'ubuchk-db' 'ubuchk.8.gz'
+do
+	printf "* Downloading '%s' ... " "$File"
+	if $DLCMD "$TmpDir/$File" "$URL/$File" 2>> "$LogFile"; then
+		printf '\033[32m[OK]\033[0m\n'
+	else
+		ErrCount=$((ErrCount + 1))
+		printf '\033[31m[ERR]\033[0m\n'
+	fi
+done
+
+if [ $ErrCount -gt 0 ]; then
+	printf 'ERROR: Failed to download one or more files.\n' 1>&2
+	exit 1
+fi
+
+printf 'Setting correct file attributes:\n'
+
+printf '* Assigning owner and group ... '
+if chown 0:0 "$TmpDir"/* 2>> "$LogFile"; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
+
+printf '* Assigning modes ... '
+ErrCount=0
+for File in\
+\
+	'ubuchk:755' 'ubuchk-db:755' 'completions:644'\
+	'ubuchk.8.gz:644' 'config:644' 'database:644'
+do
+	chmod ${File##*:} "$TmpDir/${File%:*}" 2>> "$LogFile" ||
+		ErrCount=$((ErrCount + 1))
+done
+
+if [ $ErrCount -eq 0 ]; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
+
+printf 'Moving files into place:\n'
+ErrCount=0
+for File in\
+\
+	'completions:/usr/share/bash-completion/completions/ubuchk'\
+	'config:/usr/share/ubuchk/config'\
+	'database:/usr/share/ubuchk/database'\
+	'ubuchk-db:/usr/bin/ubuchk-db'\
+	'ubuchk.8.gz:/usr/share/man/man8/ubuchk.8.gz'\
+	'ubuchk:/usr/bin/ubuchk'
+do
+	printf "* Installing '%s' ... " "${File%%:*}"
+	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then
+		printf '\033[32m[OK]\033[0m\n'
+	else
+		printf '\033[31m[ERR]\033[0m\n'
+	fi
+done
+
+printf 'Setting up bash(1) completion:\n'
+
+printf "* Creating symlink for 'ubuchk-db' ... "
+BCDir='/usr/share/bash-completion/completions'
+if ln -s "$BCDir/ubuchk" "$BCDir/ubuchk-db" 2>> "$LogFile"; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
+
+printf 'Checking executables work:\n'
+
+printf "* Verifying 'ubuchk' ... "
+if ubuchk -v 1>> "$LogFile" 2>&1; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
+
+printf "* Verifying 'ubuchk-db' ... "
+if ubuchk-db -v 1>> "$LogFile" 2>&1; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
