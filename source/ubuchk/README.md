@@ -9,7 +9,9 @@ Thanks to UbuChk being written in Perl, performance is a huge leap forward. This
 
 ![image](screenshots/Screenshot_2020-03-10_00:37:13.jpg)
 
-More care has been given to the user's experience, particularly to those whom are perhaps not so experienced with Linux. By default, for any of the 160+ given alerts, text briefly recommending or suggesting an action or value is displayed to the user; this can be disabled, however. UbuChk also comes with a database, storing various `queries`, which are essentially tidbits of information the user can read to better understand why they were alerted, what they can do, and/or if it's worth doing anything at all. Ultimately, however, it's up the user.
+More care has been given to the user's experience, particularly to those whom are perhaps not so experienced with Linux. By default, for any of the 160+ given alerts, text briefly recommending or suggesting an action or value is displayed to the user; this can be disabled, however.
+
+UbuChk also comes with a database, storing various `queries`, which are essentially tidbits of information the user can read to better understand why they were alerted, what they can do, and/or if it's worth doing anything at all. Ultimately, however, it's up the user.
 
 ![image](screenshots/Screenshot_2020-03-10_00:59:02.jpg)
 
