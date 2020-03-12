@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 12 Mar 13:28:45 GMT 2020
+# Last Change       - Thu 12 Mar 13:47:05 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -65,6 +65,7 @@
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Not checking for valid `Color_*` and `Char_*` keys.
+#TODO: Nothing at all happens (even `-V` flag does nothing) if empty `config`.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
 #TODO: The user's generated `config` file shouldn't have (global) Cito line.
@@ -1055,7 +1056,7 @@ if (@UnwantedPKGs > 0){
 			5656,
 			"Package(s) matching '$CurPKG' installed.",
 			"Suggested action is to uninstall the package(s)."
-		) if grep(/$CurPKG/, @Installed)
+		) if grep({$_ eq $CurPKG} @Installed)
 	}
 }
 
