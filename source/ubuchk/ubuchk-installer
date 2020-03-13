@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Thu 12 Mar 17:00:38 GMT 2020
+# Last Change       - Fri 13 Mar 23:47:09 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -64,7 +64,10 @@ case $Answer in
 		exit 2 ;;
 esac
 
-LogFile="$HOME/ubuchk-install.log"
+LogFile='/tmp/ubuchk-installer.log'
+[ -f "$LogFile" ] || 1> "$LogFile"
+chmod 644 "$LogFile"
+
 TmpDir=`mktemp -d --suffix '_tfl'`
 
 URL='https://raw.githubusercontent.com/terminalforlife'
@@ -91,7 +94,7 @@ SigHandler(){
 	exit $Sig
 }
 
-trap SigHandler EXIT INT QUIT ABRT TERM KILL
+trap SigHandler EXIT INT QUIT ABRT TERM
 
 printf 'Fetching files from GitHub:\n'
 ErrCount=0

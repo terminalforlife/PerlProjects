@@ -57,6 +57,22 @@ If you wish to also remove the current user's own UbuChk configuration file, you
 rm -vr "$HOME/.config/ubuchk"
 ```
 
+# Basic Install Instructions
+
+If the above isn't valid for you, you should be able to execute the following, assuming you have sudo(8):
+
+```sh
+(cd /tmp; curl -so ubuchk-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/ubuchk/ubuchk-installer' && sudo \sh ubuchk-installer; rm ubuchk-installer)
+```
+
+If that fails, you probably don't have curl(1), so try wget(1):
+
+```sh
+(cd /tmp; wget -qO ubuchk-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/ubuchk/ubuchk-installer' && sudo \sh ubuchk-installer; rm ubuchk-installer)
+```
+
+If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+
 # Dependencies
 
   * [libtfl-perl](https://github.com/terminalforlife/PerlProjects/blob/master/source/TFL.pm) (>= 2020-02-29)
