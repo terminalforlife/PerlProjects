@@ -57,7 +57,7 @@ If you wish to also remove the current user's own UbuChk configuration file, you
 rm -vr "$HOME/.config/ubuchk"
 ```
 
-# Basic Install Instructions
+# Basic Installation Instructions
 
 If the above isn't valid for you, you should be able to execute the following, assuming you have sudo(8):
 
