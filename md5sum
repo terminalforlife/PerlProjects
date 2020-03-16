@@ -15,7 +15,9 @@ e60801be3c6edc04ccef4689644e62d5  source/cpufreq
 31d128100386f840b85484372e4c0ddb  source/getip
 e6858c18ef7499b24b2fb17e08f52b4f  source/gitbrov
 68fbf75ef30ed2fa0509fa5950e854d2  source/gitsap
-3ecf9cd0cb799e180f6e798a0cf91bc8  source/gub
+6f46516ed748fd7d3e430eea3bc3a978  source/gub/completions
+ab618ab571a03ed73b9544fadd91255a  source/gub/gub
+53144157c8fadd0c8f14dc7d62cfc770  source/gub/gub.1.gz
 1e8602e4d82e5c39c8f45e3f050e09b6  source/kernelchk
 b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
 3ba785def282d6b77545cd0ed47f3516  source/lsbins/completions
@@ -37,7 +39,7 @@ a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
 642b9f0f1e4f019005e0b4aaeffc90c2  source/ubuchk/screenshots/Screenshot_2020-03-10_00:59:02.jpg
 74b581699b015a099c4b49f35b5c36dd  source/ubuchk/ubuchk
-07aefddb851221ccee61dc9e69b1bd8c  source/ubuchk/ubuchk.8.gz
+f13c236ac6410fe9ff2e244c4358819f  source/ubuchk/ubuchk.8.gz
 40f7206e9177df6cdfd06127190d7c8e  source/ubuchk/ubuchk-db
 905bd1b2f302cf46e1edcbedce174b0d  source/ubuchk/ubuchk-installer
 209d3c1907da506010a2dffaab6bb27b  source/vignify
