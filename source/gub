@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 16:17:45 GMT 2020
+# Last Change       - Mon 16 Mar 16:19:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ close($FH);
 
 Err(1, 'Unable to find USER.') unless $Found eq 'true';
 
-my ($HomeMode, $HomeOwner, $HomeGroup) = (stat("/home/$Target"))[2,4,5];
+my ($HomeMode, $HomeOwner, $HomeGroup) = (stat($HomeDir))[2,4,5];
 $HomeMode = sprintf('%04o', $HomeMode & 07777);
 
 chomp(my $HomeSize = (split(' ', `du -sh '$HomeDir' 2> /dev/null`))[0]);
