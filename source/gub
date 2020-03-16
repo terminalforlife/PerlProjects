@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 04:56:54 GMT 2020
+# Last Change       - Mon 16 Mar 05:04:55 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #
 # Features:
 #
-# N/A
+#TODO: Approach HOME usage without du(1) command.
 #
 # Bugs:
 #
