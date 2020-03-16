@@ -3,11 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 05:17:37 GMT 2020
+# Last Change       - Mon 16 Mar 16:17:45 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# Administrative utility to [g]rab various [b]its of [u]ser information.
+# Administrative utility to [g]rab various [b]its of [u]ser information. This
+# is still more or less skeletal. I'd like to add more features to this, as it
+# is kind of bland right now, but as it is, I can see it being somewhat useful.
 #
 # Features:
 #
