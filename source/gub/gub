@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 17:46:44 GMT 2020
+# Last Change       - Mon 16 Mar 17:48:21 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -49,7 +49,7 @@ sub Usage{
 
 my $Parseable;
 
-my $BashAliases = '<N/A>';          $BashFunctions = '<N/A>';
+my $BashAliases = '<N/A>';          my $BashFunctions = '<N/A>';
 my $BashHistory = '<N/A>';          my $BashRC = '<N/A>';
 my $DeadLetter = '<N/A>';           my $EGID = '<N/A>';
 my $EUID = '<N/A>';                 my $GID = '<N/A>';
