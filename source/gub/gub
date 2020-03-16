@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 16:57:39 GMT 2020
+# Last Change       - Mon 16 Mar 17:46:44 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -49,23 +49,16 @@ sub Usage{
 
 my $Parseable;
 
-my $BashAliases = '<N/A>';
-my $BashFunctions = '<N/A>';
-my $BashHistory = '<N/A>';
-my $BashRC = '<N/A>';
-my $DeadLetter = '<N/A>';
-my $EGID = '<N/A>';
-my $EUID = '<N/A>';
-my $GID = '<N/A>';
-my $HomeDir = '<N/A>';
-my $HomeSize = '<N/A>';
-my $Name = '<N/A>';
-my $Profile = '<N/A>';
-my $SAAS = '<N/A>';
-my $SSHDir = '<N/A>';
-my $Shell = '<N/A>';
-my $UID = '<N/A>';
-my $XAuthority = '<N/A>';
+my $BashAliases = '<N/A>';          $BashFunctions = '<N/A>';
+my $BashHistory = '<N/A>';          my $BashRC = '<N/A>';
+my $DeadLetter = '<N/A>';           my $EGID = '<N/A>';
+my $EUID = '<N/A>';                 my $GID = '<N/A>';
+my $HomeDir = '<N/A>';              my $HomeGroup = '<N/A>';
+my $HomeMode = '<N/A>';             my $HomeOwner = '<N/A>';
+my $HomeSize = '<N/A>';             my $Name = '<N/A>';
+my $Profile = '<N/A>';              my $SAAS = '<N/A>';
+my $SSHDir = '<N/A>';               my $Shell = '<N/A>';
+my $UID = '<N/A>';                  my $XAuthority = '<N/A>';
 my $XSessionErrs = '<N/A>';
 
 while (defined($ARGV[0])){
@@ -111,7 +104,11 @@ close($FH);
 
 Err(1, 'Unable to find USER.') unless $Found eq 'true';
 
-my ($HomeMode, $HomeOwner, $HomeGroup) = (stat($HomeDir))[2,4,5];
+my ($HomeModeRaw, $HomeOwnerRaw, $HomeGroupRaw) = (stat($HomeDir))[2,4,5];
+$HomeMode = $HomeModeRaw unless length($HomeModeRaw) == 0;
+$HomeOwner = $HomeOwnerRaw unless length($HomeOwnerRaw) == 0;
+$HomeGroup = $HomeGroupRaw unless length($HomeGroupRaw) == 0;
+
 $HomeMode = sprintf('%04o', $HomeMode & 07777);
 
 if (-x $HomeDir){
