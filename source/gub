@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 16:45:54 GMT 2020
+# Last Change       - Mon 16 Mar 16:52:54 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -40,8 +40,11 @@ sub Usage{
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  -p, --parseable          - Show more parseable text.
 	} =~ tr/\t//dr)
 }
+
+my $Parseable;
 
 my $BashAliases = '<N/A>';
 my $BashFunctions = '<N/A>';
@@ -67,6 +70,8 @@ while (defined($ARGV[0])){
 		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
+	}elsif ($ARGV[0] =~ '^(--parseable|-p)$'){
+		$Parseable = 'true'
 	}elsif ($ARGV[0] =~ '^-'){
 		Err(1, "Incorrect option(s) specified.")
 	}else{
@@ -101,6 +106,7 @@ while (<$FH>){
 close($FH);
 
 Err(1, 'Unable to find USER.') unless $Found eq 'true';
+Err(1, 'Only one user at a time is valid.') unless @ARGV == 1;
 
 my ($HomeMode, $HomeOwner, $HomeGroup) = (stat($HomeDir))[2,4,5];
 $HomeMode = sprintf('%04o', $HomeMode & 07777);
@@ -169,29 +175,53 @@ if (-x $HomeDir){
 	}
 }
 
-print(qq{      Target_User: $Target
-        Full_Name: $Name
+unless ($Parseable eq 'true'){
+	print(qq{      Target User: $Target
+	        Full Name: $Name
 
-     Real_User_ID: $UID
-    Real_Group_ID: $GID
+	     Real User ID: $UID
+	    Real Group ID: $GID
 
-            Shell: $Shell
+	            Shell: $Shell
 
-         Home_Dir: $HomeDir
-        Home_Mode: $HomeMode
-        Home_Size: $HomeSize
-       Home_Group: $HomeGroup
-       Home_Owner: $HomeOwner
+	         Home Dir: $HomeDir
+	        Home Mode: $HomeMode
+	        Home Size: $HomeSize
+	       Home Group: $HomeGroup
+	       Home Owner: $HomeOwner
 
-          Bash_RC: $BashRC
-          Profile: $Profile
-     Bash_Aliases: $BashAliases
-     Bash_History: $BashHistory
-   Bash_Functions: $BashFunctions
+	          Bash RC: $BashRC
+	          Profile: $Profile
+	     Bash Aliases: $BashAliases
+	     Bash History: $BashHistory
+	   Bash Functions: $BashFunctions
 
-          SSH_Dir: $SSHDir
-      Dead_Letter: $DeadLetter
-      X_Authority: $XAuthority
-    Sudo_as_Admin: $SAAS
- X_Session_Errors: $XSessionErrs
-} =~ tr/\t//dr)
+	          SSH Dir: $SSHDir
+	      Dead Letter: $DeadLetter
+	      X Authority: $XAuthority
+	    Sudo as Admin: $SAAS
+	 X Session Errors: $XSessionErrs
+	} =~ tr/\t//dr)
+}else{
+	print(qq{Target_User=$Target
+		Full_Name=$Name
+		Real_User_ID=$UID
+		Real_Group_ID=$GID
+		Shell=$Shell
+		Home_Dir=$HomeDir
+		Home_Mode=$HomeMode
+		Home_Size=$HomeSize
+		Home_Group=$HomeGroup
+		Home_Owner=$HomeOwner
+		Bash_RC=$BashRC
+		Profile=$Profile
+		Bash_Aliases=$BashAliases
+		Bash_History=$BashHistory
+		Bash_Functions=$BashFunctions
+		SSH_Dir=$SSHDir
+		Dead_Letter=$DeadLetter
+		X_Authority=$XAuthority
+		Sudo_as_Admin=$SAAS
+		X_Session_Errors=$XSessionErrs
+	} =~ tr/\t//dr)
+}
