@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 16:24:19 GMT 2020
+# Last Change       - Mon 16 Mar 16:42:35 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,13 +42,24 @@ sub Usage{
 	} =~ tr/\t//dr)
 }
 
-my ($EUID, $EGID, $Name, $UID, $GID, $HomeDir, $Shell);
-
-my $SAAS = 'false';
-my $XSessionErrs = 'false';
-my $XAuthority = 'false';
-my $DeadLetter = 'false';
-my $SSHDir = 'false';
+my $BashAliases = '<N/A>';
+my $BashFunctions = '<N/A>';
+my $BashHistory = '<N/A>';
+my $BashRC = '<N/A>';
+my $DeadLetter = '<N/A>';
+my $EGID = '<N/A>';
+my $EUID = '<N/A>';
+my $GID = '<N/A>';
+my $HomeDir = '<N/A>';
+my $HomeSize = '<N/A>';
+my $Name = '<N/A>';
+my $Profile = '<N/A>';
+my $SAAS = '<N/A>';
+my $SSHDir = '<N/A>';
+my $Shell = '<N/A>';
+my $UID = '<N/A>';
+my $XAuthority = '<N/A>';
+my $XSessionErrs = '<N/A>';
 
 while (defined($ARGV[0])){
 	if ($ARGV[0] =~ '^(--help|-h)$'){
@@ -93,31 +104,93 @@ Err(1, 'Unable to find USER.') unless $Found eq 'true';
 my ($HomeMode, $HomeOwner, $HomeGroup) = (stat($HomeDir))[2,4,5];
 $HomeMode = sprintf('%04o', $HomeMode & 07777);
 
-chomp(my $HomeSize = (split(' ', `du -sh '$HomeDir' 2> /dev/null`))[0]);
+if (-x $HomeDir){
+	chomp($HomeSize = (split(' ', `du -sh '$HomeDir' 2> /dev/null`))[0]);
 
-$SAAS = 'true' if -f "$HomeDir/.sudo_as_admin_successful";
-$XSessionErrs = 'true' if -f "$HomeDir/.xsession-errors";
-$XAuthority = 'true' if -f "$HomeDir/.Xauthority";
-$DeadLetter = 'true' if -f "$HomeDir/dead.letter";
-$SSHDir = 'true' if -d "$HomeDir/.ssh";
+	if (-f "$HomeDir/.bash_functions"){
+		$BashFunctions = 'true'
+	}else{
+		$BashFunctions = 'false'
+	}
 
-print(qq{      Target User: $Target
-        Full Name: $Name
+	if (-f "$HomeDir/.bash_history"){
+		$BashHistory = 'true'
+	}else{
+		$BashHistory = 'false'
+	}
 
-     Real User ID: $UID
-    Real Group ID: $GID
+	if (-f "$HomeDir/.bash_aliases"){
+		$BashAliases = 'true'
+	}else{
+		$BashAliases = 'false'
+	}
+
+	if (-f "$HomeDir/.profile"){
+		$Profile = 'true'
+	}else{
+		$Profile = 'false'
+	}
+
+	if (-f "$HomeDir/.bashrc"){
+		$BashRC = 'true'
+	}else{
+		$BashRC = 'false'
+	}
+
+	if (-f "$HomeDir/.sudo_as_admin_successful"){
+		$SAAS = 'true'
+	}else{
+		$SAAS = 'false'
+	}
+
+	if (-f "$HomeDir/.xsession-errors"){
+		$XSessionErrs = 'true'
+	}else{
+		$XSessionErrs = 'false'
+	}
+
+	if (-f "$HomeDir/.Xauthority"){
+		$XAuthority = 'true'
+	}else{
+		$XAuthority = 'false'
+	}
+
+	if (-f "$HomeDir/dead.letter"){
+		$DeadLetter = 'true'
+	}else{
+		$DeadLetter = 'false'
+	}
+
+	if (-d "$HomeDir/.ssh"){
+		$SSHDir = 'true'
+	}else{
+		$SSHDir = 'false'
+	}
+}
+
+print(qq{      Target_User: $Target
+        Full_Name: $Name
+
+     Real_User_ID: $UID
+    Real_Group_ID: $GID
 
             Shell: $Shell
 
-          HomeDir: $HomeDir
-             Size: $HomeSize
-             Mode: $HomeMode
-            Owner: $HomeOwner
-            Group: $HomeGroup
+         Home_Dir: $HomeDir
+        Home_Mode: $HomeMode
+        Home_Size: $HomeSize
+       Home_Group: $HomeGroup
+       Home_Owner: $HomeOwner
 
-      Dead Letter: $DeadLetter
-    Sudo as Admin: $SAAS
- X Session Errors: $XSessionErrs
-      X Authority: $XAuthority
-           SSHDir: $SSHDir
+          Bash_RC: $BashRC
+          Profile: $Profile
+     Bash_Aliases: $BashAliases
+     Bash_History: $BashHistory
+   Bash_Functions: $BashFunctions
+
+          SSH_Dir: $SSHDir
+      Dead_Letter: $DeadLetter
+      X_Authority: $XAuthority
+    Sudo_as_Admin: $SAAS
+ X_Session_Errors: $XSessionErrs
 } =~ tr/\t//dr)
