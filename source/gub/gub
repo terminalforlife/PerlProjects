@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Mon 16 Mar 17:48:21 GMT 2020
+# Last Change       - Tue 17 Mar 21:24:11 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,6 +15,7 @@
 #
 # Features:
 #
+#TODO: Add check for password expiration.
 #TODO: Add man page for GUB.
 #TODO: Approach HOME usage without du(1) command.
 #TODO: Tidy up the file and/or directory checks.
@@ -36,7 +37,7 @@ use TFL 'Err';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-16';
+my $CurVer = '2020-03-17';
 
 sub Usage{
 	print(qq{Usage: $TFL::PROGNAME [OPTS] [USER]
