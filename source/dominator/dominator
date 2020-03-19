@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 02:29:44 GMT 2020
+# Last Change       - Thu 19 Mar 15:40:58 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -26,6 +26,7 @@
 #TODO: Add Subfinder support.
 #TODO: Add Wayback support.
 #TODO: Add man page.
+#TODO: Is there any way to speed up Wayback? It's super slow! (site-side)
 #
 # Bugs:
 #
@@ -62,7 +63,8 @@ sub Usage{
 my @Methods;
 
 my @ValidMethods = (
-	'CRT'                        # URL: https://crt.sh
+	'CRT',                       # URL: https://crt.sh
+	'Wayback'                    # URL: http://web.archive.org
 );
 
 while (defined($ARGV[0])){
@@ -100,7 +102,8 @@ Err(1, "Invalid domain.") unless $ARGV[0] =~ '^[[:alnum:][:punct:]]+$';
 my $Target = $ARGV[0];
 
 my %URL = (
-	'CRT' => "https://crt.sh/?q=$Target&output=json&exclude=expired"
+	'CRT' => "https://crt.sh/?q=$Target&output=json&exclude=expired",
+	'Wayback' => "https://web.archive.org/cdx/search/cdx?url=*.$Target&output=txt&fl=original&collapse=urlkey&page="
 );
 
 my $UA = LWP::UserAgent->new(
@@ -132,5 +135,25 @@ if (grep({$_ eq 'CRT'} @Methods)){
 		}
 	}else{
 		Err(1, "Fetching domains via 'crt.sh' failed.")
+	}
+}
+
+#---------------------------------------------------------------Method: Wayback
+
+if (grep({$_ eq 'Wayback'} @Methods)){
+	my $Data = $UA->get($URL{'Wayback'});
+
+	if ($Data->is_success()){
+		my ($Domain, @Domains);
+		foreach (split("\n", $Data->decoded_content())){
+			chomp(my $Domain = (split('/'))[2] =~ s/:[[:digit:]]+$//r);
+			push(@Domains, $Domain) unless grep({$_ eq $Domain} @Domains)
+		}
+
+		foreach (sort(@Domains)){
+			print("$_\n")
+		}
+	}else{
+		Err(1, "Fetching domains via 'web.archive.org' failed.")
 	}
 }
