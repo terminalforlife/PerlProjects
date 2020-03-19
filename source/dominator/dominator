@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 01:10:00 GMT 2020
+# Last Change       - Thu 19 Mar 02:13:05 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -30,6 +30,7 @@
 use strict;
 use warnings;
 use autodie;
+use JSON::PP 'decode_json';
 use LWP::UserAgent;
 use TFL 'Err';
 
@@ -38,18 +39,37 @@ no warnings 'uninitialized';
 my $CurVer = '2020-03-19';
 
 sub Usage{
-	print(qq{Usage: $TFL::PROGNAME [OPTS]
+	print(qq{Usage: $TFL::PROGNAME [OPTS] [DOMAIN]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  -m, --methods M[,M ...]  - Methods by which to list domains.
 	} =~ tr/\t//dr)
 }
+
+my @Methods;
+
+my @ValidMethods = (
+	'CRT'                        # URL: https://crt.sh
+);
 
 while (defined($ARGV[0])){
 	if ($ARGV[0] =~ '^(--help|-h)$'){
 		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
+	}elsif ($ARGV[0] =~ '^(--methods|-m)$'){
+		my $Method = $ARGV[1];
+
+		Err(1, "Option '$ARGV[0]' requires an argument.")
+			if length($Method) == 0;
+
+		Err(1, "Option '$ARGV[0]' requires an argument.")
+			unless grep({$Method eq $_} @ValidMethods);
+
+		push(@Methods, $ARGV[1]);
+
+		shift()
 	}elsif ($ARGV[0] =~ '^-'){
 		Err(1, "Incorrect option(s) specified.")
 	}else{
@@ -59,4 +79,44 @@ while (defined($ARGV[0])){
 	shift()
 }
 
+Err(1, "Domain required -- see: $TFL::PROGNAME -h") if @ARGV == 0;
+Err(1, "Argument overflow -- see: $TFL::PROGNAME -h") if @ARGV > 1;
 
+# Try to catch non-printables, tabs, whitespaces, newlines, etc.
+Err(1, "Invalid domain.") unless $ARGV[0] =~ '^[[:alnum:][:punct:]]+$';
+
+my $Target = $ARGV[0];
+
+my %URL = (
+	'CRT' => "https://crt.sh/?q=$Target&output=json&exclude=expired"
+);
+
+my $UA = LWP::UserAgent->new(
+	'agent' => 'Mozilla/5.0',
+	'protocols_allowed' => ['http', 'https'],
+	'max_redirect' => 1,
+	'timeout' => 3
+);
+
+if (grep({$_ eq 'CRT'} @Methods)){
+	my $Data = $UA->get($URL{'CRT'});
+
+	if ($Data->is_success()){
+		my $JSON = decode_json(scalar($Data->decoded_content()));
+
+		my @Domains;
+		while (our $I <= length($JSON)){
+			push(@Domains, split("\n", $JSON->[$I++]{name_value}))
+		}
+
+		my ($Old, $Domain);
+		foreach (sort(@Domains)){
+			$Domain = $_ =~ s/^\*\.//r;
+			next if $Old eq $Domain;
+			printf("%s\n", $Domain);
+			$Old = $Domain
+		}
+	}else{
+		Err(1, "Fetching domains via 'crt.sh' failed.")
+	}
+}
