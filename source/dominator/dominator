@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 02:18:25 GMT 2020
+# Last Change       - Thu 19 Mar 02:23:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,7 +21,6 @@
 #TODO: Add Findomain support.
 #TODO: Add Subfinder support.
 #TODO: Add Wayback support.
-#TODO: Add bash(1) completion support.
 #TODO: Add man page.
 #
 # Bugs:
