@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 15:40:58 GMT 2020
+# Last Change       - Thu 19 Mar 16:02:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ sub Usage{
 	} =~ tr/\t//dr)
 }
 
-my @Methods;
+my (@Methods, @AllDomains);
 
 my @ValidMethods = (
 	'CRT',                       # URL: https://crt.sh
@@ -73,15 +73,16 @@ while (defined($ARGV[0])){
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
 	}elsif ($ARGV[0] =~ '^(--methods|-m)$'){
-		my $Method = $ARGV[1];
+		my @Args = split(',', $ARGV[1]);
 
-		Err(1, "Option '$ARGV[0]' requires an argument.")
-			if length($Method) == 0;
+		Err(1, "Option '$ARGV[0]' requires an argument.") if @Args == 0;
 
-		Err(1, "Option '$ARGV[0]' requires an argument.")
-			unless grep({$Method eq $_} @ValidMethods);
+		foreach my $CurMethod (@Args){
+			Err(1, "Invalid method '$CurMethod' detected.")
+				unless grep({$CurMethod eq $_} @ValidMethods);
 
-		push(@Methods, $ARGV[1]);
+			push(@Methods, $CurMethod);
+		}
 
 		shift()
 	}elsif ($ARGV[0] =~ '^-'){
@@ -121,17 +122,9 @@ if (grep({$_ eq 'CRT'} @Methods)){
 	if ($Data->is_success()){
 		my $JSON = decode_json(scalar($Data->decoded_content()));
 
-		my @Domains;
 		while (our $I <= length($JSON)){
-			push(@Domains, split("\n", $JSON->[$I++]{name_value}))
-		}
-
-		my ($Old, $Domain);
-		foreach (sort(@Domains)){
-			$Domain = $_ =~ s/^\*\.//r;
-			next if $Old eq $Domain;
-			printf("%s\n", $Domain);
-			$Old = $Domain
+			my $CurDomain = $JSON->[$I++]{name_value} =~ s/^\*\.//r;
+			push(@AllDomains, split("\n", $CurDomain))
 		}
 	}else{
 		Err(1, "Fetching domains via 'crt.sh' failed.")
@@ -144,16 +137,21 @@ if (grep({$_ eq 'Wayback'} @Methods)){
 	my $Data = $UA->get($URL{'Wayback'});
 
 	if ($Data->is_success()){
-		my ($Domain, @Domains);
+		my $Domain;
 		foreach (split("\n", $Data->decoded_content())){
 			chomp(my $Domain = (split('/'))[2] =~ s/:[[:digit:]]+$//r);
-			push(@Domains, $Domain) unless grep({$_ eq $Domain} @Domains)
-		}
-
-		foreach (sort(@Domains)){
-			print("$_\n")
+			push(@AllDomains, $Domain) unless grep({$_ eq $Domain} @AllDomains)
 		}
 	}else{
 		Err(1, "Fetching domains via 'web.archive.org' failed.")
 	}
+}
+
+#---------------------------------------------------------------------Summarize
+
+my $Old;
+foreach (sort(@AllDomains)){
+	next if $Old eq $_;
+	print("$_\n");
+	$Old = $_
 }
