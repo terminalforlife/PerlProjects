@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 02:24:37 GMT 2020
+# Last Change       - Thu 19 Mar 02:29:44 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,6 +12,9 @@
 # (Bash), by GitHub user `bing0o`.
 #
 #   https://github.com/bing0o/bash_scripting
+#
+# Without the above, Dominator would never be a thing, so cheers, `bing0o`, for
+# the inspiration and that which you've taught me through your projects.
 #
 # Features:
 #
