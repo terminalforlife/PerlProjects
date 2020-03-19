@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 16:02:12 GMT 2020
+# Last Change       - Thu 19 Mar 16:11:17 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -56,11 +56,12 @@ sub Usage{
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  -a, --all                - Use all methods by which to list domains.
 		  -m, --methods M[,M ...]  - Methods by which to list domains.
 	} =~ tr/\t//dr)
 }
 
-my (@Methods, @AllDomains);
+my ($DoAll, @Methods, @AllDomains);
 
 my @ValidMethods = (
 	'CRT',                       # URL: https://crt.sh
@@ -72,7 +73,12 @@ while (defined($ARGV[0])){
 		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
+	}elsif ($ARGV[0] =~ '^(--all|-a)$'){
+		$DoAll = 'true'
 	}elsif ($ARGV[0] =~ '^(--methods|-m)$'){
+		Err(1, "Conflict between '$ARGV[0]' and '--methods|-m' options.")
+			if $DoAll eq 'true';
+
 		my @Args = split(',', $ARGV[1]);
 
 		Err(1, "Option '$ARGV[0]' requires an argument.") if @Args == 0;
@@ -116,7 +122,7 @@ my $UA = LWP::UserAgent->new(
 
 #-------------------------------------------------------------------Method: CRT
 
-if (grep({$_ eq 'CRT'} @Methods)){
+if ($DoAll eq 'true' or grep({$_ eq 'CRT'} @Methods)){
 	my $Data = $UA->get($URL{'CRT'});
 
 	if ($Data->is_success()){
@@ -133,7 +139,7 @@ if (grep({$_ eq 'CRT'} @Methods)){
 
 #---------------------------------------------------------------Method: Wayback
 
-if (grep({$_ eq 'Wayback'} @Methods)){
+if ($DoAll eq 'true' or grep({$_ eq 'Wayback'} @Methods)){
 	my $Data = $UA->get($URL{'Wayback'});
 
 	if ($Data->is_success()){
