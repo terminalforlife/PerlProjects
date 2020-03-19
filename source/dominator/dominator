@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 02:13:05 GMT 2020
+# Last Change       - Thu 19 Mar 02:18:25 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,15 @@
 #
 # Features:
 #
-# N/A
+#TODO: Add ANSII color support, as a nod to the original.
+#TODO: Add Amass support.
+#TODO: Add Assetfinder support.
+#TODO: Add Bufferover support.
+#TODO: Add Findomain support.
+#TODO: Add Subfinder support.
+#TODO: Add Wayback support.
+#TODO: Add bash(1) completion support.
+#TODO: Add man page.
 #
 # Bugs:
 #
@@ -22,6 +30,7 @@
 #
 # Dependencies:
 #
+#   libjson-perl (>= 2.90-1)
 #   libtfl-perl (>= 2020-01-03)
 #   libwww-perl (>= 6.15-1)
 #   perl (>= 5.22.1-9)
@@ -97,6 +106,8 @@ my $UA = LWP::UserAgent->new(
 	'max_redirect' => 1,
 	'timeout' => 3
 );
+
+#-------------------------------------------------------------------Method: CRT
 
 if (grep({$_ eq 'CRT'} @Methods)){
 	my $Data = $UA->get($URL{'CRT'});
