@@ -3,12 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 02:23:16 GMT 2020
+# Last Change       - Thu 19 Mar 02:24:37 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# A Perl interpretation and revision of an interesting `domains.sh` program
-# (AKA: DomainEnum), written in Shell (Bash), by GitHub user `bing0o`.
+# Perl interpretation and revision of, and hopefully an improvement over, an
+# interesting `domains.sh` program (AKA: DomainEnum), written in Shell
+# (Bash), by GitHub user `bing0o`.
 #
 #   https://github.com/bing0o/bash_scripting
 #
