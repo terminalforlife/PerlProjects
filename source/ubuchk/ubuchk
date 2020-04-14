@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 14 Mar 03:41:33 GMT 2020
+# Last Change       - Tue 14 Apr 20:57:18 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-14';
+my $CurVer = '2020-04-14';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -1016,7 +1016,7 @@ if ($SSHServer eq 'true'){
 			unless (exists($Settings{$Key})){
 				Alert(
 					$AlertID1,
-					"SSH daemon key '$Key' may not assigned.",
+					"SSH daemon key '$Key' may not be assigned.",
 					"Recommended action is to assign it '$Target'."
 				)
 			}elsif ($Settings{$Key} ne $Target){
@@ -1032,7 +1032,7 @@ if ($SSHServer eq 'true'){
 		unless (exists($Settings{'Port'})){
 			Alert(
 				7541,
-				"SSH daemon key 'Port' may not assigned.",
+				"SSH daemon key 'Port' may not be assigned.",
 				"Recommended action is NOT to assign it '22'."
 			)
 		}elsif ($Settings{'Port'} eq 22){
@@ -1097,7 +1097,7 @@ if ($SystemD eq 'true'){
 			unless (exists($Settings{$Key})){
 				Alert(
 					$AlertID1,
-					"SystemD key '$Key' may not assigned.",
+					"SystemD key '$Key' may not be assigned.",
 					"Recommended action is to assign it '$Target'."
 				)
 			}elsif ($Settings{$Key} ne $Target){
