@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Mon 20 Apr 15:08:32 BST 2020
+# Last Change       - Mon 20 Apr 15:09:40 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ If you wish to push the battery to its limit, but still want to avoid data loss,
 Please use a search engine to look for the detected vulnerability and the version of Linux (the kernel) you're running. Chances are, lots of people are working on it across the board, and/or the threat is so low and specific that you needn't really worry.
 :7536
 The magic system request key is set to '0' by default in Debian (disables it). Setting it to '1' (enables it all); this could be considerably unwanted or even dangerous, if local mischief were possible.
-
+.
 However, this key can also be a handy method by which to recover a system or avoid data loss in the event of an otherwise unrecoverable crash. If the system is not a server and/or has no risk of local tampering, then feel free to ignore this alert.
 :9999,9998
 If set to '1', these parameters will prevent creating or following links under certain conditions. In Debian, these are both enabled by default.
