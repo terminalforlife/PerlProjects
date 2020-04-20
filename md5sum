@@ -40,8 +40,8 @@ a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 389749cf5834712b861bf8dfc4453f96  source/ubuchk/postrm
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
 642b9f0f1e4f019005e0b4aaeffc90c2  source/ubuchk/screenshots/Screenshot_2020-03-10_00:59:02.jpg
-74b581699b015a099c4b49f35b5c36dd  source/ubuchk/ubuchk
-f13c236ac6410fe9ff2e244c4358819f  source/ubuchk/ubuchk.8.gz
+99b0b741fed424369d22ab2ef8b0ffb0  source/ubuchk/ubuchk
+cf45b4390da91f429af6788caa6c861a  source/ubuchk/ubuchk.8.gz
 40f7206e9177df6cdfd06127190d7c8e  source/ubuchk/ubuchk-db
 905bd1b2f302cf46e1edcbedce174b0d  source/ubuchk/ubuchk-installer
 209d3c1907da506010a2dffaab6bb27b  source/vignify

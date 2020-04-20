@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue 14 Apr 20:57:18 BST 2020
+# Last Change       - Mon 20 Apr 14:57:44 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -51,10 +51,10 @@
 #TODO: Somehow check for reduction in SystemD log file, via journalctl(1).
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
-# Ports for which to add a check (omit leading zeroes):
+# Ports for which to add a check:
 #
-# 00114, 00145, 00465, 00511, 00600, 01008, 01524, 01978, 01999, 02881, 03049,
-# 03133, 03879, 04000, 04369, 05190, 05665, 06667, 07222, 10008, 12321, 23132,
+#   114,   145,   465,   511,   600,  1008,  1524,  1978,  1999,  2881,  3049,
+#  3133,  3879,  4000,  4369,  5190,  5665,  6667,  7222, 10008, 12321, 23132,
 # 27374, 29364, 30999, 31336, 31337, 37998, 45454, 47017, 47889, 60001
 #
 # Those ports can be found via the REGEX '[0-9:]443', with `netstat -tunla` or
@@ -63,6 +63,7 @@
 # Bugs:
 #
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Not checking for valid `Color_*` and `Char_*` keys.
 #TODO: Nothing at all happens (even `-V` flag does nothing) if empty `config`.
@@ -89,7 +90,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-04-14';
+my $CurVer = '2020-04-20';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -1956,7 +1957,7 @@ if ($RAM eq 'true'){
 		my $MUsed = ceil($BUsed / (1024 * 1024));
 		my $HumUsed = Human($BUsed);
 
-		if ($MUsed <= $MBMaxRAM){
+		if ($MUsed >= $MBMaxRAM){
 			Info("Using only $HumUsed of $HumTotal available RAM.")
 		}else{
 			Alert(
