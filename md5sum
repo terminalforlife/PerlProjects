@@ -35,7 +35,7 @@ ba9afb7dddd3e74ebe15aef61f9bd91b  source/TFL.pm
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
 ce4289686910260ba3428f56ac9f3049  source/ubuchk/config
-c8fa34cf9ba91887c2a794a862c4fe86  source/ubuchk/database
+c14bc051c80b2e906d7bfcabbc13fbbe  source/ubuchk/database
 a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 389749cf5834712b861bf8dfc4453f96  source/ubuchk/postrm
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
