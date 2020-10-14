@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 14 Oct 21:36:52 BST 2020
+# Last Change       - Wed 14 Oct 21:47:43 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -63,6 +63,14 @@
 # Bugs:
 #
 #TODO: Key overriding using OPT is ignored if key not found in config.
+#
+#      Simply assigning a default set of values (default config) would fix
+#      this, but it would be easier (not really, but more dynamic) to have
+#      UbuChk programmatically resort to the existing default config.
+#
+#      This bug and its potential resolution will likely be present and
+#      applicable in some similarly-written programs of mine, like TuDu.
+#
 #TODO: Error L0240 still shows post-SSH-login, despite overriding.
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
