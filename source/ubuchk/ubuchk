@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 14 Oct 20:20:04 BST 2020
+# Last Change       - Wed 14 Oct 20:21:49 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -51,10 +51,10 @@
 #TODO: Somehow check for reduction in SystemD log file, via journalctl(1).
 #TODO: Somehow handle the first digit in `stat()` mode.
 #
-# Ports for which to add a check (omit leading zeroes):
+# Ports for which to add a check:
 #
-# 00114, 00145, 00465, 00511, 00600, 01008, 01524, 01978, 01999, 02881, 03049,
-# 03133, 03879, 04000, 04369, 05190, 05665, 06667, 07222, 10008, 12321, 23132,
+#   114,   145,   465,   511,   600,  1008,  1524,  1978,  1999,  2881,  3049,
+#  3133,  3879,  4000,  4369,  5190,  5665,  6667,  7222, 10008, 12321, 23132,
 # 27374, 29364, 30999, 31336, 31337, 37998, 45454, 47017, 47889, 60001
 #
 # Those ports can be found via the REGEX '[0-9:]443', with `netstat -tunla` or
@@ -65,6 +65,7 @@
 #TODO: ShowTTL key override using OPT no-op if key not found in config.
 #TODO: Error L0240 still shows post-SSH-login, despite overriding.
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
+#TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Not checking for valid `Color_*` and `Char_*` keys.
 #TODO: Nothing at all happens (even `-V` flag does nothing) if empty `config`.
@@ -1018,7 +1019,7 @@ if ($SSHServer eq 'true'){
 			unless (exists($Settings{$Key})){
 				Alert(
 					$AlertID1,
-					"SSH daemon key '$Key' may not assigned.",
+					"SSH daemon key '$Key' may not be assigned.",
 					"Recommended action is to assign it '$Target'."
 				)
 			}elsif ($Settings{$Key} ne $Target){
@@ -1034,7 +1035,7 @@ if ($SSHServer eq 'true'){
 		unless (exists($Settings{'Port'})){
 			Alert(
 				7541,
-				"SSH daemon key 'Port' may not assigned.",
+				"SSH daemon key 'Port' may not be assigned.",
 				"Recommended action is NOT to assign it '22'."
 			)
 		}elsif ($Settings{'Port'} eq 22){
@@ -1099,7 +1100,7 @@ if ($SystemD eq 'true'){
 			unless (exists($Settings{$Key})){
 				Alert(
 					$AlertID1,
-					"SystemD key '$Key' may not assigned.",
+					"SystemD key '$Key' may not be assigned.",
 					"Recommended action is to assign it '$Target'."
 				)
 			}elsif ($Settings{$Key} ne $Target){
@@ -1958,7 +1959,7 @@ if ($RAM eq 'true'){
 		my $MUsed = ceil($BUsed / (1024 * 1024));
 		my $HumUsed = Human($BUsed);
 
-		if ($MUsed <= $MBMaxRAM){
+		if ($MUsed >= $MBMaxRAM){
 			Info("Using only $HumUsed of $HumTotal available RAM.")
 		}else{
 			Alert(

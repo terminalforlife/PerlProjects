@@ -3,10 +3,12 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dominator/dominator
 # Started On        - Thu 19 Mar 01:01:47 GMT 2020
-# Last Change       - Thu 19 Mar 16:22:50 GMT 2020
+# Last Change       - Mon 20 Apr 15:12:14 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
+# BUGGY AND INCOMPLETE. This is not yet suitable for production.
+#
 # Perl interpretation and revision of, and hopefully an improvement over, an
 # interesting `domains.sh` program (AKA: DomainEnum), written in Shell
 # (Bash), by GitHub user `bing0o`.
@@ -48,7 +50,7 @@ use TFL 'Err';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-19';
+my $CurVer = '2020-04-20';
 
 sub Usage{
 	print(qq{Usage: $TFL::PROGNAME [OPTS] [DOMAIN]

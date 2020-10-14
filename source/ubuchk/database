@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Mon  9 Mar 00:00:55 GMT 2020
+# Last Change       - Mon 20 Apr 15:09:40 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ Ignore pings.
 .
 Refer to the default: `/etc/sysctl.conf`
 :9623
-Restrict what users can garner from the kernel log.
+Restrict what users can garner from the kernel log. Due to the very sensitive and critical nature of the kernel, not to mention everything to which it has full access, it's almost always better to limit what users can glean from it.
 :8560
 Mentioned over at the kernel hardening security section of Arch Wikki:
 .
@@ -151,6 +151,8 @@ If you wish to push the battery to its limit, but still want to avoid data loss,
 Please use a search engine to look for the detected vulnerability and the version of Linux (the kernel) you're running. Chances are, lots of people are working on it across the board, and/or the threat is so low and specific that you needn't really worry.
 :7536
 The magic system request key is set to '0' by default in Debian (disables it). Setting it to '1' (enables it all); this could be considerably unwanted or even dangerous, if local mischief were possible.
+.
+However, this key can also be a handy method by which to recover a system or avoid data loss in the event of an otherwise unrecoverable crash. If the system is not a server and/or has no risk of local tampering, then feel free to ignore this alert.
 :9999,9998
 If set to '1', these parameters will prevent creating or following links under certain conditions. In Debian, these are both enabled by default.
 .
@@ -186,7 +188,7 @@ SystemD users should not use guest logins, because they're not "being confined",
 .
 https://bugs.launchpad.net/bugs/1663157
 :7125,7126,7127,7128,7129,7130,7131,7132,7133,7134,7135,7136,7137,7138,7139,7140,7141,7142,7143,7144,7145,7146,7147,7148,7149,7150,7151,7152,7153,7154,7155,7156,7157,7158,7159,7160,7161,7162,7163,7164,7165,7166,7167,7168,7169,7170,7171,7172,7173,7174,7175,7176,7177,7178,7179,7180,7181,7182,7183,7184,7185,7186,7187,7188,7189,7190,7191,7192,7193,7194
-A potential trojan, rootkit, or worm has been discovered. Do note, that this is strictly a potentiality, so before panic-deleting, look further into the possible infections by referring to your search engine and/or known credible sources.
+A potential Trojan, rootkit, or worm has been discovered. Do note, that this is strictly a potentiality, so before panic-deleting, look further into the possible infections by referring to your search engine and/or known credible sources.
 .
 For a general overview as to what these words even mean, check out the following link:
 .

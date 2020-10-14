@@ -11,7 +11,7 @@ d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 e60801be3c6edc04ccef4689644e62d5  source/cpufreq
 5d5a97c68842f53ccdec129ad52a46b7  source/dayborn
 fcfe8dd3c2445d02b21cb3411544e339  source/dominator/completions
-c5e16868b86da906a477ce89f36c9746  source/dominator/dominator
+6e1c43388a513d60b621701e820b6783  source/dominator/dominator
 2283fa9424dc1b1052d6ed4a2e88ac46  source/fix-ff-gtk
 76e87bd0e07353e7ad7deca910f4e36e  source/get-fma
 31d128100386f840b85484372e4c0ddb  source/getip
@@ -35,13 +35,13 @@ ba9afb7dddd3e74ebe15aef61f9bd91b  source/TFL.pm
 803731b8e071463cfd2dbc64c3d9d54f  source/tudu
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
 ce4289686910260ba3428f56ac9f3049  source/ubuchk/config
-c8fa34cf9ba91887c2a794a862c4fe86  source/ubuchk/database
+040e7df462449b5ae4f715060641c9c3  source/ubuchk/database
 a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 389749cf5834712b861bf8dfc4453f96  source/ubuchk/postrm
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
 642b9f0f1e4f019005e0b4aaeffc90c2  source/ubuchk/screenshots/Screenshot_2020-03-10_00:59:02.jpg
-74b581699b015a099c4b49f35b5c36dd  source/ubuchk/ubuchk
-f13c236ac6410fe9ff2e244c4358819f  source/ubuchk/ubuchk.8.gz
+0a99e32beb1998b06f19ddf1cb4a4b88  source/ubuchk/ubuchk
+cf45b4390da91f429af6788caa6c861a  source/ubuchk/ubuchk.8.gz
 40f7206e9177df6cdfd06127190d7c8e  source/ubuchk/ubuchk-db
 905bd1b2f302cf46e1edcbedce174b0d  source/ubuchk/ubuchk-installer
 209d3c1907da506010a2dffaab6bb27b  source/vignify
