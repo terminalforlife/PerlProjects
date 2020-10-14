@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 14 Mar 03:41:33 GMT 2020
+# Last Change       - Wed 14 Oct 20:20:04 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -62,6 +62,8 @@
 #
 # Bugs:
 #
+#TODO: ShowTTL key override using OPT no-op if key not found in config.
+#TODO: Error L0240 still shows post-SSH-login, despite overriding.
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Not checking for valid `Color_*` and `Char_*` keys.
@@ -89,7 +91,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-14';
+my $CurVer = '2020-10-14';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
