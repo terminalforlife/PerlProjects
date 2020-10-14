@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 14 Oct 20:21:49 BST 2020
+# Last Change       - Wed 14 Oct 21:36:52 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -62,7 +62,7 @@
 #
 # Bugs:
 #
-#TODO: ShowTTL key override using OPT no-op if key not found in config.
+#TODO: Key overriding using OPT is ignored if key not found in config.
 #TODO: Error L0240 still shows post-SSH-login, despite overriding.
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
@@ -478,7 +478,6 @@ if (-f -r -T $ConfigFile){
 	while (<$FH>){
 		chomp(my ($Key, $Value) = split('='));
 		next if /^(#|$)/;
-
 
 		# If the current key was provided to the `--key|-k` option, then
 		# override the user's configuration file for this key.
