@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Mon 20 Apr 15:09:40 BST 2020
+# Last Change       - Wed 14 Oct 21:28:08 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -122,7 +122,7 @@ It's recommended for the `~/.ssh` directory itself have permissions of no more t
 .
   -- George MGeorge M, April 23rd, 2012, on unix.stackexchange.com
 :4612
-A disk is almost full. Hunt down some stuff you don't need, then remove it. You could also make a backup somewhere, then delete the backed-up files. There are many ways in which to save disk space, so you'll have plenty of options available to you. You could even resort to compression via archives, such as Tar, Zip, 7Zip, etc.
+A disk is almost full. Hunt down some stuff you don't need, then remove it. You could also make a backup somewhere, then delete the backed-up files. There are many ways in which to save disk space, so you'll have plenty of options available to you. You could even resort to compression formats via archiving utilities.
 :5436
 The `/boot` directory typically contains important and potentially sensitive boot information, the knowledge of which could theoretically provide a hacker or would-be nuisance with ammunition.
 .
