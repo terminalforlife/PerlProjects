@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 14 Oct 21:47:43 BST 2020
+# Last Change       - Thu 15 Oct 03:11:15 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -72,6 +72,10 @@
 #      applicable in some similarly-written programs of mine, like TuDu.
 #
 #TODO: Error L0240 still shows post-SSH-login, despite overriding.
+#
+#      In this case, UbuChk is called from '~/.bashrc', sans any OPTs. It all
+#      works just fine after that initial login, though.
+#
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
@@ -80,7 +84,6 @@
 #TODO: Potentially `UnwantedPKGs` are not being detected, despite existing.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
-#TODO: The user's generated `config` file shouldn't have (global) Cito line.
 #
 # Dependencies:
 #
@@ -100,7 +103,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-10-14';
+my $CurVer = '2020-10-15';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -214,6 +217,7 @@ while (defined($ARGV[0])){
 
 #---------------------------------------------------------------OS & LSB Checks
 
+#TODO: How will this be properly detected if configuration option is used? Duh.
 unless ($ForceRun eq 'true'){
 	if ($^O ne 'linux'){
 		# Second & final chance to determine the OS type.
@@ -730,12 +734,19 @@ if (-f -r -T $ConfigFile){
 	FErr(1, __LINE__, "Key conflict with 'BatCrit' and 'BatLow'.")
 		if $Laptop eq 'true' and $BatCrit >= $BatLow
 }else{
-	use File::Copy 'copy';
-
 	if (-f $DefaultConfigFile){
 		FileChk($DefaultConfigFile);
-		copy($DefaultConfigFile, $ConfigFile)
-			or FErr(1, __LINE__, "Failed to generate a configuration file.");
+
+		# Store contents into buffer, sans initial and now-unneeded Cito line.
+		open(my $FH, '<', $DefaultConfigFile);
+		my @Buffer = <$FH>;
+		my @Corrected = @Buffer[1..@Buffer];
+		close($FH);
+
+		# Write to new user's-own config file.
+		open($FH, '>', $ConfigFile);
+		print($FH @Corrected);
+		close($FH);
 
 		printf("File '~/.config/$TFL::PROGNAME/config' generated -- reload me.\n");
 		exit(0)
