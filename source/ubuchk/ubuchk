@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 15 Oct 04:21:21 BST 2020
+# Last Change       - Thu 15 Oct 04:33:06 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -2016,7 +2016,7 @@ if ($RAM eq 'true'){
 		my $MUsed = ceil($BUsed / (1024 * 1024));
 		my $HumUsed = Human($BUsed);
 
-		if ($MUsed >= $MBMaxRAM){
+		if ($MUsed <= $MBMaxRAM){
 			Info("Using only $HumUsed of $HumTotal available RAM.")
 		}else{
 			Alert(
