@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 15 Oct 03:17:27 BST 2020
+# Last Change       - Thu 15 Oct 03:39:50 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -80,9 +80,10 @@
 #TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Not checking for valid `Color_*` and `Char_*` keys.
-#TODO: Nothing at all happens (even `-V` flag does nothing) if empty `config`.
 #TODO: Potentially `UnwantedPKGs` are not being detected, despite existing.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
+#
+#      Not sure if this is still applicable, as I've yet to notice this since.
 #
 # Dependencies:
 #
@@ -840,6 +841,8 @@ if ($KernParams eq 'true'){
 			"Recommended value is '$GoodValue'."
 		) if $Value != $GoodValue
 	}
+}else{
+	Info("Ignoring kernel parameters.")
 }
 
 #--------------------------------------------------PATH Permissions & Ownership
@@ -888,6 +891,8 @@ if ($PathPerms eq 'true'){
 		# This would have to be some seriously bizarre edge-case.
 		Info("Missing prerequisites -- skipping 'PathPerms' key.")
 	}
+}else{
+	Info("Ignoring PATH permissions & ownership.")
 }
 
 #-----------------------------------------------------Packages Yet to Be Purged
@@ -902,6 +907,8 @@ if ($PurgeChk eq 'true'){
 	) foreach @NotPurged;
 
 	Info('No packages were found unpurged.') if @NotPurged == 0
+}else{
+	Info("Ignoring any unpurged packages.")
 }
 
 #-----------------------------------------------------------APT Security Tweaks
@@ -958,6 +965,8 @@ if ($HardAPT eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'HardAPT' key.")
 	}
+}else{
+	Info("Ignoring APT configuration.")
 }
 
 #--------------------------------------------------------------------SSH Client
@@ -992,6 +1001,8 @@ if ($SSHClient eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'SSHClient' key.")
 	}
+}else{
+	Info("Ignoring SSH permissions & settings.")
 }
 
 #--------------------------------------------------------------------SSH Server
@@ -1065,6 +1076,8 @@ if ($SSHServer eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'SSHServer' key.")
 	}
+}else{
+	Info("Ignoring whether SSH server is present.")
 }
 
 #---------------------------------------------------------Packages Best Avoided
@@ -1079,6 +1092,8 @@ if (@UnwantedPKGs > 0){
 			"Suggested action is to uninstall the package(s)."
 		) if grep({($_ =~ m/(.*)(?::.*)/)[0] eq $CurPKG} @Installed)
 	}
+}else{
+	Info("Ignoring any unwanted packages.")
 }
 
 #----------------------------------------------------------------SystemD Tweaks
@@ -1131,6 +1146,8 @@ if ($SystemD eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'SystemD' key.")
 	}
+}else{
+	Info("Ignoring SystemD-related tweaks.")
 }
 
 #----------------------------------------------------------------Kernel Modules
@@ -1188,6 +1205,8 @@ if ($KernMods eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'KernMods' key.")
 	}
+}else{
+	Info("Ignoring kernel modules.")
 }
 
 #--------------------------------------------------------Check Filesystem Sizes
@@ -1234,6 +1253,8 @@ if ($DiskSpace eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'DiskSpace' key.")
 	}
+}else{
+	Info("Ignoring disk space availability.")
 }
 
 #----------------------Specific File & Directory Permissions, Group & Ownership
@@ -1271,6 +1292,8 @@ if ($DirPerms eq 'true'){
 			"Recommended GID is '$TargetGID'."
 		) unless $Group == $TargetGID;
 	}
+}else{
+	Info("Ignoring special file permissions & ownership.")
 }
 
 #-----------------------------------------------------------------Laptop Checks
@@ -1360,6 +1383,8 @@ if ($Laptop eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'Laptop' key.")
 	}
+}else{
+	Info("Ignoring tweaks for a portable machine.")
 }
 
 #------------------------------------------------------CPU Marked as Vulnerable
@@ -1405,6 +1430,8 @@ if ($ProcVuln eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'ProcVuln' key.")
 	}
+}else{
+	Info("Ignoring any CPU vulnerabilities.")
 }
 
 #--------------------------------------------------------Mount Options for HOME
@@ -1460,6 +1487,8 @@ if ($MountHome eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'MountHome' key.")
 	}
+}else{
+	Info("Ignoring any HOME mount options.")
 }
 
 #---------------------------------------------------------CPU Core Temperatures
@@ -1532,6 +1561,8 @@ if ($CPUTemp eq 'true'){
 			}
 		}
 	}
+}else{
+	Info("Ignoring CPU temperatures.")
 }
 
 #----------------------------------------------------------APT Cache Disk Usage
@@ -1580,6 +1611,8 @@ if ($AptCache eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'AptCache' key.")
 	}
+}else{
+	Info("Ignoring APT cache disk usage.")
 }
 
 #-----------------------------------------------------------------------LightDM
@@ -1627,6 +1660,8 @@ if ($LightDM eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'LightDM' key.")
 	}
+}else{
+	Info("Ignoring any LightDM configurations.")
 }
 
 #----------------------------------------------------------RootKits, Worms, etc
@@ -1743,6 +1778,8 @@ if ($RootKits eq 'true'){
 	}
 
 	Info("File '$_' discovered.") foreach sort(@BadFiles)
+}else{
+	Info("Ignoring rootkits, detected or not.")
 }
 
 #------------------------------------------------------------------User's Cache
@@ -1772,6 +1809,8 @@ if ($HomeCache eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'HomeCache' key.")
 	}
+}else{
+	Info("Ignoring user's own general cache.")
 }
 
 #-------------------------------------------------------------User's Thumbnails
@@ -1801,6 +1840,8 @@ if ($Thumbnails eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'Thumbnails' key.")
 	}
+}else{
+	Info("Ignoring user's own thumbnail cache.")
 }
 
 #------------------------------------------------------------DPKG Configuration
@@ -1847,6 +1888,8 @@ if ($DpkgConf eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'DpkgConf' key.")
 	}
+}else{
+	Info("Ignoring any DPKG configurations.")
 }
 
 #-------------------------------------------------------------------------Swaps
@@ -1927,6 +1970,8 @@ if ($Swaps eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'Swaps' key.")
 	}
+}else{
+	Info("Ignoring any Swap configurations.")
 }
 
 #---------------------------------------------------------------------------RAM
@@ -1988,6 +2033,8 @@ if ($RAM eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'RAM' key.")
 	}
+}else{
+	Info("Ignoring RAM availability.")
 }
 
 #------------------------------------------------------------------CMOS Battery
@@ -2019,6 +2066,8 @@ if ($CMOS eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'CMOS' key.")
 	}
+}else{
+	Info("Ignoring any CMOS battery.")
 }
 
 #-------------------------------------------------------------------/etc/passwd
@@ -2086,6 +2135,8 @@ if ($ChkPasswd eq 'true'){
 		Info("Missing prerequisites -- skipping 'ID0NonRoots' key.")
 			if $ID0NonRoots eq 'true'
 	}
+}else{
+	Info("Ignoring system's passwd file.")
 }
 
 #--------------------------------------------------------SystemD Units/Services
@@ -2116,6 +2167,8 @@ if ($UFW eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'UFW' key.")
 	}
+}else{
+	Info("Ignoring any installations of UFW.")
 }
 
 if ($AppArmor eq 'true'){
@@ -2144,6 +2197,8 @@ if ($AppArmor eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'AppArmor' key.")
 	}
+}else{
+	Info("Ignoring any installations of AppArmor.")
 }
 
 #---------------------------------------------------------Failed Login Attempts
@@ -2164,6 +2219,8 @@ if ($FailedLogins eq 'true'){
 	}else{
 		Info("Missing prerequisites -- skipping 'FailedLogins' key.")
 	}
+}else{
+	Info("Ignoring any failed login attempts.")
 }
 
 #------------------------------------------------------------------------Finish
@@ -2177,4 +2234,6 @@ if ($ShowTTL eq 'true'){
 		$ColorHash{'Color_AlertTTL'} . "$AlertCount" . color('reset') .
 		$ColorHash{'Color_AlertTTLText'} . " time(s).\n" . color('reset')
 	) if $AlertCount > 0;
+}else{
+	Info("Omitting display of total number of alerts.")
 }
