@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 15 Oct 03:11:15 BST 2020
+# Last Change       - Thu 15 Oct 03:17:27 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -83,7 +83,6 @@
 #TODO: Nothing at all happens (even `-V` flag does nothing) if empty `config`.
 #TODO: Potentially `UnwantedPKGs` are not being detected, despite existing.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
-#TODO: The APT keys are checking for word booleans only; 0/1 being ignored.
 #
 # Dependencies:
 #
