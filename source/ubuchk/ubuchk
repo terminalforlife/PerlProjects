@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Thu 15 Oct 03:39:50 BST 2020
+# Last Change       - Thu 15 Oct 04:21:21 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -71,16 +71,11 @@
 #      This bug and its potential resolution will likely be present and
 #      applicable in some similarly-written programs of mine, like TuDu.
 #
-#TODO: Error L0240 still shows post-SSH-login, despite overriding.
-#
-#      In this case, UbuChk is called from '~/.bashrc', sans any OPTs. It all
-#      works just fine after that initial login, though.
-#
 #TODO: Alerts and/or `Info()` calls are repeated for duplicate keys.
 #TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Not checking for valid `Color_*` and `Char_*` keys.
-#TODO: Potentially `UnwantedPKGs` are not being detected, despite existing.
+#TODO: Potentially, `UnwantedPKGs` are not being detected, despite existing.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #
 #      Not sure if this is still applicable, as I've yet to notice this since.
