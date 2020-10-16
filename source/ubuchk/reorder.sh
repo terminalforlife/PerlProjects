@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/reorder.sh
 # Started On        - Fri 16 Oct 00:53:36 BST 2020
-# Last Change       - Fri 16 Oct 00:54:49 BST 2020
+# Last Change       - Fri 16 Oct 02:15:04 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,15 +12,16 @@
 # new one, with each glob pattern being expanded, tidily.
 #
 # Chances are, you won't need to execute this. It makes no actual changes.
+#
+# NOTE: The first argument is the desired file on which to work.
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err';
 use File::Glob;
 
-open(my $FH, '<', 'ubuchk-rkdb');
+open(my $FH, '<', $ARGV[0]);
 my @OriginalData = <$FH>;
 close($FH);
 
