@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Fri 16 Oct 02:45:41 BST 2020
+# Last Change       - Fri 16 Oct 21:25:06 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -100,12 +100,22 @@ printf 'Fetching files from GitHub:\n'
 ErrCount=0
 for File in\
 \
-	'completions' 'config' 'database' 'ubuchk' 'ubuchk-db'\
-	'ubuchk.8.gz' 'database-rk'
+	'completions' 'config' 'database' 'database-rk' 'ubuchk'\
+	'ubuchk-db' 'ubuchk.8.gz'
 do
 	printf "* Downloading '%s' ... " "$File"
 	if $DLCMD "$TmpDir/$File" "$URL/$File" 2>> "$LogFile"; then
 		printf '\033[32m[OK]\033[0m\n'
+
+		printf '* Verifying file contents ... '
+		Contents=`cat "$TmpDir/$File"`
+		if [ "$(sed '1!d' "$TmpDir/$File")" = '404: Not Found' ]; then
+			ErrCount=$((ErrCount + 1))
+			printf '\033[31m[ERR]\033[0m\n'
+			rm "$TmpDir/$File" > /dev/null 2>&1
+		else
+			printf '\033[32m[OK]\033[0m\n'
+		fi
 	else
 		ErrCount=$((ErrCount + 1))
 		printf '\033[31m[ERR]\033[0m\n'
