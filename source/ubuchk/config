@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-03-12)
+# User configuration file for UbuChk (>= 2020-10-16)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
@@ -112,7 +112,7 @@ TempScale=C
 
 # RootKits, Worms, etc
 RootKits=true
-SkipRKs=
+IgnoreFile=
 
 # RAM & Swap
 MBMaxRAM=2048
