@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Fri 13 Mar 23:59:55 GMT 2020
+# Last Change       - Fri 16 Oct 02:45:41 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ SigHandler(){
 	fi
 
 	if [ -s "$LogFile" ]; then
-		printf "Done! -- errors logged in: '~${LogFile#$HOME}'\n"
+		printf "Done! -- errors logged in: '${LogFile#$HOME}'\n"
 	else
 		printf 'Done!\n'
 	fi
@@ -100,7 +100,8 @@ printf 'Fetching files from GitHub:\n'
 ErrCount=0
 for File in\
 \
-	'completions' 'config' 'database' 'ubuchk' 'ubuchk-db' 'ubuchk.8.gz'
+	'completions' 'config' 'database' 'ubuchk' 'ubuchk-db'\
+	'ubuchk.8.gz' 'database-rk'
 do
 	printf "* Downloading '%s' ... " "$File"
 	if $DLCMD "$TmpDir/$File" "$URL/$File" 2>> "$LogFile"; then
@@ -137,7 +138,8 @@ ErrCount=0
 for File in\
 \
 	'ubuchk:755' 'ubuchk-db:755' 'completions:644'\
-	'ubuchk.8.gz:644' 'config:644' 'database:644'
+	'ubuchk.8.gz:644' 'config:644' 'database:644'\
+	'database-rk:644'
 do
 	chmod ${File##*:} "$TmpDir/${File%:*}" 2>> "$LogFile" ||
 		ErrCount=$((ErrCount + 1))
@@ -158,6 +160,7 @@ for File in\
 	'completions:/usr/share/bash-completion/completions/ubuchk'\
 	'config:/usr/share/ubuchk/config'\
 	'database:/usr/share/ubuchk/database'\
+	'database-rk:/usr/share/ubuchk/database-rk'\
 	'ubuchk-db:/usr/bin/ubuchk-db'\
 	'ubuchk.8.gz:/usr/share/man/man8/ubuchk.8.gz'\
 	'ubuchk:/usr/bin/ubuchk'
@@ -183,14 +186,14 @@ fi
 printf 'Checking executables work:\n'
 
 printf "* Verifying 'ubuchk' ... "
-if ubuchk -v 1>> "$LogFile" 2>&1; then
+if ubuchk -v > /dev/null 2>&1; then
 	printf '\033[32m[OK]\033[0m\n'
 else
 	printf '\033[31m[ERR]\033[0m\n'
 fi
 
 printf "* Verifying 'ubuchk-db' ... "
-if ubuchk-db -v 1>> "$LogFile" 2>&1; then
+if ubuchk-db -v > /dev/null 2>&1; then
 	printf '\033[32m[OK]\033[0m\n'
 else
 	printf '\033[31m[ERR]\033[0m\n'
