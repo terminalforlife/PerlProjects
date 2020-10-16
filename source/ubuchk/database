@@ -193,8 +193,6 @@ A potential Trojan, rootkit, or worm has been discovered. Do note, that this is 
 For a general overview as to what these words even mean, check out the following link:
 .
 https://www.guidingtech.com/8888/difference-between-malware-virus-rootkits-trojans-worm-spyware
-.
-To see a list of triggered files and their absolute paths, re-run UbuChk with verbose mode ('--verbose|-V') enabled.
 :7619
 It's typically -- if not always -- harmless to clear out the user's `~/.cache` directory. At worst, you'll moderately interfere with some current programs you've got running, such as firefox(1). While these files are certainly useful, they're can easily wind up consuming a large sum of your storage space.
 .
