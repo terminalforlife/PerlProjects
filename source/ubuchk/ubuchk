@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri 16 Oct 02:11:04 BST 2020
+# Last Change       - Fri 16 Oct 02:29:12 BST 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -1668,6 +1668,7 @@ if ($RootKits eq 'true'){
 	foreach my $Line (@DBData){
 		chomp($Line);
 
+		next if $Line =~ '^#';
 		if ($Line =~ '^:'){
 			($AlertID, $Name) = (split(':', $Line))[1..2];
 			Info("Searching: $Name");
