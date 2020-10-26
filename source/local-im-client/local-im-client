@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/local-im-client/local-im-client
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 22:15:18 GMT 2020
+# Last Change       - Mon 26 Oct 22:44:56 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -80,6 +80,61 @@ sub ErrWin{
 
 # Placeholder for the settings window.
 sub Settings{
+	my $SetWin = Gtk2::Window->new();
+		$SetWin->set_title("$Progrm (Settings)");
+		$SetWin->set_position('center_always');
+		$SetWin->set_border_width(8);
+		$SetWin->set_default_size(500, 400);
+		$SetWin->set_resizable(TRUE);
+		$SetWin->set_decorated(TRUE);
+
+	my $VBoxSet = Gtk2::VBox->new(FALSE, 4);
+
+	my $HBoxSetTop = Gtk2::HBox->new(FALSE, 4);
+		$HBoxSetTop->set_border_width(4);
+
+	my $HBoxSetMiddle = Gtk2::HBox->new(FALSE, 4);
+		$HBoxSetMiddle->set_border_width(4);
+
+	my $HBoxSetBottom = Gtk2::HBox->new(FALSE, 4);
+		$HBoxSetBottom->set_border_width(4);
+
+	my $HBoxSetMainButtons = Gtk2::HBox->new(FALSE, 4);
+
+	# Applies the settings window but leaves it open.
+	my $ApplyButton = Gtk2::Button->new_with_mnemonic('_Apply');
+		$ApplyButton->signal_connect('clicked' => sub {});
+
+	# Applies the changes made and also destroys the settings window.
+	my $SaveCloseButton = Gtk2::Button->new_with_mnemonic('_Save & Close');
+		$SaveCloseButton->signal_connect('clicked' => sub {});
+
+	# Closes the settings window without applying any of the changes.
+	my $CancelButton = Gtk2::Button->new_with_mnemonic('_Cancel');
+		$CancelButton->signal_connect('clicked' => sub {$SetWin->destroy()});
+
+	my $MSGFileFrame = Gtk2::Frame->new('Chat File Location');
+		$MSGFileFrame->set_border_width(8);
+
+	my $MSGFileEntry = Gtk2::Entry->new();
+
+	$MSGFileFrame->add($MSGFileEntry);
+		$MSGFileFrame->set_border_width(8);
+
+	$HBoxSetTop->pack_start($MSGFileFrame, TRUE, TRUE, 4);
+
+	$VBoxSet->pack_start($HBoxSetTop, TRUE, TRUE, 4);
+	$VBoxSet->pack_start($HBoxSetMiddle, TRUE, TRUE, 4);
+	$VBoxSet->pack_start($HBoxSetBottom, TRUE, TRUE, 4);
+	$VBoxSet->pack_start($HBoxSetMainButtons, TRUE, TRUE, 4);
+
+	$HBoxSetMainButtons->pack_start($ApplyButton, TRUE, TRUE, 4);
+	$HBoxSetMainButtons->pack_start($SaveCloseButton, TRUE, TRUE, 24);
+	$HBoxSetMainButtons->pack_start($CancelButton, TRUE, TRUE, 4);
+
+	$SetWin->add($VBoxSet);
+
+	$SetWin->show_all()
 }
 
 sub MenuInit{
@@ -95,24 +150,16 @@ sub MenuInit{
 	# MenuItems for the Tools Menu.
 	my $MenuItemRefresh = Gtk2::MenuItem->new('_Refresh');
 		$MenuItemRefresh->signal_connect(
-			'activate' => sub {
-				print("MenuItemRefresh clicked.\n")
-			}
+			'activate' => sub {print("MenuItemRefresh clicked.\n")}
 		);
 
 	my $MenuItemArchive = Gtk2::MenuItem->new('_Archive Chat');
 		$MenuItemArchive->signal_connect(
-			'activate' => sub {
-				print("MenuItemArchive clicked.\n")
-			}
+			'activate' => sub {print("MenuItemArchive clicked.\n")}
 		);
 
 	my $MenuItemSettings = Gtk2::MenuItem->new('_Settings...');
-		$MenuItemSettings->signal_connect(
-			'activate' => sub {
-				print("MenuItemSettings clicked.\n")
-			}
-		);
+		$MenuItemSettings->signal_connect('activate' => \&Settings);
 
 	# Add MenuItems (whether submenus or not) to MenuBar.
 	$MenuBar->append($MenuItemTools);
