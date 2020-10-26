@@ -1,0 +1,78 @@
+#!/usr/bin/perl
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/local-im-client/local-im-client
+# Started On        - Mon 26 Oct 15:03:04 GMT 2020
+# Last Change       - Mon 26 Oct 15:30:11 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   libglib-perl (>= 3:1.326-1build1)
+#   libgtk2-perl (>= 2:1.24992-1build1)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use Gtk2 '-init';
+use Glib 'TRUE', 'FALSE';
+
+no warnings 'uninitialized';
+
+my $Progrm = 'Local IM Client';
+
+#------------------------------------------------------------Initialize Widgets
+
+my $RootWin = Gtk2::Window->new();
+	$RootWin->signal_connect('destroy' => sub {Gtk2::main_quit()});
+	$RootWin->signal_connect('delete_event' => sub {return(0)});
+
+	$RootWin->set_title($Progrm);
+	$RootWin->set_border_width(14);
+	$RootWin->set_resizable(TRUE);
+	$RootWin->set_decorated(TRUE);
+	$RootWin->set_default_size(680, 640);
+
+my $SWData = Gtk2::ScrolledWindow->new(undef, undef);
+	$SWData->set_shadow_type('etched-out');
+	$SWData->set_policy('automatic', 'automatic');
+	$SWData->set_size_request(0, 600);
+	$SWData->set_border_width(12);
+
+my $FrameData = Gtk2::Frame->new('Local Messages');
+	$FrameData->set_border_width(2);
+
+my $VBoxMain = Gtk2::VBox->new(FALSE, 4);
+	$VBoxMain->set_border_width(8);
+
+my $DataBuffer = Gtk2::TextBuffer->new();
+
+my $DataView = Gtk2::TextView->new_with_buffer($DataBuffer);
+	$DataView->set_cursor_visible(FALSE);
+	$DataView->set_editable(FALSE);
+
+#-----------------------------------------------------------Add, Pack, and Show
+
+$RootWin->add($VBoxMain);
+
+$VBoxMain->pack_start($FrameData, TRUE, TRUE, 4);
+
+$SWData->add($DataView);
+$FrameData->add($SWData);
+
+$RootWin->show_all();
+
+#-----------------------------------------------------Main Loop and Thereafters
+
+Gtk2::main($Progrm)
