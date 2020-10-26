@@ -3,12 +3,17 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/local-im-client/lam
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 23:04:05 GMT 2020
+# Last Change       - Mon 26 Oct 23:09:36 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # [L]eave [a] [M]essage. Intended for a local machine. This is a work in
 # progress; as such, it's not yet worth using.
+#
+# The reason there's not yet any real functionality here, is because I wanted
+# to ensure the layout, windows, widgets, signals, and what-have-you were all
+# done. I'd actually much prefer to have the GUI entirely separate from the
+# core functionality, but I think they'll be together, at least for now.
 #
 # Features:
 #
