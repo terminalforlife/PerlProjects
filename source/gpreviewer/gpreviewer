@@ -3,11 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Mon 26 Oct 00:54:22 GMT 2020
+# Last Change       - Mon 26 Oct 15:00:28 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Something I feel is much-needed is a GUI front-end to Previewer, using GTK2.
+#
+# Until database updating is added to the GUI, remember you can update it by
+# using Previewer itself, like the `previewer --db-update` command.
 #
 # Features:
 #
