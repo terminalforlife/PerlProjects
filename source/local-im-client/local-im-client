@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/local-im-client/local-im-client
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 15:30:11 GMT 2020
+# Last Change       - Mon 26 Oct 15:53:56 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -44,35 +44,57 @@ my $RootWin = Gtk2::Window->new();
 	$RootWin->set_decorated(TRUE);
 	$RootWin->set_default_size(680, 640);
 
+my $VBoxMain = Gtk2::VBox->new(FALSE, 4);
+	$VBoxMain->set_border_width(8);
+
+my $HBoxChat = Gtk2::HBox->new(FALSE, 4);
+	$HBoxChat->set_border_width(8);
+
 my $SWData = Gtk2::ScrolledWindow->new(undef, undef);
 	$SWData->set_shadow_type('etched-out');
 	$SWData->set_policy('automatic', 'automatic');
 	$SWData->set_size_request(0, 600);
 	$SWData->set_border_width(12);
 
-my $FrameData = Gtk2::Frame->new('Local Messages');
+my $FrameData = Gtk2::Frame->new('Local Chat');
 	$FrameData->set_border_width(2);
 
-my $VBoxMain = Gtk2::VBox->new(FALSE, 4);
-	$VBoxMain->set_border_width(8);
+my $FrameEnterMSG = Gtk2::Frame->new('Enter Message');
+
+my $FrameEntry = Gtk2::Frame->new('Local Messages');
+	$FrameEntry->set_border_width(2);
 
 my $DataBuffer = Gtk2::TextBuffer->new();
+
+my $SendButton = Gtk2::Button->new('    Send    ');
 
 my $DataView = Gtk2::TextView->new_with_buffer($DataBuffer);
 	$DataView->set_cursor_visible(FALSE);
 	$DataView->set_editable(FALSE);
+
+my $EnterMSG = Gtk2::Entry->new();
+	$EnterMSG->signal_connect('activate' => sub {});
 
 #-----------------------------------------------------------Add, Pack, and Show
 
 $RootWin->add($VBoxMain);
 
 $VBoxMain->pack_start($FrameData, TRUE, TRUE, 4);
+$VBoxMain->pack_end($FrameEnterMSG, TRUE, TRUE, 4);
+
+$FrameEnterMSG->add($HBoxChat);
+
+$HBoxChat->pack_start($EnterMSG, TRUE, TRUE, 4);
+$HBoxChat->pack_end($SendButton, FALSE, FALSE, 4);
 
 $SWData->add($DataView);
 $FrameData->add($SWData);
 
 $RootWin->show_all();
 
-#-----------------------------------------------------Main Loop and Thereafters
+#-----------------------------------------------------Main Loop and Subroutines
+
+sub NewChatMSG{
+}
 
 Gtk2::main($Progrm)
