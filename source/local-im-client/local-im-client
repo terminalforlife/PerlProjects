@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/local-im-client/local-im-client
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 17:17:30 GMT 2020
+# Last Change       - Mon 26 Oct 17:22:53 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ no warnings 'uninitialized';
 
 my $Progrm = 'Local IM Client';
 
-#------------------------------------------------Menu Initialization Subroutine
+#-------------------------------------------------------------------Subroutines
 
 # Placeholder for info dialogs; still using Gtk2::Window for flexibility.
 sub InfoWin{
@@ -58,8 +58,25 @@ sub MenuInit{
 
 	# MenuItems for the Tools Menu.
 	my $MenuItemRefresh = Gtk2::MenuItem->new('_Refresh');
+		$MenuItemRefresh->signal_connect(
+			'activate' => sub {
+				print("MenuItemRefresh clicked.\n")
+			}
+		);
+
 	my $MenuItemArchive = Gtk2::MenuItem->new('_Archive Chat');
+		$MenuItemArchive->signal_connect(
+			'activate' => sub {
+				print("MenuItemArchive clicked.\n")
+			}
+		);
+
 	my $MenuItemSettings = Gtk2::MenuItem->new('_Settings...');
+		$MenuItemSettings->signal_connect(
+			'activate' => sub {
+				print("MenuItemSettings clicked.\n")
+			}
+		);
 
 	# Add MenuItems (whether submenus or not) to MenuBar.
 	$MenuBar->append($MenuItemTools);
@@ -122,7 +139,7 @@ my $DataView = Gtk2::TextView->new_with_buffer($DataBuffer);
 my $EnterMSG = Gtk2::Entry->new();
 	$EnterMSG->signal_connect('activate' => sub {});
 
-#-------------------------------------------------Add, Pack, Show, and MainLoop
+#------------------------------------------------Add, Pack, Show, and Main Loop
 
 $RootWin->add($VBoxMain);
 
