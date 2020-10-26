@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/local-im-client/lam
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 23:09:36 GMT 2020
+# Last Change       - Mon 26 Oct 23:27:09 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,6 +42,21 @@ my $Progrm = 'LAM';
 
 #---------------------------------------------------------Process LIMC Settings
 
+# Begin settings creation, parsing, and loading. Need to have a default setup.
+# I think the approach I'll take here is to have the usual settings file in the
+# current user's HOME, but each user using LAM will need to specify which file
+# they're using for messaging.
+#
+# The idea, if you're lost here, is to have one file (simple text) all users
+# can access with LAM. Users send messages and they appear on the main chat
+# bit (TextWindow) like a traditional IM client. I imagine I'll be locking the
+# messaging file at first, until I come up with some sort of queuing system.
+#
+# I also need some sort of way to handle the chat file getting obscenely large.
+# While this is in Perl, a gigantuous chat file is plausible, and also
+# unnecessary. I've got an 'Archive' MenuItem you may have noticed in the Tools
+# Menu; I think I'll use that to have the chat archived, then all but X amount
+# of previous messages cleared.
 
 #-------------------------------------------------------------------Subroutines
 
