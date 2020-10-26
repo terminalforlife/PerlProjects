@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/local-im-client/local-im-client
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 15:53:56 GMT 2020
+# Last Change       - Mon 26 Oct 17:17:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,17 +32,64 @@ no warnings 'uninitialized';
 
 my $Progrm = 'Local IM Client';
 
+#------------------------------------------------Menu Initialization Subroutine
+
+# Placeholder for info dialogs; still using Gtk2::Window for flexibility.
+sub InfoWin{
+}
+
+# Placeholder for error dialogs; still using Gtk2::Window for flexibility.
+sub ErrWin{
+}
+
+# Placeholder for the settings window.
+sub Settings{
+}
+
+sub MenuInit{
+	my $MenuBar = Gtk2::MenuBar->new();
+		$MenuBar->set_border_width(4);
+
+	# The Tools Item for the MenuBar.
+	my $MenuItemTools = Gtk2::MenuItem->new('_Tools');
+
+	# The Tools submenu.
+	my $MenuTools = Gtk2::Menu->new();
+
+	# MenuItems for the Tools Menu.
+	my $MenuItemRefresh = Gtk2::MenuItem->new('_Refresh');
+	my $MenuItemArchive = Gtk2::MenuItem->new('_Archive Chat');
+	my $MenuItemSettings = Gtk2::MenuItem->new('_Settings...');
+
+	# Add MenuItems (whether submenus or not) to MenuBar.
+	$MenuBar->append($MenuItemTools);
+
+	# Set MenuItemTools to use MenuTools as a submenu.
+	$MenuItemTools->set_submenu($MenuTools);
+
+	# Add MenuItems to the Tools submenu.
+	$MenuTools->append($MenuItemRefresh);
+	$MenuTools->append(Gtk2::SeparatorMenuItem->new());
+	$MenuTools->append($MenuItemArchive);
+	$MenuTools->append(Gtk2::SeparatorMenuItem->new());
+	$MenuTools->append($MenuItemSettings);
+
+	# This is then used when later packing the VBox.
+	return($MenuBar)
+}
+
 #------------------------------------------------------------Initialize Widgets
 
 my $RootWin = Gtk2::Window->new();
 	$RootWin->signal_connect('destroy' => sub {Gtk2::main_quit()});
 	$RootWin->signal_connect('delete_event' => sub {return(0)});
 
+	$RootWin->set_position('center_always');
+	$RootWin->set_default_size(680, 640);
 	$RootWin->set_title($Progrm);
-	$RootWin->set_border_width(14);
+	$RootWin->set_border_width(4);
 	$RootWin->set_resizable(TRUE);
 	$RootWin->set_decorated(TRUE);
-	$RootWin->set_default_size(680, 640);
 
 my $VBoxMain = Gtk2::VBox->new(FALSE, 4);
 	$VBoxMain->set_border_width(8);
@@ -75,10 +122,11 @@ my $DataView = Gtk2::TextView->new_with_buffer($DataBuffer);
 my $EnterMSG = Gtk2::Entry->new();
 	$EnterMSG->signal_connect('activate' => sub {});
 
-#-----------------------------------------------------------Add, Pack, and Show
+#-------------------------------------------------Add, Pack, Show, and MainLoop
 
 $RootWin->add($VBoxMain);
 
+$VBoxMain->pack_start(MenuInit(), FALSE, FALSE, 0);
 $VBoxMain->pack_start($FrameData, TRUE, TRUE, 4);
 $VBoxMain->pack_end($FrameEnterMSG, TRUE, TRUE, 4);
 
@@ -91,10 +139,5 @@ $SWData->add($DataView);
 $FrameData->add($SWData);
 
 $RootWin->show_all();
-
-#-----------------------------------------------------Main Loop and Subroutines
-
-sub NewChatMSG{
-}
 
 Gtk2::main($Progrm)
