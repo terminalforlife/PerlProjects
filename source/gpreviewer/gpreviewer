@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Mon 26 Oct 15:00:28 GMT 2020
+# Last Change       - Mon 26 Oct 16:58:49 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -63,6 +63,35 @@ sub ErrMsg{
 	$ErrWin->signal_connect('response' => sub {Gtk2::main_quit()});
 
 	$ErrWin->show_all()
+}
+
+sub MenuInit{
+	my $MenuBar = Gtk2::MenuBar->new();
+		$MenuBar->set_border_width(4);
+
+	# The Tools Item for the MenuBar.
+	my $MenuItemTools = Gtk2::MenuItem->new('_Tools');
+
+	# The Tools submenu.
+	my $MenuTools = Gtk2::Menu->new();
+
+	# A MenuItem for the Tools Menu.
+	my $MenuItemUpdateDB = Gtk2::MenuItem->new('_Update Database');
+		$MenuItemUpdateDB->signal_connect(
+			'activate' => sub {system('previewer --db-update')}
+		);
+
+	# Add MenuItems (whether submenus or not) to MenuBar.
+	$MenuBar->append($MenuItemTools);
+
+	# Set MenuItemTools to use MenuTools as a submenu.
+	$MenuItemTools->set_submenu($MenuTools);
+
+	# Add MenuItems to the Tools submenu.
+	$MenuTools->append($MenuItemUpdateDB);
+
+	# This is then used when later packing the VBox.
+	return($MenuBar)
 }
 
 #-------------------------------------------------------------------Root Window
@@ -150,7 +179,8 @@ $HBoxQuery->pack_start($FindButton, FALSE, TRUE, 4);
 # Pack rating ComboBox into HBoxRating.
 $HBoxRating->pack_start($ComboBox, TRUE, TRUE, 4);
 
-# Pack The Result frame and the main HBox into VBox.
+# Pack the Menu, the Result frame, then the main HBox into VBox.
+$VBox->pack_start(MenuInit(), FALSE, FALSE, 0);
 $VBox->pack_start($Frame, TRUE, TRUE, 4);
 $VBox->pack_start($HBoxMain, TRUE, TRUE, 4);
 
