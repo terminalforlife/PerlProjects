@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=2020-10-26
+Name=GUI Previewer
+Comment=GUI front-end to Previewer
+GenericName=GPreviewer
+Exec=gpreviewer
+Terminal=false
+Type=Application
+Categories=GTK;System;

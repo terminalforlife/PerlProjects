@@ -1,0 +1,167 @@
+#!/usr/bin/perl
+#cito M:755 O:0 G:0 T:/usr/bin/gpreviewer
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/gpreviewer/gpreviewer
+# Started On        - Sun 25 Oct 01:10:22 BST 2020
+# Last Change       - Mon 26 Oct 00:54:22 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Something I feel is much-needed is a GUI front-end to Previewer, using GTK2.
+#
+# Features:
+#
+#TODO: Make FindButton a little wider, without space-padding.
+#TODO: Add toolbar with primary functions for GPreviewer.
+#TODO: Repurpose Previewer for specific use in GPreviewer.
+#
+#      Previewer doesn't need rewriting -- don't re-invent the whell -- but as
+#      it is, Previewer isn't suitable in GPreviewer because it's simply made
+#      for a terminal.
+#
+#TODO: Add functionality for updating the review database. No need for root.
+#TODO: Add 'about' dialog.
+#TODO: Test GPreviewer on a non-tiling window manager, to ensure it looks OK.
+#TODO: Tweak ErrMsg(), because it's pretty naff right now, visually.
+#TODO: Update titlebar to 'GPreviewer - PKG_NAME', based on searched PKG.
+#TODO: Add icon file for GPreviewer & add smaller version to titlebar.
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   libglib-perl (>= 3:1.326-1build1)
+#   libgtk2-perl (>= 2:1.24992-1build1)
+#   perl (>= 5.22.1-9)
+#   previewer (>= 2020-01-09)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use Gtk2 '-init';
+use Glib 'TRUE', 'FALSE';
+
+my $Progrm = 'GPreviewer';
+
+# Example: ErrMsg($RootWin, 'Error message here.')
+sub ErrMsg{
+	my $ErrLabel = Gtk2::Label->new($_[1]);
+
+	my $ErrWin = Gtk2::Dialog->new(
+		"$Progrm (Error)", $_[0], 'destroy-with-parent', 'gtk-ok' => 'none'
+	);
+
+	$ErrWin->get_content_area()->add($ErrLabel);
+
+	# Close everything when OK is clicked or dialog closed.
+	$ErrWin->signal_connect('response' => sub {Gtk2::main_quit()});
+
+	$ErrWin->show_all()
+}
+
+#-------------------------------------------------------------------Root Window
+
+my $RootWin = Gtk2::Window->new('toplevel');
+	$RootWin->signal_connect(destroy => sub {Gtk2::main_quit()});
+	$RootWin->signal_connect(delete_event => sub {return(0)});
+
+	$RootWin->set_title($Progrm);
+	$RootWin->set_border_width(14);
+	$RootWin->set_resizable(TRUE);
+	$RootWin->set_decorated(TRUE);
+	$RootWin->set_default_size(680, 640);
+
+#-------------------------------------------------------------Main Vertical Box
+
+# RootWin contains VBox. Both frames are packed into VBox.
+my $VBox = Gtk2::VBox->new(FALSE, 4);
+	my $Frame = Gtk2::Frame->new('Review Display');
+		$Frame->set_border_width(2);
+
+	my $SW = Gtk2::ScrolledWindow->new(undef, undef);
+		$SW->set_shadow_type('etched-out');
+		$SW->set_policy('automatic', 'automatic');
+		$SW->set_size_request(0, 600);
+		$SW->set_border_width(12);
+
+	my $Buffer = Gtk2::TextBuffer->new();
+
+	my $Result = Gtk2::TextView->new_with_buffer($Buffer);
+		$Result->set_editable(FALSE);
+		$Result->set_cursor_visible(FALSE);
+
+#-----------------------------------------------------------Main Horizontal Box
+
+my $HBoxMain = Gtk2::HBox->new(FALSE, 4);
+	my $FrameQuery = Gtk2::Frame->new('Package Query');
+	my $FrameRating = Gtk2::Frame->new('Rating');
+
+#---------------------------------------------------------Rating Horizontal Box
+
+my $HBoxRating = Gtk2::HBox->new(FALSE, 4);
+	$HBoxRating->set_border_width(8);
+
+	my $ComboBox = Gtk2::ComboBox->new_text();
+		$ComboBox->insert_text($_, "$_-Star Reviews") foreach 1..5;
+
+#----------------------------------------------------------Query Horizontal Box
+
+my $HBoxQuery = Gtk2::HBox->new(FALSE, 4);
+	$HBoxQuery->set_border_width(8);
+
+	my $FindEntry = Gtk2::Entry->new();
+		$FindEntry->signal_connect('activate' => \&UpdateResult, $FindEntry);
+
+	my $FindButton = Gtk2::Button->new_with_mnemonic('      _Search      ');
+		$FindButton->signal_connect('clicked' => \&UpdateResult, $FindEntry);
+
+	# Callback for updating the Result TextView. As it is, this must be here.
+	# Example: UpdateResult($FindEntry, $ComboBox, $Buffer)
+	sub UpdateResult{
+		my $Entry = $_[1];
+
+		my $SearchStr = $Entry->get_text();
+		my $CurStar = (split('-', $ComboBox->get_active_text()))[0];
+		my $NewResult = `previewer -b "$SearchStr" $CurStar`;
+
+		$Buffer->set_text($NewResult)
+	}
+
+#-----------------------------------------Begin Adding, Packing, and Displaying
+
+# Add Result to the ScrolledWindow, then the SW to the Result frame.
+$SW->add($Result);
+$Frame->add($SW);
+
+# Add the query and rating HBox-es to the two southern frames.
+$FrameQuery->add($HBoxQuery);
+$FrameRating->add($HBoxRating);
+
+# Pack query-related widgets into HBoxQuery.
+$HBoxQuery->pack_start($FindEntry, TRUE, TRUE, 4);
+$HBoxQuery->pack_start($FindButton, FALSE, TRUE, 4);
+
+# Pack rating ComboBox into HBoxRating.
+$HBoxRating->pack_start($ComboBox, TRUE, TRUE, 4);
+
+# Pack The Result frame and the main HBox into VBox.
+$VBox->pack_start($Frame, TRUE, TRUE, 4);
+$VBox->pack_start($HBoxMain, TRUE, TRUE, 4);
+
+# Now pack the two non-Result frames into HBoxMain.
+$HBoxMain->pack_start($FrameQuery, TRUE, TRUE, 2);
+$HBoxMain->pack_start($FrameRating, TRUE, TRUE, 2);
+
+$RootWin->add($VBox);
+
+#-----------------------Show All Main Stuff, Do Main Loop, and Catch Big Errors
+
+$RootWin->show_all();
+
+ErrMsg($RootWin, "Dependency 'previewer' not found.")
+	unless -x '/usr/bin/previewer';
+
+Gtk2::main($Progrm)
