@@ -1,12 +1,15 @@
 #!/usr/bin/perl
 
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/local-im-client/local-im-client
+# Project Name      - PerlProjects/source/local-im-client/lam
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 22:44:56 GMT 2020
+# Last Change       - Mon 26 Oct 23:04:05 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
+# [L]eave [a] [M]essage. Intended for a local machine. This is a work in
+# progress; as such, it's not yet worth using.
+#
 # Features:
 #
 # N/A
@@ -30,7 +33,10 @@ use Glib 'TRUE', 'FALSE';
 
 no warnings 'uninitialized';
 
-my $Progrm = 'Local IM Client';
+my $Progrm = 'LAM';
+
+#---------------------------------------------------------Process LIMC Settings
+
 
 #-------------------------------------------------------------------Subroutines
 
@@ -78,13 +84,12 @@ sub InfoWin{
 sub ErrWin{
 }
 
-# Placeholder for the settings window.
 sub Settings{
 	my $SetWin = Gtk2::Window->new();
 		$SetWin->set_title("$Progrm (Settings)");
 		$SetWin->set_position('center_always');
 		$SetWin->set_border_width(8);
-		$SetWin->set_default_size(500, 400);
+		$SetWin->set_default_size(500, 140);
 		$SetWin->set_resizable(TRUE);
 		$SetWin->set_decorated(TRUE);
 
@@ -118,9 +123,15 @@ sub Settings{
 
 	my $MSGFileEntry = Gtk2::Entry->new();
 
-	$MSGFileFrame->add($MSGFileEntry);
+	my $MSGFileHBox = Gtk2::HBox->new(FALSE, 4);
+		$MSGFileHBox->set_border_width(8);
+
+	$MSGFileHBox->pack_start($MSGFileEntry, TRUE, TRUE, 4);
+
+	$MSGFileFrame->add($MSGFileHBox);
 		$MSGFileFrame->set_border_width(8);
 
+	# Just the one Box for this frame, to keep the sizing consistent.
 	$HBoxSetTop->pack_start($MSGFileFrame, TRUE, TRUE, 4);
 
 	$VBoxSet->pack_start($HBoxSetTop, TRUE, TRUE, 4);
@@ -129,7 +140,7 @@ sub Settings{
 	$VBoxSet->pack_start($HBoxSetMainButtons, TRUE, TRUE, 4);
 
 	$HBoxSetMainButtons->pack_start($ApplyButton, TRUE, TRUE, 4);
-	$HBoxSetMainButtons->pack_start($SaveCloseButton, TRUE, TRUE, 24);
+	$HBoxSetMainButtons->pack_start($SaveCloseButton, TRUE, TRUE, 4);
 	$HBoxSetMainButtons->pack_start($CancelButton, TRUE, TRUE, 4);
 
 	$SetWin->add($VBoxSet);
@@ -239,5 +250,7 @@ $SWData->add($DataView);
 $FrameData->add($SWData);
 
 $RootWin->show_all();
+
+Settings();
 
 Gtk2::main($Progrm)
