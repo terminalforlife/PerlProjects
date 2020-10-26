@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/local-im-client/local-im-client
 # Started On        - Mon 26 Oct 15:03:04 GMT 2020
-# Last Change       - Mon 26 Oct 17:22:53 GMT 2020
+# Last Change       - Mon 26 Oct 22:15:18 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -34,8 +34,44 @@ my $Progrm = 'Local IM Client';
 
 #-------------------------------------------------------------------Subroutines
 
-# Placeholder for info dialogs; still using Gtk2::Window for flexibility.
+# Informational dialog with OK button. Leaves RootWin in-tact.
 sub InfoWin{
+	my $Message = shift();
+
+	my $InfoWin = Gtk2::Window->new();
+		$InfoWin->signal_connect('destroy' => sub {$_[0]->destroy()});
+
+		$InfoWin->set_position('center_always');
+		$InfoWin->set_title($Progrm . ' (Info)');
+		$InfoWin->set_border_width(4);
+		$InfoWin->set_default_size(280, 100);
+		$InfoWin->set_resizable(TRUE);
+		$InfoWin->set_decorated(TRUE);
+		$InfoWin->activate_focus();
+
+	my $InfoVBox = Gtk2::VBox->new(FALSE, 4);
+		$InfoVBox->set_border_width(8);
+
+	my $InfoHBox = Gtk2::HBox->new(FALSE, 4);
+
+	my $MSGLabel = Gtk2::Label->new($Message);
+		$MSGLabel->set_single_line_mode(FALSE);
+		$MSGLabel->set_line_wrap(TRUE);
+		$MSGLabel->set_line_wrap_mode('word');
+		$MSGLabel->set_justify('fill');
+
+	my $MSGOKButton = Gtk2::Button->new_with_mnemonic('      _OK      ');
+		$MSGOKButton->signal_connect('clicked' => sub {$InfoWin->destroy()});
+
+	$InfoWin->add($InfoVBox);
+
+	$InfoVBox->pack_start($MSGLabel, TRUE, FALSE, 4);
+	$InfoVBox->pack_start($InfoHBox, TRUE, TRUE, 4);
+
+	# Having the OK button in its own HBox ensures it's centered.
+	$InfoHBox->pack_start($MSGOKButton, TRUE, FALSE, 4);
+
+	$InfoWin->show_all()
 }
 
 # Placeholder for error dialogs; still using Gtk2::Window for flexibility.
