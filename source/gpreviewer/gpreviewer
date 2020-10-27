@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Mon 26 Oct 16:58:49 GMT 2020
+# Last Change       - Tue 27 Oct 19:01:00 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,14 +14,12 @@
 #
 # Features:
 #
+#TODO: Add frame holding HBox for filtering by user (`-u USER`).
+#TODO: Set window(s) to not be resizable. (had it TRUE because tiling WM)
+#TODO: Have the Entry correctly be the default focus/selection.
+#TODO: Font needs changing for Result because of no unicode characters. Tags?
 #TODO: Make FindButton a little wider, without space-padding.
 #TODO: Add toolbar with primary functions for GPreviewer.
-#TODO: Repurpose Previewer for specific use in GPreviewer.
-#
-#      Previewer doesn't need rewriting -- don't re-invent the whell -- but as
-#      it is, Previewer isn't suitable in GPreviewer because it's simply made
-#      for a terminal.
-#
 #TODO: Add functionality for updating the review database. No need for root.
 #TODO: Add 'about' dialog.
 #TODO: Test GPreviewer on a non-tiling window manager, to ensure it looks OK.
@@ -65,34 +63,34 @@ sub ErrMsg{
 	$ErrWin->show_all()
 }
 
-sub MenuInit{
-	my $MenuBar = Gtk2::MenuBar->new();
-		$MenuBar->set_border_width(4);
-
-	# The Tools Item for the MenuBar.
-	my $MenuItemTools = Gtk2::MenuItem->new('_Tools');
-
-	# The Tools submenu.
-	my $MenuTools = Gtk2::Menu->new();
-
-	# A MenuItem for the Tools Menu.
-	my $MenuItemUpdateDB = Gtk2::MenuItem->new('_Update Database');
-		$MenuItemUpdateDB->signal_connect(
-			'activate' => sub {system('previewer --db-update')}
-		);
-
-	# Add MenuItems (whether submenus or not) to MenuBar.
-	$MenuBar->append($MenuItemTools);
-
-	# Set MenuItemTools to use MenuTools as a submenu.
-	$MenuItemTools->set_submenu($MenuTools);
-
-	# Add MenuItems to the Tools submenu.
-	$MenuTools->append($MenuItemUpdateDB);
-
-	# This is then used when later packing the VBox.
-	return($MenuBar)
-}
+#sub MenuInit{
+#	my $MenuBar = Gtk2::MenuBar->new();
+#		$MenuBar->set_border_width(4);
+#
+#	# The Tools Item for the MenuBar.
+#	my $MenuItemTools = Gtk2::MenuItem->new('_Tools');
+#
+#	# The Tools submenu.
+#	my $MenuTools = Gtk2::Menu->new();
+#
+#	# A MenuItem for the Tools Menu.
+#	my $MenuItemUpdateDB = Gtk2::MenuItem->new('_Update Database');
+#		$MenuItemUpdateDB->signal_connect(
+#			'activate' => sub {system('previewer --db-update')}
+#		);
+#
+#	# Add MenuItems (whether submenus or not) to MenuBar.
+#	$MenuBar->append($MenuItemTools);
+#
+#	# Set MenuItemTools to use MenuTools as a submenu.
+#	$MenuItemTools->set_submenu($MenuTools);
+#
+#	# Add MenuItems to the Tools submenu.
+#	$MenuTools->append($MenuItemUpdateDB);
+#
+#	# This is then used when later packing the VBox.
+#	return($MenuBar)
+#}
 
 #-------------------------------------------------------------------Root Window
 
@@ -110,7 +108,7 @@ my $RootWin = Gtk2::Window->new('toplevel');
 
 # RootWin contains VBox. Both frames are packed into VBox.
 my $VBox = Gtk2::VBox->new(FALSE, 4);
-	my $Frame = Gtk2::Frame->new('Review Display');
+	my $Frame = Gtk2::Frame->new('Reviews');
 		$Frame->set_border_width(2);
 
 	my $SW = Gtk2::ScrolledWindow->new(undef, undef);
@@ -128,7 +126,7 @@ my $VBox = Gtk2::VBox->new(FALSE, 4);
 #-----------------------------------------------------------Main Horizontal Box
 
 my $HBoxMain = Gtk2::HBox->new(FALSE, 4);
-	my $FrameQuery = Gtk2::Frame->new('Package Query');
+	my $FrameQuery = Gtk2::Frame->new('Query');
 	my $FrameRating = Gtk2::Frame->new('Rating');
 
 #---------------------------------------------------------Rating Horizontal Box
@@ -137,7 +135,11 @@ my $HBoxRating = Gtk2::HBox->new(FALSE, 4);
 	$HBoxRating->set_border_width(8);
 
 	my $ComboBox = Gtk2::ComboBox->new_text();
+		$ComboBox->insert_text($_, 'All Reviews');
 		$ComboBox->insert_text($_, "$_-Star Reviews") foreach 1..5;
+
+		# Have 'All Reviews' be the default selection.
+		$ComboBox->set_active(0);
 
 #----------------------------------------------------------Query Horizontal Box
 
@@ -157,7 +159,14 @@ my $HBoxQuery = Gtk2::HBox->new(FALSE, 4);
 
 		my $SearchStr = $Entry->get_text();
 		my $CurStar = (split('-', $ComboBox->get_active_text()))[0];
-		my $NewResult = `previewer -b "$SearchStr" $CurStar`;
+
+		my $AllRatings = '';
+		if ($CurStar eq 'All Reviews'){
+			$AllRatings = '-a';
+			$CurStar = ''
+		}
+
+		my $NewResult = `previewer -b $AllRatings "$SearchStr" $CurStar`;
 
 		$Buffer->set_text($NewResult)
 	}
@@ -180,7 +189,7 @@ $HBoxQuery->pack_start($FindButton, FALSE, TRUE, 4);
 $HBoxRating->pack_start($ComboBox, TRUE, TRUE, 4);
 
 # Pack the Menu, the Result frame, then the main HBox into VBox.
-$VBox->pack_start(MenuInit(), FALSE, FALSE, 0);
+#$VBox->pack_start(MenuInit(), FALSE, FALSE, 0);
 $VBox->pack_start($Frame, TRUE, TRUE, 4);
 $VBox->pack_start($HBoxMain, TRUE, TRUE, 4);
 
