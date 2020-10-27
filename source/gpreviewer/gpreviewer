@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Tue 27 Oct 19:25:58 GMT 2020
+# Last Change       - Tue 27 Oct 20:28:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,7 @@
 #
 # Features:
 #
-#TODO: Add frame holding HBox for filtering by user (`-u USER`).
+#TODO: Add a proper About dialog; it's sloppy as hell right now.
 #TODO: Set window(s) to not be resizable. (had it TRUE because tiling WM)
 #TODO: Have the Entry correctly be the default focus/selection.
 #TODO: Font needs changing for Result because of no unicode characters. Tags?
@@ -46,6 +46,97 @@ use Gtk2 '-init';
 use Glib 'TRUE', 'FALSE';
 
 my $Progrm = 'GPreviewer';
+my $CurVer = '2020-10-27';
+my $License = 'GNU General Public License v3.0';
+my $LicenseURL = 'https://www.gnu.org/licenses/gpl-3.0.en.html';
+
+my $AboutMe = "$Progrm ($CurVer)\n\nWritten in Perl, using Gtk2.\n\nAuthor: " .
+	"terminalforlife (GitHub User)\nLicense: GNU General Public License v3.0" .
+	"\nContact: terminalforlife\@yahoo.com";
+
+# This is used to later determine (via signal) whether to use `-u` flag or not.
+my $DoByUser = 'False';
+
+# About Dialog. I know there's a built-in solution, but I wanted my own.
+sub AboutWin{
+	my $AboutWin = Gtk2::Window->new();
+		$AboutWin->signal_connect('destroy' => sub {$_[0]->destroy()});
+
+		$AboutWin->set_position('center_always');
+		$AboutWin->set_title($Progrm . ' (About)');
+		$AboutWin->set_border_width(4);
+		$AboutWin->set_default_size(280, 100);
+		$AboutWin->set_resizable(TRUE);
+		$AboutWin->set_decorated(TRUE);
+		$AboutWin->activate_focus();
+
+	my $AboutVBox = Gtk2::VBox->new(FALSE, 4);
+		$AboutVBox->set_border_width(8);
+
+	my $AboutHBox = Gtk2::HBox->new(FALSE, 4);
+
+	my $AboutLicenseLink = Gtk2::LinkButton->new($LicenseURL, 'License Details');
+
+	my $AboutLabel = Gtk2::Label->new($AboutMe);
+		$AboutLabel->set_single_line_mode(FALSE);
+		$AboutLabel->set_line_wrap(TRUE);
+		$AboutLabel->set_line_wrap_mode('word');
+		$AboutLabel->set_justify('fill');
+
+	my $AboutOKButton = Gtk2::Button->new_with_mnemonic('      _OK      ');
+		$AboutOKButton->signal_connect('clicked' => sub {$AboutWin->destroy()});
+
+	$AboutWin->add($AboutVBox);
+
+	$AboutVBox->pack_start($AboutLabel, TRUE, FALSE, 4);
+	$AboutVBox->pack_start($AboutHBox, TRUE, TRUE, 4);
+
+	# Having the OK button in its own HBox ensures it's centered.
+	$AboutHBox->pack_start($AboutOKButton, TRUE, FALSE, 4);
+	$AboutHBox->pack_start($AboutLicenseLink, TRUE, FALSE, 4);
+
+	$AboutWin->show_all()
+}
+
+# Informational dialog with OK button. Leaves RootWin in-tact.
+sub InfoWin{
+	my ($Self, $Message) = @_;
+
+	my $InfoWin = Gtk2::Window->new();
+		$InfoWin->signal_connect('destroy' => sub {$_[0]->destroy()});
+
+		$InfoWin->set_position('center_always');
+		$InfoWin->set_title($Progrm . ' (Info)');
+		$InfoWin->set_border_width(4);
+		$InfoWin->set_default_size(280, 100);
+		$InfoWin->set_resizable(TRUE);
+		$InfoWin->set_decorated(TRUE);
+		$InfoWin->activate_focus();
+
+	my $InfoVBox = Gtk2::VBox->new(FALSE, 4);
+		$InfoVBox->set_border_width(8);
+
+	my $InfoHBox = Gtk2::HBox->new(FALSE, 4);
+
+	my $MSGLabel = Gtk2::Label->new($Message);
+		$MSGLabel->set_single_line_mode(FALSE);
+		$MSGLabel->set_line_wrap(TRUE);
+		$MSGLabel->set_line_wrap_mode('word');
+		$MSGLabel->set_justify('fill');
+
+	my $MSGOKButton = Gtk2::Button->new_with_mnemonic('      _OK      ');
+		$MSGOKButton->signal_connect('clicked' => sub {$InfoWin->destroy()});
+
+	$InfoWin->add($InfoVBox);
+
+	$InfoVBox->pack_start($MSGLabel, TRUE, FALSE, 4);
+	$InfoVBox->pack_start($InfoHBox, TRUE, TRUE, 4);
+
+	# Having the OK button in its own HBox ensures it's centered.
+	$InfoHBox->pack_start($MSGOKButton, TRUE, FALSE, 4);
+
+	$InfoWin->show_all()
+}
 
 # Example: ErrMsg($RootWin, 'Error message here.')
 sub ErrMsg{
@@ -71,8 +162,13 @@ sub MenuInit{
 	# The Tools Item for the MenuBar.
 	my $MenuItemTools = Gtk2::MenuItem->new('_Tools');
 
-	# The Tools submenu.
+	# The right-justified Help Item for the MenuBar.
+	my $MenuItemHelp = Gtk2::MenuItem->new('_Help');
+		$MenuItemHelp->set_right_justified(TRUE);
+
+	# The Tools & Help submenus.
 	my $MenuTools = Gtk2::Menu->new();
+	my $MenuHelp = Gtk2::Menu->new();
 
 	# A MenuItem for the Tools Menu.
 	my $MenuItemUpdateDB = Gtk2::MenuItem->new('_Update Database');
@@ -80,13 +176,32 @@ sub MenuInit{
 			'activate' => sub {system('previewer --db-update')}
 		);
 
+	# A MenuItem for the Help Menu.
+	my $MenuItemAbout = Gtk2::MenuItem->new('_About...');
+		$MenuItemAbout->signal_connect(
+			'activate' => \&AboutWin
+		);
+
+	#TODO: This needs to open up a simple new Window in which to choose.
+	my $MenuItemFilterUser = Gtk2::MenuItem->new('Filter _User...');
+		$MenuItemFilterUser->signal_connect(
+			'activate' => sub {$DoByUser = 'True'}
+		);
+
 	# Add MenuItems (whether submenus or not) to MenuBar.
 	$MenuBar->append($MenuItemTools);
+	$MenuBar->append($MenuItemHelp);
 
-	# Set MenuItemTools to use MenuTools as a submenu.
+	# Set MenuItem* to use Menu* as a submenu.
 	$MenuItemTools->set_submenu($MenuTools);
+	$MenuItemHelp->set_submenu($MenuHelp);
+
+	# Add MenuItems to the Help submenu.
+	$MenuHelp->append($MenuItemAbout);
 
 	# Add MenuItems to the Tools submenu.
+	$MenuTools->append($MenuItemFilterUser);
+	$MenuTools->append(Gtk2::SeparatorMenuItem->new());
 	$MenuTools->append($MenuItemUpdateDB);
 
 	# This is then used when later packing the VBox.
