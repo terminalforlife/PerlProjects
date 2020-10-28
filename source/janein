@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Wed 28 Oct 21:23:26 GMT 2020
+# Last Change       - Wed 28 Oct 22:01:50 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #
 # Test Results:
 #
-#   Linux Mint 18.3 (Cinnamon)             | GOOD
+#   Linux Mint 18.3 (Cinnamon)             | PERFECT
 #   Pop! OS 20.04 (GNOME3)                 | BAD
 #   Ubuntu 18.04 (i3-wm)                   | PERFECT
 #
@@ -22,7 +22,6 @@
 # Bugs:
 #
 #TODO: Line-wrapping not working at all on Pop! OS 20.04 (GNOME3).
-#TODO: Line-wrapping not as effective on Linux Mint 18.3 (Cinnamon).
 #
 # Dependencies:
 #
@@ -124,8 +123,7 @@ my $RootWin = Gtk2::Window->new();
 
 	$RootWin->set_border_width(8);
 	$RootWin->set_title($ProgrmFancy);
-	$RootWin->set_default_size(320, 120);
-	$RootWin->set_size_request(320, 200);
+	$RootWin->set_default_size(280, 120);
 	$RootWin->set_resizable(FALSE);
 	$RootWin->set_decorated(TRUE);
 
@@ -134,20 +132,24 @@ my $VBox = Gtk2::VBox->new(FALSE, 4);
 
 my $HBox = Gtk2::HBox->new(FALSE, 4);
 	$HBox->set_border_width(8);
+	$HBox->set_size_request(10, 46);
 
 my $Frame = Gtk2::Frame->new('Query');
 	$Frame->set_border_width(8);
 
 my $Label = Gtk2::Label->new();
+	$Label->set_size_request(260, 60);
 	$Label->set_text($Question);
 	$Label->set_justify($Align);
 	$Label->set_line_wrap(TRUE);
 	$Label->set_line_wrap_mode('word');
 
 my $JaButton = Gtk2::Button->new($YesText);
+	$JaButton->set_size_request(40, 60);
 	$JaButton->signal_connect('clicked' => \&Clicked, [0, 'True']);
 
 my $NeinButton = Gtk2::Button->new($NoText);
+	$NeinButton->set_size_request(40, 60);
 	$NeinButton->signal_connect('clicked' => \&Clicked, [1, 'False']);
 
 $VBox->pack_start($Label, TRUE, TRUE, 4);
