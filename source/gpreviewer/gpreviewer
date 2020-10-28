@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Wed 28 Oct 00:19:18 GMT 2020
+# Last Change       - Wed 28 Oct 00:29:01 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -158,14 +158,18 @@ sub UserFilter{
 	my $UserWin = Gtk2::Window->new();
 		$UserWin->signal_connect('destroy' => sub {$UserWin->destroy()});
 
-		$UserWin->set_border_width(8);
 		$UserWin->set_title($Progrm . ' (User Filter)');
-		$UserWin->set_default_size(300, 140);
+		$UserWin->set_default_size(280, 120);
+		$UserWin->set_border_width(4);
 		$UserWin->set_resizable(TRUE);
 		$UserWin->set_decorated(TRUE);
 
 	my $UserEntry = Gtk2::Entry->new();
 		$UserEntry->set_text($UserName);
+
+	# Using this to ensure correct padding within the frame.
+	my $UserEntryHBox = Gtk2::HBox->new();
+		$UserEntryHBox->set_border_width(8);
 
 	my $UserWinAcceptButton = Gtk2::Button->new_with_mnemonic('_Accept');
 		$UserWinAcceptButton->signal_connect(
@@ -180,7 +184,7 @@ sub UserFilter{
 			'clicked' => sub {$UserWin->destroy()}
 		);
 
-	my $UserFrame = Gtk2::Frame->new('Enter Username');
+	my $UserFrame = Gtk2::Frame->new('Username');
 		$UserFrame->set_border_width(2);
 
 	my $UserWinVBox = Gtk2::VBox->new(FALSE, 4);
@@ -189,10 +193,12 @@ sub UserFilter{
 	my $UserWinHBox = Gtk2::HBox->new(FALSE, 4);
 		$UserWinHBox->set_border_width(8);
 
-	$UserFrame->add($UserEntry);
+	$UserFrame->add($UserEntryHBox);
 		$UserFrame->set_border_width(8);
 
 	$UserWin->add($UserWinVBox);
+
+	$UserEntryHBox->pack_start($UserEntry, TRUE, TRUE, 4);
 
 	$UserWinVBox->pack_start($UserFrame, TRUE, TRUE, 4);
 	$UserWinVBox->pack_start($UserWinHBox, TRUE, TRUE, 4);
@@ -382,6 +388,8 @@ $HBoxMain->pack_start($FrameRating, TRUE, TRUE, 2);
 #-----------------------Show All Main Stuff, Do Main Loop, and Catch Big Errors
 
 $RootWin->show_all();
+
+UserFilter();
 
 ErrMsg($RootWin, "Dependency 'previewer' not found.")
 	unless -x '/usr/bin/previewer';
