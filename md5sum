@@ -2,7 +2,8 @@
 bfa7df3f9dfa819b3de2824a1b5eb3f2  devutils/ubuchk.test
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 2992bb26459073734e057cfdeab2ccd6  source/apt-undo-install
-d94871ec61508bab48e1f5ce8f1fcc6a  source/clean-locales
+11524f2262fa5a3570632b93515db308  source/battery_monitor
+ac43d5d7cf563682a3a67d49747a261e  source/clean-locales
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
 f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
 eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
@@ -17,10 +18,14 @@ fcfe8dd3c2445d02b21cb3411544e339  source/dominator/completions
 31d128100386f840b85484372e4c0ddb  source/getip
 e6858c18ef7499b24b2fb17e08f52b4f  source/gitbrov
 68fbf75ef30ed2fa0509fa5950e854d2  source/gitsap
+43140f34ca735bc323df1e85b3d8413a  source/gpreviewer/gpreviewer
+38236af5dd0cf462c380f0ac5c9e3e2f  source/gpreviewer/gpreviewer.desktop
 6f46516ed748fd7d3e430eea3bc3a978  source/gub/completions
 d2984de504f4cdb32f00121557724c5d  source/gub/gub
 1d3d434f41c82ef0031f4604c7f70f2e  source/gub/gub.1.gz
+4b4ca1e96e97f3f9a7de826c30564e7f  source/janein
 1e8602e4d82e5c39c8f45e3f050e09b6  source/kernelchk
+03de3fd4bb9082b2eaef733a231f1bf0  source/lam/lam
 b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
 3ba785def282d6b77545cd0ed47f3516  source/lsbins/completions
 56db8fb84e88be6e555302986d370a99  source/lsbins/lsbins
