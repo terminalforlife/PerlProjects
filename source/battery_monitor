@@ -1,15 +1,18 @@
 #!/usr/bin/env perl
 #cito M:600 O:1000 G:1000 T:$HOME/.i3a/battery_monitor
 #------------------------------------------------------------------------------
-# Project Name      - i3Config/source/.i3a/battery_monitor
+# Project Name      - PerlProjects/source/battery_monitor
 # Started On        - Mon 27 Jan 02:54:42 GMT 2020
-# Last Change       - Wed 28 Oct 03:43:16 GMT 2020
+# Last Change       - Wed 28 Oct 03:52:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Battery monitoring pseudo-daemon. Acts accordingly if the battery is low.
 #
-# Usage: battery_monitor [WARNING_INT_PERCENT]
+# To make effective use of this script, run it like you would most daemons.
+# Have it executed in the background when the user logs in.
+#
+# This script takes no arguments.
 #
 # Dependencies:
 #
