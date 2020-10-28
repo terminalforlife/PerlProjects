@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Tue 27 Oct 20:28:30 GMT 2020
+# Last Change       - Wed 28 Oct 00:15:26 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ use Gtk2 '-init';
 use Glib 'TRUE', 'FALSE';
 
 my $Progrm = 'GPreviewer';
-my $CurVer = '2020-10-27';
+my $CurVer = '2020-10-28';
 my $License = 'GNU General Public License v3.0';
 my $LicenseURL = 'https://www.gnu.org/licenses/gpl-3.0.en.html';
 
@@ -56,6 +56,8 @@ my $AboutMe = "$Progrm ($CurVer)\n\nWritten in Perl, using Gtk2.\n\nAuthor: " .
 
 # This is used to later determine (via signal) whether to use `-u` flag or not.
 my $DoByUser = 'False';
+
+my $UserName = '';
 
 # About Dialog. I know there's a built-in solution, but I wanted my own.
 sub AboutWin{
@@ -154,6 +156,55 @@ sub ErrMsg{
 	$ErrWin->show_all()
 }
 
+sub UserFilter{
+	my $UserWin = Gtk2::Window->new();
+		$UserWin->signal_connect('destroy' => sub {$UserWin->destroy()});
+
+		$UserWin->set_border_width(8);
+		$UserWin->set_title($Progrm . ' (User Filter)');
+		$UserWin->set_default_size(300, 140);
+		$UserWin->set_resizable(TRUE);
+		$UserWin->set_decorated(TRUE);
+
+	my $UserEntry = Gtk2::Entry->new();
+		$UserEntry->set_text($UserEntry->get_text());
+
+	my $UserWinAcceptButton = Gtk2::Button->new_with_mnemonic('_Accept');
+		$UserWinAcceptButton->signal_connect(
+			'clicked' => sub {
+				$UserName = $UserEntry->get_text();
+				$UserWin->destroy()
+			}
+		);
+
+	my $UserWinCancelButton = Gtk2::Button->new_with_mnemonic('_Cancel');
+		$UserWinCancelButton->signal_connect(
+			'clicked' => sub {$UserWin->destroy()}
+		);
+
+	my $UserFrame = Gtk2::Frame->new('Enter Username');
+		$UserFrame->set_border_width(2);
+
+	my $UserWinVBox = Gtk2::VBox->new(FALSE, 4);
+		$UserWinVBox->set_border_width(8);
+
+	my $UserWinHBox = Gtk2::HBox->new(FALSE, 4);
+		$UserWinHBox->set_border_width(8);
+
+	$UserFrame->add($UserEntry);
+		$UserFrame->set_border_width(8);
+
+	$UserWin->add($UserWinVBox);
+
+	$UserWinVBox->pack_start($UserFrame, TRUE, TRUE, 4);
+	$UserWinVBox->pack_start($UserWinHBox, TRUE, TRUE, 4);
+
+	$UserWinHBox->pack_start($UserWinAcceptButton, TRUE, TRUE, 4);
+	$UserWinHBox->pack_start($UserWinCancelButton, TRUE, TRUE, 4);
+
+	$UserWin->show_all()
+}
+
 sub MenuInit{
 	my $MenuBar = Gtk2::MenuBar->new();
 		$MenuBar->set_border_width(4);
@@ -184,9 +235,7 @@ sub MenuInit{
 
 	#TODO: This needs to open up a simple new Window in which to choose.
 	my $MenuItemFilterUser = Gtk2::MenuItem->new('Filter _User...');
-		$MenuItemFilterUser->signal_connect(
-			'activate' => sub {$DoByUser = 'True'}
-		);
+		$MenuItemFilterUser->signal_connect('activate' => \&UserFilter);
 
 	# Add MenuItems (whether submenus or not) to MenuBar.
 	$MenuBar->append($MenuItemTools);
@@ -289,7 +338,12 @@ my $HBoxQuery = Gtk2::HBox->new(FALSE, 4);
 			$CurStar = ''
 		}
 
-		my $NewResult = `previewer -b $AllRatings "$SearchStr" $CurStar`;
+		my $UserOPT = '';
+		if (length($UserName) > 0){
+			$UserOPT = "-u '$UserName'"
+		}
+
+		my $NewResult = `previewer -b $UserOPT $AllRatings "$SearchStr" $CurStar`;
 
 		$Buffer->set_text($NewResult)
 	}
