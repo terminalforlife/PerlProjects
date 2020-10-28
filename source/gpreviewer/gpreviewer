@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Wed 28 Oct 00:15:26 GMT 2020
+# Last Change       - Wed 28 Oct 00:19:18 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,14 +14,12 @@
 #
 # Features:
 #
-#TODO: Add a proper About dialog; it's sloppy as hell right now.
 #TODO: Set window(s) to not be resizable. (had it TRUE because tiling WM)
 #TODO: Have the Entry correctly be the default focus/selection.
 #TODO: Font needs changing for Result because of no unicode characters. Tags?
 #TODO: Make FindButton a little wider, without space-padding.
 #TODO: Add toolbar with primary functions for GPreviewer.
 #TODO: Add functionality for updating the review database. No need for root.
-#TODO: Add 'about' dialog.
 #TODO: Test GPreviewer on a non-tiling window manager, to ensure it looks OK.
 #TODO: Tweak ErrMsg(), because it's pretty naff right now, visually.
 #TODO: Update titlebar to 'GPreviewer - PKG_NAME', based on searched PKG.
@@ -167,7 +165,7 @@ sub UserFilter{
 		$UserWin->set_decorated(TRUE);
 
 	my $UserEntry = Gtk2::Entry->new();
-		$UserEntry->set_text($UserEntry->get_text());
+		$UserEntry->set_text($UserName);
 
 	my $UserWinAcceptButton = Gtk2::Button->new_with_mnemonic('_Accept');
 		$UserWinAcceptButton->signal_connect(
@@ -321,7 +319,7 @@ my $HBoxQuery = Gtk2::HBox->new(FALSE, 4);
 	my $FindEntry = Gtk2::Entry->new();
 		$FindEntry->signal_connect('activate' => \&UpdateResult, $FindEntry);
 
-	my $FindButton = Gtk2::Button->new_with_mnemonic('      _Search      ');
+	my $FindButton = Gtk2::Button->new_with_mnemonic('    _Search    ');
 		$FindButton->signal_connect('clicked' => \&UpdateResult, $FindEntry);
 
 	# Callback for updating the Result TextView. As it is, this must be here.
