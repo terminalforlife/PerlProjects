@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Wed 28 Oct 21:19:30 GMT 2020
+# Last Change       - Wed 28 Oct 21:23:26 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #
 # Test Results:
 #
-#   Linux Mint 18.3 (Cinnamon)             | GREAT
+#   Linux Mint 18.3 (Cinnamon)             | GOOD
 #   Pop! OS 20.04 (GNOME3)                 | BAD
 #   Ubuntu 18.04 (i3-wm)                   | PERFECT
 #
@@ -21,7 +21,8 @@
 #
 # Bugs:
 #
-#TODO: Line-wrapping not working at all on Pop! OS 20.04.
+#TODO: Line-wrapping not working at all on Pop! OS 20.04 (GNOME3).
+#TODO: Line-wrapping not as effective on Linux Mint 18.3 (Cinnamon).
 #
 # Dependencies:
 #
