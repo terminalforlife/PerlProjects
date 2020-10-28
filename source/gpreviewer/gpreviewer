@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020
-# Last Change       - Wed 28 Oct 00:29:01 GMT 2020
+# Last Change       - Wed 28 Oct 00:45:51 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #
 # Features:
 #
+#TODO: Add basic help documentation. Use existing documentation tool?
 #TODO: Set window(s) to not be resizable. (had it TRUE because tiling WM)
 #TODO: Have the Entry correctly be the default focus/selection.
 #TODO: Font needs changing for Result because of no unicode characters. Tags?
@@ -211,18 +212,25 @@ sub UserFilter{
 
 sub MenuInit{
 	my $MenuBar = Gtk2::MenuBar->new();
-		$MenuBar->set_border_width(4);
+		$MenuBar->set_border_width(2);
 		$MenuBar->set_pack_direction('ltr');
 
 	# The Tools Item for the MenuBar.
 	my $MenuItemTools = Gtk2::MenuItem->new('_Tools');
+		$MenuItemTools->set_border_width(2);
+
+	# The View Item for the MenuBar.
+	#my $MenuItemView = Gtk2::MenuItem->new('_View');
+		#$MenuItemView->set_border_width(2);
 
 	# The right-justified Help Item for the MenuBar.
 	my $MenuItemHelp = Gtk2::MenuItem->new('_Help');
-		$MenuItemHelp->set_right_justified(TRUE);
+		$MenuItemHelp->set_border_width(2);
+		#$MenuItemHelp->set_right_justified(TRUE);
 
-	# The Tools & Help submenus.
+	# The submenus.
 	my $MenuTools = Gtk2::Menu->new();
+	#my $MenuView = Gtk2::Menu->new();
 	my $MenuHelp = Gtk2::Menu->new();
 
 	# A MenuItem for the Tools Menu.
@@ -242,20 +250,25 @@ sub MenuInit{
 		$MenuItemFilterUser->signal_connect('activate' => \&UserFilter);
 
 	# Add MenuItems (whether submenus or not) to MenuBar.
+	#$MenuBar->append($MenuItemView);
 	$MenuBar->append($MenuItemTools);
 	$MenuBar->append($MenuItemHelp);
 
 	# Set MenuItem* to use Menu* as a submenu.
+	#$MenuItemView->set_submenu($MenuView);
 	$MenuItemTools->set_submenu($MenuTools);
 	$MenuItemHelp->set_submenu($MenuHelp);
 
-	# Add MenuItems to the Help submenu.
-	$MenuHelp->append($MenuItemAbout);
+	# Add MenuItems to the View submenu.
+	#$MenuView->append();
 
 	# Add MenuItems to the Tools submenu.
 	$MenuTools->append($MenuItemFilterUser);
 	$MenuTools->append(Gtk2::SeparatorMenuItem->new());
 	$MenuTools->append($MenuItemUpdateDB);
+
+	# Add MenuItems to the Help submenu.
+	$MenuHelp->append($MenuItemAbout);
 
 	# This is then used when later packing the VBox.
 	return($MenuBar)
@@ -374,7 +387,7 @@ $HBoxQuery->pack_start($FindButton, FALSE, TRUE, 4);
 # Pack rating ComboBox into HBoxRating.
 $HBoxRating->pack_start($ComboBox, TRUE, TRUE, 4);
 
-$VBoxTopMost->pack_start(MenuInit(), TRUE, TRUE, 0);
+$VBoxTopMost->pack_start(MenuInit(), FALSE, FALSE, 0);
 $VBoxTopMost->pack_start($VBox, TRUE, TRUE, 0);
 
 # Pack the Menu, the Result frame, then the main HBox into VBox.
@@ -388,8 +401,6 @@ $HBoxMain->pack_start($FrameRating, TRUE, TRUE, 2);
 #-----------------------Show All Main Stuff, Do Main Loop, and Catch Big Errors
 
 $RootWin->show_all();
-
-UserFilter();
 
 ErrMsg($RootWin, "Dependency 'previewer' not found.")
 	unless -x '/usr/bin/previewer';
