@@ -1,0 +1,162 @@
+#!/usr/bin/perl
+#cito M:755 O:0 G:0 T:/usr/bin/janein
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/janein
+# Started On        - Wed 28 Oct 17:26:51 GMT 2020
+# Last Change       - Wed 28 Oct 21:08:18 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Programmable Yes/No GTK2 dialog for use in scripts.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+#TODO: Line-wrapping not working at all on Pop! OS 20.04.
+#
+# Dependencies:
+#
+#   libglib-perl (>= 3:1.326-1build1)
+#   libgtk2-perl (>= 2:1.24992-1build1)
+#   perl (>= 5.26.1-6)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use Getopt::Long 'GetOptions';
+use Glib 'TRUE', 'FALSE';
+use Gtk2 '-init';
+
+my $CurVer = '2020-10-28';
+
+my $Progrm = 'janein';
+my $ProgrmFancy = 'JaNein';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [QUESTION]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  --align [TYPE]           - Align text by TYPE; see below.
+		  --no-cmd [CMD]           - Run shell CMD when result is False.
+		  --no-frame               - Omit the display frame container.
+		  --no-text [STR]          - Instead, use STR on False button.
+		  --yes-cmd [CMD]          - Run shell CMD when result is True.
+		  --yes-text [STR]         - Instead, use STR on True button.
+		  -q, --quiet              - Omit returned True/False booleans.
+
+		Button Text:
+
+		  The True and False buttons ('Yes'/'No', by default) can each contain
+		  a mnemonic, which can be denoted with an underscore ('_') prior to
+		  the desired character.
+
+		Alignment Types:
+
+		  'left', 'right', 'center', 'fill'
+
+		Examples:
+
+		  janein -q 'Power system down?' && systemctl poweroff
+		  janein --yes-text 'Accept' --no-text 'Deny' 'Allow user?' && ...
+		  janein -q --yes-cmd 'systemctl suspend' 'Perform a system suspend?'
+		  Q=\`janein 'Nap time?'\`; [ "\$Q" == 'True' ] && sleep 45m
+	} =~ tr/\t//dr);
+}
+
+my $Hush = 'False';
+my $Align = 'center';
+my $DoFrame = 'True';
+my $YesText = '_Yes';
+my $NoText = '_No';
+my $YesCMD = '';
+my $NoCMD = '';
+
+GetOptions(
+	'h|help' => sub { Usage(); exit(0) },
+	'v|version' => sub { print("$CurVer\n"); exit(0) },
+
+	'align=s' => sub {
+		$Align = $_[1];
+
+		die("Invalid alignment TYPE")
+			unless $Align =~ '^(left|right|center|fill)$';
+	},
+
+	'no-cmd=s' => sub {$NoCMD = $_[1]},
+	'no-frame' => sub {$DoFrame = 'False'},
+	'no-text=s' => sub {$NoText = $_[1]},
+	'yes-cmd=s' => sub {$YesCMD = $_[1]},
+	'yes-text=s' => sub {$YesText = $_[1]},
+	'q|quiet' => sub { $Hush = 'True' }
+) or die("Usage: $Progrm --help\n");
+
+my $Question = join(' ', @ARGV);
+$Question ||  die("Question string missing");
+
+sub Clicked {
+	# Dereferencing the argument array sent to callback.
+	my ($ExitStatus, $String) = @{$_[1]};
+
+	print("$String\n") unless $Hush eq 'True';
+	Gtk2::main_quit();
+
+	system($YesCMD) if $String eq 'True';
+	system($NoCMD) if $String eq 'False';
+
+	exit($ExitStatus)
+}
+
+my $RootWin = Gtk2::Window->new();
+	$RootWin->signal_connect('destroy' => sub {Gtk2::main_quit()});
+	$RootWin->signal_connect('delete_event' => sub {return(0)});
+
+	$RootWin->set_border_width(8);
+	$RootWin->set_title($ProgrmFancy);
+	$RootWin->set_default_size(320, 120);
+	$RootWin->set_size_request(320, 200);
+	$RootWin->set_resizable(FALSE);
+	$RootWin->set_decorated(TRUE);
+
+my $VBox = Gtk2::VBox->new(FALSE, 4);
+	$VBox->set_border_width(8);
+
+my $HBox = Gtk2::HBox->new(FALSE, 4);
+	$HBox->set_border_width(8);
+
+my $Frame = Gtk2::Frame->new('Query');
+	$Frame->set_border_width(8);
+
+my $Label = Gtk2::Label->new();
+	$Label->set_text($Question);
+	$Label->set_justify($Align);
+	$Label->set_line_wrap(TRUE);
+	$Label->set_line_wrap_mode('word');
+
+my $JaButton = Gtk2::Button->new($YesText);
+	$JaButton->signal_connect('clicked' => \&Clicked, [0, 'True']);
+
+my $NeinButton = Gtk2::Button->new($NoText);
+	$NeinButton->signal_connect('clicked' => \&Clicked, [1, 'False']);
+
+$VBox->pack_start($Label, TRUE, TRUE, 4);
+$VBox->pack_start($HBox, FALSE, FALSE, 4);
+
+$HBox->pack_start($JaButton, TRUE, TRUE, 4);
+$HBox->pack_start($NeinButton, TRUE, TRUE, 4);
+
+if ($DoFrame eq 'True') {
+	$Frame->add($VBox);
+
+	$RootWin->add($Frame);
+} else {
+	$RootWin->add($VBox);
+}
+
+$RootWin->show_all();
+
+Gtk2::main($ProgrmFancy)
