@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Wed 28 Oct 22:01:50 GMT 2020
+# Last Change       - Fri 30 Oct 16:57:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,11 +17,12 @@
 #
 # Features:
 #
-# N/A
+#TODO: Add error message for too-long a message.
+#TODO: Add optional line-wrapping functionality, with correct alignment.
 #
 # Bugs:
 #
-#TODO: Line-wrapping not working at all on Pop! OS 20.04 (GNOME3).
+# N/A
 #
 # Dependencies:
 #
@@ -37,7 +38,7 @@ use Getopt::Long 'GetOptions';
 use Glib 'TRUE', 'FALSE';
 use Gtk2 '-init';
 
-my $CurVer = '2020-10-28';
+my $CurVer = '2020-10-30';
 
 my $Progrm = 'janein';
 my $ProgrmFancy = 'JaNein';
@@ -47,9 +48,8 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  --align [TYPE]           - Align text by TYPE; see below.
+		  --do-frame               - Display a frame around the widgets.
 		  --no-cmd [CMD]           - Run shell CMD when result is False.
-		  --no-frame               - Omit the display frame container.
 		  --no-text [STR]          - Instead, use STR on False button.
 		  --yes-cmd [CMD]          - Run shell CMD when result is True.
 		  --yes-text [STR]         - Instead, use STR on True button.
@@ -61,22 +61,17 @@ sub Usage {
 		  a mnemonic, which can be denoted with an underscore ('_') prior to
 		  the desired character.
 
-		Alignment Types:
-
-		  'left', 'right', 'center', 'fill'
-
 		Examples:
 
 		  janein -q 'Power system down?' && systemctl poweroff
 		  janein --yes-text 'Accept' --no-text 'Deny' 'Allow user?' && ...
-		  janein -q --yes-cmd 'systemctl suspend' 'Perform a system suspend?'
+		  janein --yes-cmd 'systemctl suspend' 'Perform a system suspend?'
 		  Q=\`janein 'Nap time?'\`; [ "\$Q" == 'True' ] && sleep 45m
 	} =~ tr/\t//dr);
 }
 
 my $Hush = 'False';
-my $Align = 'center';
-my $DoFrame = 'True';
+my $DoFrame = 'False';
 my $YesText = '_Yes';
 my $NoText = '_No';
 my $YesCMD = '';
@@ -85,20 +80,12 @@ my $NoCMD = '';
 GetOptions(
 	'h|help' => sub { Usage(); exit(0) },
 	'v|version' => sub { print("$CurVer\n"); exit(0) },
-
-	'align=s' => sub {
-		$Align = $_[1];
-
-		die("Invalid alignment TYPE")
-			unless $Align =~ '^(left|right|center|fill)$';
-	},
-
+	'do-frame' => sub {$DoFrame = 'True'},
 	'no-cmd=s' => sub {$NoCMD = $_[1]},
-	'no-frame' => sub {$DoFrame = 'False'},
 	'no-text=s' => sub {$NoText = $_[1]},
+	'q|quiet' => sub { $Hush = 'True' },
 	'yes-cmd=s' => sub {$YesCMD = $_[1]},
-	'yes-text=s' => sub {$YesText = $_[1]},
-	'q|quiet' => sub { $Hush = 'True' }
+	'yes-text=s' => sub {$YesText = $_[1]}
 ) or die("Usage: $Progrm --help\n");
 
 my $Question = join(' ', @ARGV);
@@ -130,33 +117,40 @@ my $RootWin = Gtk2::Window->new();
 my $VBox = Gtk2::VBox->new(FALSE, 4);
 	$VBox->set_border_width(8);
 
-my $HBox = Gtk2::HBox->new(FALSE, 4);
-	$HBox->set_border_width(8);
-	$HBox->set_size_request(10, 46);
+# Putting HBoxButtons within HBoxMain in order to keep the buttons centered.
+# This also affords me the ability to not need to pack the buttons into the Box
+# with expand and fill enabled.
+my $HBoxMain = Gtk2::HBox->new(FALSE, 4);
+	$HBoxMain->set_size_request(10, 46);
+
+my $HBoxButtons = Gtk2::HBox->new(FALSE, 4);
+	$HBoxButtons->set_border_width(8);
 
 my $Frame = Gtk2::Frame->new('Query');
 	$Frame->set_border_width(8);
 
 my $Label = Gtk2::Label->new();
-	$Label->set_size_request(260, 60);
 	$Label->set_text($Question);
-	$Label->set_justify($Align);
-	$Label->set_line_wrap(TRUE);
+	$Label->set_max_width_chars(100);
+	$Label->set_justify('center');
+	$Label->set_line_wrap(FALSE);
 	$Label->set_line_wrap_mode('word');
 
 my $JaButton = Gtk2::Button->new($YesText);
-	$JaButton->set_size_request(40, 60);
+	$JaButton->set_size_request(100, 60);
 	$JaButton->signal_connect('clicked' => \&Clicked, [0, 'True']);
 
 my $NeinButton = Gtk2::Button->new($NoText);
-	$NeinButton->set_size_request(40, 60);
+	$NeinButton->set_size_request(100, 60);
 	$NeinButton->signal_connect('clicked' => \&Clicked, [1, 'False']);
 
 $VBox->pack_start($Label, TRUE, TRUE, 4);
-$VBox->pack_start($HBox, FALSE, FALSE, 4);
+$VBox->pack_start($HBoxMain, FALSE, FALSE, 4);
 
-$HBox->pack_start($JaButton, TRUE, TRUE, 4);
-$HBox->pack_start($NeinButton, TRUE, TRUE, 4);
+$HBoxMain->pack_start($HBoxButtons, TRUE, FALSE, 4);
+
+$HBoxButtons->pack_start($JaButton, TRUE, TRUE, 4);
+$HBoxButtons->pack_start($NeinButton, TRUE, TRUE, 4);
 
 if ($DoFrame eq 'True') {
 	$Frame->add($VBox);
