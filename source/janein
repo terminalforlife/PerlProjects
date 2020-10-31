@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Sat 31 Oct 19:24:14 GMT 2020
+# Last Change       - Sat 31 Oct 19:30:02 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,6 +17,7 @@
 #
 # Features:
 #
+#TODO: Add ability to change or supplement title bar.
 #TODO: Use a hash for scheme testing/returning.
 #TODO: Add error message for too-long a message.
 #TODO: Add optional line-wrapping functionality, with correct alignment.
