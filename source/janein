@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Fri 30 Oct 18:42:22 GMT 2020
+# Last Change       - Sat 31 Oct 19:24:14 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,7 +23,7 @@
 #
 # Bugs:
 #
-# N/A
+#TODO: Handle out-of-range (non-existent) scheme error.
 #
 # Dependencies:
 #
@@ -42,7 +42,7 @@ no warnings 'uninitialized';
 
 my $Progrm = 'janein';
 my $ProgrmFancy = 'JaNein';
-my $CurVer = '2020-10-30';
+my $CurVer = '2020-10-31';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS] [QUESTION]
