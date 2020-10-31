@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+#cito M:755 O:0 G:0 T:/usr/bin/depends
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/depends
+# Started On        - Sat 31 Oct 20:40:11 GMT 2020
+# Last Change       - Sat 31 Oct 21:08:49 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+
+my $Progrm = 'depends';
+my $ProgrmFancy = 'Depends';
+my $CurVer = '2020-10-31';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -i, --integer            - Display integer of missing files.
+
+		  The use of '--' is supported in $ProgrmFancy.
+	} =~ tr/\t//dr)
+}
+
+my $Integer = 'False';
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^--$') {
+		shift(); last
+	} elsif ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--integer|-i)$') {
+		$Integer = 'True'
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} else {
+		last
+	}
+
+	shift()
+}
+
+my @Files = ();
+my $Found = scalar(@ARGV);
+foreach my $Dir (split(':', $ENV{'PATH'})) {
+	if (opendir(my $DH, $Dir)) {
+		foreach my $File (readdir($DH)) {
+			-x "$Dir/$File" and push(@Files, $File);
+		}
+
+		closedir($DH)
+	}
+}
+
+foreach my $Arg (@ARGV) {
+	grep({$_ eq $Arg} @Files) and $Found--;
+}
+
+$Integer eq 'True' and print("$Found\n");
+
+$Found > 0 and exit(1)
