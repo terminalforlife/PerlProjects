@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl/wcdl
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Sat 15 Feb 01:44:12 GMT 2020
+# Last Change       - Sun  1 Nov 18:43:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,12 +13,11 @@
 #
 # Bugs:
 #
-#
+# N/A
 #
 # Dependencies:
 #
 #  libimage-magick-perl (>= 8:6.8.9.9-7)
-#  libtfl-perl (>= 2020-01-15)
 #  libwww-perl (>= 6.15-1)
 #  libx11-protocol-perl (>= 0.56-7)
 #  perl (>= 5.22.1-9)
@@ -27,16 +26,14 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-15';
-
-my $Domain = 'https://wallpaperscraft.com';
+my $CurVer = '2020-11-01';
+my $Progrm = 'wcdl';
 
 sub Usage{
-	print(qq{Usage: $TFL::PROGNAME [OPTS] [CATEGORY] [PAGE]
+	print(qq{Usage: $Progrm [OPTS] [CATEGORY] [PAGE]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -51,11 +48,12 @@ sub Usage{
 		  -O, --links-only         - Output only the download links.
 		  -f, --filter <TAG>       - Omit images not matching TAG.
 		  -p, --png                - Convert JPG image to PNG format.
-		  -r, --resolution <RSLTN> - Where RSLTN is, IE: '1920x1080'
+		  -r, --resolution <WxH>   - Use resolution of width by height.
 	} =~ tr/\t//dr)
 }
 
-my $LocalDir = "$ENV{HOME}/.local/share/$TFL::PROGNAME";
+my $Domain = 'https://wallpaperscraft.com';
+my $LocalDir = "$ENV{HOME}/.local/share/$Progrm";
 my $CacheDir = "$LocalDir/cache";
 my $CacheCats = "$CacheDir/categories";
 my $CachePages = "$CacheDir/pages";
@@ -90,7 +88,7 @@ while (defined($ARGV[0])){
 		if ($ARGV[0] =~ '^[0-9]+x[0-9]+$'){
 			$Resolution = $ARGV[0]
 		}else{
-			FErr(1, __LINE__, "Invalid resolution chosen.")
+			die("Invalid resolution chosen")
 		}
 	}elsif ($ARGV[0] =~ '^(--filter|-f)$'){
 		shift(@ARGV);
@@ -107,9 +105,9 @@ while (defined($ARGV[0])){
 		unless (-d $Destination){
 			if ($ForceDir){
 				mkdir($Destination)
-					or FErr(1, __LINE__, "Failed to create new directory.")
+					or die("Failed to create new directory")
 			}else{
-				FErr(1, __LINE__, "Directory not found.")
+				die("Directory not found")
 			}
 		}
 	}elsif ($ARGV[0] eq '--repopulate'){
@@ -119,7 +117,7 @@ while (defined($ARGV[0])){
 	}elsif ($ARGV[0] =~ '^(--no-cache|-N)$'){
 		$NoCache = 1
 	}elsif ($ARGV[0] =~ '^-'){
-		FErr(1, __LINE__, "Incorrect argument(s) specified")
+		die("Incorrect argument(s) specifie")
 	}else{
 		last
 	}
@@ -163,7 +161,7 @@ sub PageDL{
 			}else{
 				unlink($_[0]);
 
-				FErr(1, __LINE__, "Unable to fetch and cache page data.")
+				die("Unable to fetch and cache page data")
 			}
 
 			close($FH)
@@ -173,10 +171,10 @@ sub PageDL{
 
 		# Ignoring the first index to ensure no cache overwrites.
 
-		FErr(1, __LINE__, "Told to repopulate, but '--no-cache|N' is enabled")
+		die("Told to repopulate, but '--no-cache|N' is enable")
 			if $Repopulate;
 
-		my $FH = File::Temp->new(UNLINK => 0, SUFFIX => "_{$TFL::PROGNAME}.tmp");
+		my $FH = File::Temp->new(UNLINK => 0, SUFFIX => "_{$Progrm}.tmp");
 		binmode($FH, ':utf8'); # <-- Ensure temp file uses UTF-8 encoding.
 		$TempFile = $FH->filename();
 
@@ -186,7 +184,7 @@ sub PageDL{
 		}else{
 			unlink($_[1]);
 
-			FErr(1, __LINE__, "Unable to fetch page data.")
+			die("Unable to fetch page data")
 		}
 
 		close($FH)
@@ -292,14 +290,14 @@ if ($ListCats){
 }
 
 if ($ARGV[0] and not exists($CatNums{$ARGV[0]})){
-	FErr(1, __LINE__, "Invalid category provided.")
+	die("Invalid category provided")
 }
 
 #----------------------------------------------------------PROCESS PAGE NUMBERS
 
 my @Pages;
 unless ($ARGV[1]){
-	FErr(1, __LINE__, "At least one (non-0) page must be provided.")
+	die("At least one (non-0) page must be provided")
 }else{
 	my @PAGE_NUM_LIST = split(' ', $ARGV[1]);
 	foreach (@PAGE_NUM_LIST){
@@ -311,7 +309,7 @@ unless ($ARGV[1]){
 			my @NUMS = ($START..$END);
 			push(@Pages, $_) foreach @NUMS
 		}else{
-			FErr(1, __LINE__, "Invalid page number detected.")
+			die("Invalid page number detected")
 		}
 	}
 }
@@ -328,7 +326,7 @@ foreach (@Pages){
 	# round up with `ceil()` (`POSIX`), as final page may display 1-15 images.
 	my $TOTAL_IMAGES_INTO_PAGES = ceil($CatNums{$ARGV[0]} / 15);
 
-	FErr(1, __LINE__, "Page '$_' is out of range.")
+	die("Page '$_' is out of range")
 		if $_ > $TOTAL_IMAGES_INTO_PAGES;
 
 	if (length($Resolution) > 0){
@@ -340,7 +338,7 @@ foreach (@Pages){
 			}
 		}
 
-		FErr(1, __LINE__, "Resolution not supported.") unless $FoundRes
+		die("Resolution not supported") unless $FoundRes
 	}
 
 	PageDL(
