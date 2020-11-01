@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  1 Nov 20:12:50 GMT 2020
+# Last Change       - Sun  1 Nov 22:55:01 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,7 +11,6 @@
 #
 # Features:
 #
-#TODO: Optimize DepChk(), also for use within UbuChk.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `AllowUsers` check to `SSHServer` key.
 #TODO: Add `kernel.exec-shield` parameter; recommend value of `1`.
@@ -200,39 +199,20 @@ while (defined($ARGV[0])){
 	shift()
 }
 
-# Taken directly from the TFL module. (2020-02-29)
 sub DepChk{
-	my $Passive = 'false';
-	if ($_[0] eq ':'){
-		$Passive = 'true';
-		shift(@_)
+	my @Files;
+	foreach my $Dir (split(':', $ENV{'PATH'})) {
+		opendir(my $DH, $Dir) or next;
+		push(@Files, readdir($DH));
+		closedir($DH);
 	}
 
-	my $DepCount = 0;
-	foreach my $CurDep (@_){
-		my $Found = 'false';
-
-		if ($CurDep !~ '/'){
-			foreach my $CurDir (split(':', $ENV{'PATH'})){
-				foreach my $CurFile (glob("$CurDir/*")){
-					next unless -f -x $CurFile;
-
-					if ($CurFile =~ "/$CurDep\$"){
-						$Found = 'true';
-						last
-					}
-				}
-			}
-		}else{
-			$Found = 'true' if -f -x $CurDep
-		}
-
-		if ($Found ne 'true'){
-			return(1) if $Passive eq 'true';
-			printf(STDERR "ERROR: Dependency '%s' not met.\n", $CurDep);
-			exit(1)
-		}
+	my $Found = scalar(@_);
+	foreach my $CurDep (@_) {
+		grep({$_ eq $CurDep} @Files) and $Found--
 	}
+
+	return($Found)
 }
 
 # Taken directly from the TFL module. (2020-02-29)
@@ -943,7 +923,7 @@ if ($PurgeChk eq 'true'){
 #-----------------------------------------------------------APT Security Tweaks
 
 if ($HardAPT eq 'true'){
-	if (DepChk(':', 'apt-config') == 0){
+	if (DepChk('apt-config') == 0){
 		my %Settings;
 		foreach (`apt-config dump --format '%f=%v%n' 2> /dev/null`){
 			chomp();
@@ -1624,7 +1604,7 @@ if ($AptCache eq 'true'){
 		if ($Size > 0){
 			my $Human = Human($Size);
 			if ($Size / 1024 / 1024 >= $AptCacheMBLimit){
-				if (DepChk(':', 'sudo') == 0){
+				if (DepChk('sudo') == 0){
 					Alert(
 						9708,
 						"Found $FileCount cached Debian packages, totalling $Human.",
@@ -2096,7 +2076,7 @@ if ($ChkPasswd eq 'true'){
 #--------------------------------------------------------SystemD Units/Services
 
 if ($UFW eq 'true'){
-	if (DepChk(':', 'systemctl') == 0){
+	if (DepChk('systemctl') == 0){
 		chomp(my $Active = `systemctl is-active ufw 2> /dev/null`);
 		unless ($Active eq 'active'){
 			Alert(
@@ -2126,7 +2106,7 @@ if ($UFW eq 'true'){
 }
 
 if ($AppArmor eq 'true'){
-	if (DepChk(':', 'systemctl') == 0){
+	if (DepChk('systemctl') == 0){
 		chomp(my $Active = `systemctl is-active apparmor 2> /dev/null`);
 		unless ($Active eq 'active'){
 			Alert(
