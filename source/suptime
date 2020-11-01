@@ -1,56 +1,88 @@
 #!/usr/bin/env perl
-
+#cito M:755 O:0 G:0 T:/usr/bin/suptime
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/suptime
 # Started On        - Wed 17 Apr 13:13:34 BST 2019
-# Last Change       - Wed 15 Jan 16:25:58 GMT 2020
+# Last Change       - Sun  1 Nov 19:16:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
 # A Perl rewrite of up() previously found in TFL .bash_functions.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
 #----------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL;
 
-# Really not needed in suptime.
 no warnings 'uninitialized';
 
-my $_VERSION_ = "2019-05-09";
+my $CurVer = '2020-11-01';
+my $Progrm = 'suptime';
 
-TFL::FAIL(1, __LINE__, "Too many arguments provided.") if $#ARGV > 0;
-if($ARGV[0] =~ /^(--help|-h|-\?)$/){
-	print("USAGE: suptime [[--help|-h|-?] | [--version|-v]]\n");
-	exit 0
-}elsif($ARGV[0] =~ /^(--version|-v)$/){
-	print("$_VERSION_\n"); exit 0
-}else{
-	TFL::FAIL(1, __LINE__, "Incorrect argument(s) specified") if defined($ARGV[0])
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -a, --ampersand          - Use ampersand ('&') instead of 'and'.
+		  -c, --comma              - Use comma instead of 'and'.
+		  -t, --time-only          - Omit 'UP:' header & trailing period.
+
+		  If multiple formats are chosen, only the last one applies.
+	} =~ tr/\t//dr)
 }
 
-my $FILE = '/proc/uptime';
-TFL::FAIL(1, __LINE__, "File '$FILE' not found.") if not -f $FILE;
-TFL::FAIL(1, __LINE__, "Read access for '$FILE' is denied.") if not -r $FILE;
+my $TimeOnly = 'False';
+my $Mid = ' and';
 
-open(my $FH, '<', $FILE);
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--ampersand|-a)$') {
+		$Mid = ' &'
+	} elsif ($ARGV[0] =~ '^(--comma|-c)$') {
+		$Mid = ','
+	} elsif ($ARGV[0] =~ '^(--time-only|-t)$') {
+		$TimeOnly = 'True'
+	} else {
+		die("Incorrect option(s) specified")
+	}
 
-while(<$FH>){
-	my @ARRAY = split(" ", $_);
-	my $HOUR = int($ARRAY[0] / 60 / 60);
-	my $MIN = int($ARRAY[0] / 60 - ($HOUR * 60));
+	shift()
+}
 
-	# Use correct grammar.
-	my $HOUR_S = "s";
-	my $MIN_S = "s";
-	$HOUR_S = '' if $HOUR <= 1;
-	$MIN_S = '' if $MIN <= 1;
+my $File = '/proc/uptime';
 
-	printf(
-		"UP: %d hour%s and %d minute%s.\n",
-		$HOUR, $HOUR_S, $MIN, $MIN_S
-	)
+open(my $FH, '<', $File) or die("File '$File' failed to open");
+
+my @Array = split(" ", <$FH>);
+my $Hour = int($Array[0] / 60 / 60);
+my $Min = int($Array[0] / 60 - ($Hour * 60));
+
+# Use correct grammar.
+my $Hour_S = "s";
+my $Min_S = "s";
+$Hour <= 1 and $Hour_S = '';
+$Min <= 1 and $Min_S = '';
+
+if ($TimeOnly eq 'True') {
+	printf("%d hour%s%s %d minute%s\n", $Hour, $Hour_S, $Mid, $Min, $Min_S);
+} else {
+	printf("UP: %d hour%s%s %d minute%s.\n", $Hour, $Hour_S, $Mid, $Min, $Min_S);
 }
 
 close($FH)
