@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 17 Oct 15:52:25 BST 2020
+# Last Change       - Sat 31 Oct 21:42:09 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -93,12 +93,12 @@
 use strict;
 use warnings;
 use autodie;
-use TFL qw{Err FErr Boolean DepChk CelsFahr GetDirSize};
+use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-10-17';
+my $CurVer = '2020-10-31';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -521,7 +521,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$ForceRun = $Value unless $ForceRun eq 'true'
 		}elsif ($Key eq 'HardAPT'){
-			Err(1, "Invalid boolean '$Value' detected.")
+			FErr(1, __LINE__, "Invalid boolean '$Value' detected.")
 				unless $Value =~ '^([01]|true|false)$';
 
 			$HardAPT = $Value
