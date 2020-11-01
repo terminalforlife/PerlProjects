@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 31 Oct 21:42:09 GMT 2020
+# Last Change       - Sun  1 Nov 19:53:02 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,7 +11,7 @@
 #
 # Features:
 #
-#TODO: Remove defunct config part of ForceRun key, keeping only its OPT.
+#TODO: Optimize DepChk(), also for use within UbuChk.
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `AllowUsers` check to `SSHServer` key.
 #TODO: Add `kernel.exec-shield` parameter; recommend value of `1`.
@@ -26,7 +26,6 @@
 #TODO: Add checks for unsecure network-related packages. (RSH, for example)
 #TODO: Add keys for block size 1000 and 1024, and for SI toggling.
 #TODO: Add netstat(8) and ss(8) port and/or address security checks.
-#TODO: Add update feature, because it's important to keep this updated.
 #TODO: Alert of all SUID (+4000) and SGID (+2000) files in PATH.
 #TODO: Check (almost) entire system for non-group & non-user files.
 #TODO: Check `/etc/inetd.conf` for malicious lines. (IE: Ramen Worm; '^asp')
@@ -86,24 +85,23 @@
 #   libnumber-bytes-human-perl (>= 0.09-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
-#   libtfl-perl (>= 2020-02-20)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL qw{FErr Boolean DepChk CelsFahr GetDirSize};
 use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-10-31';
+my $CurVer = '2020-11-01';
+my $Progrm = 'ubuchk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
 sub Usage{
-	print(qq{Usage: $TFL::PROGNAME [OPTS]
+	print(qq{Usage: $Progrm [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -133,11 +131,11 @@ my (
 	$ANSIColors, $Char_Margin, %Syms, $ShowTTL
 );
 
-my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
+my $MainDir = "$ENV{HOME}/.config/$Progrm";
 my $ConfigFile = "$MainDir/config";
 my $Database = '/usr/share/ubuchk/database';
 my $RKDatabase = '/usr/share/ubuchk/database-rk';
-my $DefaultConfigFile = "/usr/share/$TFL::PROGNAME/config";
+my $DefaultConfigFile = "/usr/share/$Progrm/config";
 
 my $GID = (split(' ', $())[0];
 
@@ -150,9 +148,9 @@ while (defined($ARGV[0])){
 		print("$CurVer\n"); exit(0)
 	}elsif($ARGV[0] =~ /^(--config|-c)$/){
 		unless (length($ARGV[1]) > 0){
-			FErr(1, __LINE__, "Option '$ARGV[0]' requires a PATH.")
+			die("Option '$ARGV[0]' requires a PATH")
 		}elsif (not -f -r $ARGV[1]){
-			FErr(1, __LINE__, "Alternative configuration file missing or inaccessible.")
+			die("Alternative configuration file missing or inaccessible")
 		}
 
 		shift();
@@ -163,25 +161,21 @@ while (defined($ARGV[0])){
 	}elsif($ARGV[0] eq '--force-run'){
 		$ForceRun = 'true'
 	}elsif($ARGV[0] =~ /^(--query|-Q)$/){
-		FErr(1, __LINE__, "Option '$ARGV[0]' requires an alert ID.")
-			unless length($ARGV[1]) > 0;
+		length($ARGV[1]) > 0 or die("Option '$ARGV[0]' requires an alert ID");
 
 		shift();
 
-		FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
-			unless $ARGV[0] =~ '^[0-9]{4}$';
+		$ARGV[0] =~ '^[0-9]{4}$' or die("Invalid alert ID");
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
 	}elsif($ARGV[0] =~ /^--skip=/){
 		@SkipIDs = split(',', $ARGV[0] =~ s/^--skip=//r);
 
-		FErr(1, __LINE__, "Option '--skip=' requires at least one alert ID.")
-			unless @SkipIDs > 0;
+		@SkipIDs > 0 or die("Option '--skip=' requires at least one alert ID");
 
 		foreach (@SkipIDs){
-			FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
-				unless /^[0-9]{4}$/;
+			/^[0-9]{4}$/ or die("Invalid alert ID")
 		}
 	}elsif($ARGV[0] =~ /^(--verbose|-V)$/){
 		$Verbose = 'true'
@@ -190,15 +184,14 @@ while (defined($ARGV[0])){
 	}elsif($ARGV[0] eq '--list-dbalerts'){
 		$ListDbAlerts = 'true'
 	}elsif($ARGV[0] =~ /--key|-k/){
-		FErr(1, __LINE__, "Option '$ARGV[0]' requires a key.")
-			unless length($ARGV[1]) > 0;
+		length($ARGV[1]) > 0 or die("Option '$ARGV[0]' requires a key");
 
 		shift();
 
 		my ($Key, $Value) = split('=', $ARGV[0]);
 		$KeyOpt{$Key} = $Value
 	}elsif ($ARGV[0] =~ /^-/){
-		FErr(1, __LINE__, "Incorrect option(s) specified.")
+		die("Incorrect options) specified.")
 	}else{
 		last
 	}
@@ -206,9 +199,69 @@ while (defined($ARGV[0])){
 	shift()
 }
 
+# Taken directly from the TFL module. (2020-02-29)
+sub DepChk{
+	my $Passive = 'false';
+	if ($_[0] eq ':'){
+		$Passive = 'true';
+		shift(@_)
+	}
+
+	my $DepCount = 0;
+	foreach my $CurDep (@_){
+		my $Found = 'false';
+
+		if ($CurDep !~ '/'){
+			foreach my $CurDir (split(':', $ENV{'PATH'})){
+				foreach my $CurFile (glob("$CurDir/*")){
+					next unless -f -x $CurFile;
+
+					if ($CurFile =~ "/$CurDep\$"){
+						$Found = 'true';
+						last
+					}
+				}
+			}
+		}else{
+			$Found = 'true' if -f -x $CurDep
+		}
+
+		if ($Found ne 'true'){
+			return(1) if $Passive eq 'true';
+			printf(STDERR "ERROR: Dependency '%s' not met.\n", $CurDep);
+			exit(1)
+		}
+	}
+}
+
+# Taken directly from the TFL module. (2020-02-29)
+sub GetDirSize{
+	my (@Dirs, $Size);
+	foreach (glob("$_[0]/{*,.*}")){
+		next if m{/(\.\.|\.)$};
+		next if -l; # <-- Avoid infinite loop.
+
+		push(@Dirs, $_) if -d -x;
+
+		$Size += -s if -f
+	}
+
+	foreach (@Dirs){
+		foreach (glob("$_/{*,.*}")){
+			next if m{/(\.\.|\.)$};
+			next if -l; # <-- Avoid infinite loop.
+
+			push(@Dirs, $_) if -d -x;
+
+			$Size += -s if -f
+		}
+	}
+
+	return($Size)
+}
+
 #---------------------------------------------------------------OS & LSB Checks
 
-#TODO: How will this be properly detected if configuration option is used? Duh.
 unless ($ForceRun eq 'true'){
 	if ($^O ne 'linux'){
 		# Second & final chance to determine the OS type.
@@ -218,10 +271,9 @@ unless ($ForceRun eq 'true'){
 			my $OS = (split(' ', <$FH>))[0];
 			close($FH);
 
-			FErr(1, __LINE__, "Unsupported OS -- refer to $TFL::PROGNAME(8).")
-				unless $OS eq 'Linux'
+			$OS eq 'Linux' or die("Unsupported OS")
 		}else{
-			FErr(1, __LINE__, "Unrecognised OS -- refer to $TFL::PROGNAME(8).")
+			die("Unrecognised OS")
 		}
 	}
 
@@ -242,10 +294,9 @@ unless ($ForceRun eq 'true'){
 
 		close($FH);
 
-		FErr(1, __LINE__, "Unsupported LSB -- refer to $TFL::PROGNAME(8).")
-			unless $Found eq 'true'
+		$Found eq 'true' or die("Unsupported LSB")
 	}else{
-		FErr(1, __LINE__, "Unrecognised LSB -- refer to $TFL::PROGNAME(8).")
+		die("Unrecognised LSB")
 	}
 }
 
@@ -269,9 +320,9 @@ sub Info{ # Usage: [STRING]
 sub FileChk{ # Usage: [FILE]
 	my $Errs;
 	unless (-r $_[0]){
-		FErr(0, __LINE__, "File '$_[0]' unreadable."); $Errs++
+		warn("File '$_[0]' unreadable"); $Errs++
 	}elsif (-B -s $_[0]){
-		FErr(0, __LINE__, "File '$_[0]' is binary."); $Errs++
+		warn("File '$_[0]' is binary"); $Errs++
 	}
 
 	exit(1) if $Errs > 0;
@@ -284,27 +335,15 @@ sub FileChk{ # Usage: [FILE]
 # This is usually not ideal, but at least when there are many alerts, the file
 # won't constantly be opened and processed.
 if (-f $Database){
-	FErr(1, __LINE__, "File '$Database' unreadable.") unless -r $Database;
+	-r $Database or die("File '$Database' unreadable");
 
 	open(my $FH, '<', $Database);
 	@DBData = <$FH>;
 	close($FH);
 }else{
 	unless ($AutoQuery ne 'true' and $Query ne 'true'){
-		if (DepChk(':', 'cito') == 0){
-			FErr(0, __LINE__, "File '$Database' not found -- run:")
-				unless -f $Database;
-
-			print(
-				STDERR "cito -r terminalforlife PerlProjects " .
-				"master source/ubuchk/database\n"
-			);
-
-			exit(1)
-		}
-
 		# Only error out here if queries are NOT completely disabled.
-		FErr(1, __LINE__, "File '$Database' not found.")
+		die("File '$Database' not found")
 	}
 }
 
@@ -333,8 +372,7 @@ sub QueryAlert{
 		}
 	}
 
-	FErr(1, __LINE__, "Alert '$HelpAlertID' not found -- are we up-to-date?")
-		unless $Found eq 'true';
+	$Found eq 'true' or die("Alert '$HelpAlertID' not found");
 
 	$Text::Wrap::columns = (GetTerminalSize())[0] - 2;
 
@@ -401,7 +439,7 @@ sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 	my $DpkgStatus = '/var/lib/dpkg/status';
 
 	unless (-f $DpkgStatus){
-		FErr(0, __LINE__, "File '$DpkgStatus' not found.")
+		warn("File '$DpkgStatus' not found")
 	}else{
 		FileChk($DpkgStatus);
 		open(my $FH, '<', $DpkgStatus);
@@ -473,6 +511,10 @@ if ($ListKeys eq 'true'){
 
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
 
+sub Boolean{
+	$_[0] =~ '^(true|false)$' or die("Invalid boolean '$_[0]' detected")
+}
+
 if (-f -r -T $ConfigFile){
 	my $InvalidKeyCount;
 
@@ -487,8 +529,7 @@ if (-f -r -T $ConfigFile){
 		$Value = $KeyOpt{$Key} if grep({$_ eq $Key} keys(%KeyOpt));
 
 		if ($Key =~ '^Color_.*'){
-			FErr(1, __LINE__, "Invalid color '$Value' detected.")
-				unless colorvalid($Value);
+			colorvalid($Value) or die("Invalid color '$Value' detected");
 
 			next if $ANSIColors eq 'false';
 
@@ -498,7 +539,7 @@ if (-f -r -T $ConfigFile){
 			$ANSIColors = $Value
 		}elsif ($Key =~ '^Char_.*'){
 			if (length($Value) > 1){
-				FErr(1, __LINE__, "Invalid 'Char_*' value detected.")
+				die("Invalid 'Char_*' value detected")
 			}elsif (length($Value) == 0){
 				next
 			}else{
@@ -517,12 +558,9 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'PurgeChk'){
 			Boolean($Value);
 			$PurgeChk = $Value
-		}elsif ($Key eq 'ForceRun'){
-			Boolean($Value);
-			$ForceRun = $Value unless $ForceRun eq 'true'
 		}elsif ($Key eq 'HardAPT'){
-			FErr(1, __LINE__, "Invalid boolean '$Value' detected.")
-				unless $Value =~ '^([01]|true|false)$';
+			$Value =~ '^([01]|true|false)$'
+				or die("Invalid boolean '$Value' detected");
 
 			$HardAPT = $Value
 		}elsif ($Key eq 'SSHDConfig'){
@@ -565,22 +603,22 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'QueryIndent'){
 			if ($Value =~ /^[0-9]+$/){
 				# Default value and its bounds are mentioned in the config.
-				FErr(1, __LINE__, "Key '$Key' out of bounds.")
-					unless $Value > 0 and $Value <= 9;
+				$Value > 0 and $Value <= 9 or die("Key '$Key' out of bounds");
 
 				$QueryIndent = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'DSLimit'){
 			if ($Value =~ /^[0-9]+$/){
 				# Default value and its bounds are mentioned in the config.
-				FErr(1, __LINE__, "Key '$Key' out of bounds.")
-					unless $Value >= 10 and $Value <= 100;
+				unless ($Value >= 10 and $Value <= 100) {
+					die("Key '$Key' out of bounds")
+				}
 
 				$DSLimit = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'DirPerms'){
 			Boolean($Value);
@@ -592,21 +630,23 @@ if (-f -r -T $ConfigFile){
 			$Laptop = $Value
 		}elsif ($Key eq 'BatCrit'){
 			if ($Value =~ /^[0-9]+$/){
-				FErr(1, __LINE__, "Key '$Key' out of bounds.")
-					unless $Value > 0 and $Value <= 99;
+				unless ($Value > 0 and $Value <= 99) {
+					die("Key '$Key' out of bounds")
+				}
 
 				$BatCrit = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'BatLow'){
 			if ($Value =~ /^[0-9]+$/){
-				FErr(1, __LINE__, "Key '$Key' out of bounds.")
-					unless $Value > 0 and $Value <= 99;
+				unless ($Value > 0 and $Value <= 99) {
+					die("Key '$Key' out of bounds")
+				}
 
 				$BatLow = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'ProcVuln'){
 			Boolean($Value);
@@ -623,13 +663,13 @@ if (-f -r -T $ConfigFile){
 			if ($Value =~ /^[0-9]+$/){
 				$CoreTempCrit = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'TempScale'){
 			if ($Value =~ /^[C|F]$/){
 				$TempScale = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' must be either 'F' or 'C'.");
+				die("Key '$Key' must be either 'F' or 'C'");
 			}
 		}elsif ($Key eq 'AptCache'){
 			Boolean($Value);
@@ -638,7 +678,7 @@ if (-f -r -T $ConfigFile){
 			if ($Value =~ /^[0-9]+$/){
 				$AptCacheMBLimit = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer in MB.");
+				die("Key '$Key' requires an integer in MB");
 			}
 		}elsif ($Key eq 'LightDM'){
 			Boolean($Value);
@@ -655,7 +695,7 @@ if (-f -r -T $ConfigFile){
 			if ($Value =~ /^[0-9]+$/){
 				$HomeCacheMBLimit = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'Thumbnails'){
 			Boolean($Value);
@@ -664,7 +704,7 @@ if (-f -r -T $ConfigFile){
 			if ($Value =~ /^[0-9]+$/){
 				$ThumbsMBLimit = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'DpkgConf'){
 			Boolean($Value);
@@ -681,7 +721,7 @@ if (-f -r -T $ConfigFile){
 			if ($Value =~ /^[0-9]+$/){
 				$MBMaxSwap = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'RAM'){
 			Boolean($Value);
@@ -690,7 +730,7 @@ if (-f -r -T $ConfigFile){
 			if ($Value =~ /^[0-9]+$/){
 				$MBMaxRAM = $Value
 			}else{
-				FErr(1, __LINE__, "Key '$Key' requires an integer.");
+				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'CMOS'){
 			Boolean($Value);
@@ -711,7 +751,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$ShowTTL = $Value
 		}else{
-			FErr(0, __LINE__, "Key '$Key' unknown -- we up-to-date?");
+			warn("Key '$Key' unknown");
 
 			$InvalidKeyCount++
 		}
@@ -722,8 +762,9 @@ if (-f -r -T $ConfigFile){
 	exit(1) if $InvalidKeyCount > 0;
 
 	# Because this would otherwise make no sense.
-	FErr(1, __LINE__, "Key conflict with 'BatCrit' and 'BatLow'.")
-		if $Laptop eq 'true' and $BatCrit >= $BatLow
+	if ($Laptop eq 'true' and $BatCrit >= $BatLow) {
+		die("Key conflict with 'BatCrit' and 'BatLow'")
+	}
 }else{
 	if (-f $DefaultConfigFile){
 		FileChk($DefaultConfigFile);
@@ -739,17 +780,16 @@ if (-f -r -T $ConfigFile){
 		print($FH @Corrected);
 		close($FH);
 
-		printf("File '~/.config/$TFL::PROGNAME/config' generated -- reload me.\n");
+		printf("File '~/.config/$Progrm/config' generated");
 		exit(0)
 	}else{
-		FErr(1, __LINE__, "File '/usr/share/$TFL::PROGNAME/config' not found.")
+		die("File '/usr/share/$Progrm/config' not found")
 	}
 }
 
 if (@SkipIDs > 0){
 	foreach (@SkipIDs){
-		FErr(1, __LINE__, "Invalid alert ID -- see: $TFL::PROGNAME -h")
-			unless /^[0-9]{4}$/
+		/^[0-9]{4}$/ or die("Invalid alert ID")
 	}
 }
 
@@ -805,10 +845,10 @@ if ($KernParams eq 'true'){
 		if (-f $Path){
 			unless (-r $Path){
 				# Some parameters are more locked down than others.
-				FErr(0, __LINE__, "Denied access to '$ShowKey' parameter.");
+				warn("Denied access to '$ShowKey' parameter");
 				next
 			}elsif (-B -s $Path){
-				FErr(0, __LINE__, "Unable to determine '$ShowKey' parameter.");
+				warn("Unable to determine '$ShowKey' parameter");
 				next
 			}
 
@@ -963,8 +1003,8 @@ if ($SSHClient eq 'true'){
 	my $SSHDir = "$ENV{HOME}/.ssh";
 
 	if (-d $SSHDir){
-		FErr(1, __LINE__, "Directory '$SSHDir' unreadable.") unless -r $SSHDir;
-		FErr(1, __LINE__, "Directory '$SSHDir' denies execution.") unless -x $SSHDir;
+		-r $SSHDir or die("Directory '$SSHDir' unreadable");
+		-x $SSHDir or die("Directory '$SSHDir' denies execution");
 
 		my ($Mode, $Owner, $Group) = (stat($SSHDir))[2,4,5];
 		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
@@ -997,12 +1037,10 @@ if ($SSHClient eq 'true'){
 
 if ($SSHServer eq 'true'){
 	if (-f $SSHDConfig){
-		FErr(1, __LINE__, "File '$SSHDConfig' unreadable.")
-			unless -r $SSHDConfig;
+		-r $SSHDConfig or die("File '$SSHDConfig' unreadable");
 
 		# Without the `-s` flag, zero-size files get flagged as binary.
-		FErr(1, __LINE__, "File '$SSHDConfig' is binary.")
-			if -B -s $SSHDConfig;
+		-B -s $SSHDConfig and die("File '$SSHDConfig' is binary");
 
 		FileChk($SSHDConfig);
 		open(my $FH, '<', $SSHDConfig);
@@ -1379,11 +1417,8 @@ if ($Laptop eq 'true'){
 
 if ($ProcVuln eq 'true'){
 	if (-d $VulnDir){
-		FErr(1, __LINE__, "Directory '$VulnDir' unreadable.")
-			unless -r $VulnDir;
-
-		FErr(1, __LINE__, "Unable to open '$VulnDir' directory.")
-			unless -x $VulnDir;
+		-r $VulnDir or die("Directory '$VulnDir' unreadable");
+		-x $VulnDir or die("Unable to open '$VulnDir' directory");
 
 		foreach (glob("$VulnDir/*")){
 			next unless -f;
@@ -1401,7 +1436,7 @@ if ($ProcVuln eq 'true'){
 				Alert(
 					4811,
 					"CPU marked as vulnerable to $Vuln.",
-					"Don't panic -- refer to: $TFL::PROGNAME -Q 4811"
+					"Don't panic -- refer to: $Progrm -Q 4811"
 				)
 			}elsif ($Data =~ /Not affected/i){
 				Info("Unaffected by $Vuln vulnerability.")
@@ -1411,7 +1446,7 @@ if ($ProcVuln eq 'true'){
 				Alert(
 					4812,
 					"Unrecognised vulnerability status to $Vuln.",
-					"Don't panic -- refer to: $TFL::PROGNAME -Q 4812"
+					"Don't panic -- refer to: $Progrm -Q 4812"
 				)
 			}
 		}
@@ -1467,7 +1502,7 @@ if ($MountHome eq 'true'){
 				}else{
 					Alert($AlertID,
 						"Missing mount option '$Option' for '/home'.",
-						"Please refer to: $TFL::PROGNAME -Q $AlertID"
+						"Please refer to: $Progrm -Q $AlertID"
 					)
 				}
 			}
@@ -1495,8 +1530,8 @@ if ($CPUTemp eq 'true'){
 	}
 
 	if (defined($Dir)){
-		FErr(1, __LINE__, "Directory '$Dir' unreadable.") unless -r $Dir;
-		FErr(1, __LINE__, "Directory '$Dir' denies execution.") unless -x $Dir;
+		-r $Dir or die("Directory '$Dir' unreadable");
+		-x $Dir or die("Directory '$Dir' denies execution");
 
 		# Gather a hash of (only) the core temperatures.
 		my (%TempData, $Temp);
@@ -1524,6 +1559,17 @@ if ($CPUTemp eq 'true'){
 			return("${Num}nd") if $Num =~ '2$';
 			return("${Num}rd") if $Num =~ '3$';
 			return("${Num}th")
+		}
+
+		# Taken directly from the TFL module. (2020-02-29)
+		sub CelsFahr{
+			if ($_[0] eq 'F'){
+				use POSIX 'ceil';
+
+				return(ceil(($_[1] * 9/5) + 32))
+			}elsif ($_[0] eq 'C'){
+				return($_[1])
+			}
 		}
 
 		# Begin checking on each of the core temperatures, per the above hash.
@@ -1660,6 +1706,9 @@ if ($LightDM eq 'true'){
 #
 # Also inspired by various checks made by rkhunter(8).
 if ($RootKits eq 'true'){
+	-f $RKDatabase or die("File '$RKDatabase' not found");
+	-r $RKDatabase or die("File '$RKDatabase' unreadable");
+
 	open(my $FH, '<', $RKDatabase);
 	my @DBData = <$FH>;
 	close($FH);
@@ -1931,7 +1980,7 @@ if ($RAM eq 'true'){
 			Alert(
 				8971,
 				"Using $HumUsed of $HumTotal available RAM.",
-				"Please refer to: $TFL::PROGNAME -Q 8971"
+				"Please refer to: $Progrm -Q 8971"
 			)
 		}
 	}else{
