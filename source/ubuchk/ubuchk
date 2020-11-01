@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  1 Nov 23:14:34 GMT 2020
+# Last Change       - Sun  1 Nov 23:52:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -204,6 +204,7 @@ while (defined($ARGV[0])){
 sub DepChk{
 	my @Files;
 	foreach my $Dir (split(':', $ENV{'PATH'})) {
+		-d $Dir or next;
 		opendir(my $DH, $Dir) or next;
 		push(@Files, readdir($DH));
 		closedir($DH);
