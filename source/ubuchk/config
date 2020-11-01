@@ -1,11 +1,10 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-10-16)
+# User configuration file for UbuChk (>= 2020-11-01)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
 ANSIColors=true
 AutoQuery=false
-ForceRun=false
 QueryIndent=6
 Recommend=true
 ShowTTL=true
