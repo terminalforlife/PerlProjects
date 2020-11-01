@@ -3,14 +3,13 @@
 #--------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/getip
 # Started On        - Wed  8 May 14:35:49 BST 2019
-# Last Change       - Sat  1 Feb 00:29:41 GMT 2020
+# Last Change       - Sun  1 Nov 18:51:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #--------------------------------------------------------------------------
 # Dependencies:
 #
 #   libnet-address-ip-local-perl (>= 0.1.2-3)
-#   libtfl-perl (>= 2020-01-03)
 #   libwww-perl (>= 6.15-1)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
@@ -18,29 +17,22 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-02-01";
+my $CurVer = "2020-11-01";
+my $Progrm = 'getip';
 
 my $Domain = 'https://whatismyipaddress.com';
 
-sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
 
-		            View your internal and/or external IP address.
-
-		SYNTAX:     $TFL::PROGNAME [OPTS]
-
-		OPTS:       --help|-h|-?            - Display this help information.
-		            --version|-v            - Output the version datestamp.
-		            --external|-e           - Omit the internal IP address.
-		            --internal|-i           - Omit the external IP address.
-		            --ip-only|-I            - Show only the IP address.
-
-		SITE:       $Domain
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -I, --ip-only            - Show only the IP address.
+		  -e, --external           - Omit the internal IP address.
+		  -i, --internal           - Omit the external IP address.
 	} =~ tr/\t//dr)
 }
 
@@ -50,33 +42,33 @@ my $IntExtDetected = 0;
 my $IntStr = 'Internal IP: ';
 my $ExtStr = 'External IP: ';
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^(--internal|-i)$'){
+	} elsif ($ARGV[0] =~ '^(--internal|-i)$') {
 		$IntExtDetected++; $Internal = 'true'; $External = 'false'
-	}elsif ($ARGV[0] =~ '^(--external|-e)$'){
+	} elsif ($ARGV[0] =~ '^(--external|-e)$') {
 		$IntExtDetected++; $Internal = 'false'; $External = 'true'
-	}elsif ($ARGV[0] =~ '^(--ip-only|-I)$'){
+	} elsif ($ARGV[0] =~ '^(--ip-only|-I)$') {
 		$IntStr = ''; $ExtStr = ''
-	}else{
-		Err(1, "Incorrect option(s) specified")
+	} else {
+		die("Incorrect option(s) specified")
 	}
 
 	shift()
 }
 
-Err(1, "Either '--internal|-i' or '--external|-e'.") if $IntExtDetected == 2;
+$IntExtDetected == 2 and die("Either '--internal|-i' or '--external|-e'");
 
-if ($Internal eq 'true'){
+if ($Internal eq 'true') {
 	use Net::Address::IP::Local;
 
 	print($IntStr . Net::Address::IP::Local->public() . "\n")
 }
 
-if ($External eq 'true'){
+if ($External eq 'true') {
 	use LWP::UserAgent;
 
 	my $UA = LWP::UserAgent->new(
@@ -88,15 +80,15 @@ if ($External eq 'true'){
 
 	my $Data = $UA->get($Domain);
 
-	Err(1, 'Failed to acquire external IP address.')
-		unless $Data->is_success() == 0;
+	$Data->is_success() == 0 or die('Failed to acquire external IP address');
 
-	foreach (split("\n", $Data->decoded_content())){
-		foreach (split(' ')){
-			if (/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]/){
-				print($_ =~ s/(.*)<\/span>$/$ExtStr$1/r . "\n");
-				exit(0)
-			}
+	foreach (split("\n", $Data->decoded_content())) {
+		foreach (split(' ')) {
+			/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]/ or next;
+
+			print($_ =~ s/(.*)<\/span>$/$ExtStr$1/r . "\n");
+
+			exit(0)
 		}
 	}
 }
