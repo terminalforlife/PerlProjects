@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-#cito M:600 O:1000 G:1000 T:$HOME/.i3a/battery_monitor
+#cito M:600 O:1000 G:1000 T:/usr/bin/battery-monitor
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/battery_monitor
+# Project Name      - PerlProjects/source/battery-monitor
 # Started On        - Mon 27 Jan 02:54:42 GMT 2020
-# Last Change       - Wed 28 Oct 03:52:16 GMT 2020
+# Last Change       - Sun  1 Nov 18:30:32 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,7 +17,6 @@
 # Dependencies:
 #
 #   libgtk2-notify-perl (>= 0.05-5)
-#   libtfl-perl (>= 2020-01-03)
 #   perl (>= 5.26.1-6)
 #   systemd (>= 237-3)
 #   upower (>= 0.99.7-2)
@@ -26,12 +25,11 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'DepChk';
 use Gtk2::Notify '-init', 'battery_monitor';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-10-28";
+my $CurVer = "2020-11-01";
 
 my $LidFile = '/proc/acpi/button/lid/LID0/state';
 my $ChassisFile = '/sys/devices/virtual/dmi/id/chassis_type';
@@ -42,20 +40,35 @@ sub Notify{
 	$Noti->show()
 }
 
-while (){
-	DepChk('upower', 'systemctl');
+sub DepChk {
+	my @Files;
+	foreach my $Dir (split(':', $ENV{'PATH'})) {
+		opendir(my $DH, $Dir) or next;
+		push(@Files, readdir($DH));
+		closedir($DH)
+	}
 
-	# Quit if not a laptop or lid is closed.
+	my $Found = scalar(@_);
+	foreach my $CurDep (@_) {
+		grep({$_ eq $CurDep} @Files) and $Found--
+	}
+
+	return($Found)
+}
+
+while (){
+	DepChk('upower', 'systemctl') > 0 and die("Dependency check failure");
+
 	if (open(my $FH, '<', $ChassisFile)){
 		chomp(my $Chassis = <$FH>);
 		close($FH);
 
-		exit(0) unless $Chassis == 9
+		$Chassis == 9 or die("Probably not a laptop")
 	}elsif (open($FH, '<', $LidFile)){
 		chomp(my $Lid = <$FH>);
 		close($FH);
 
-		exit(0) if split(' ', $Lid) eq 'open'
+		split(' ', $Lid) eq 'open' and die("Detected closed lid")
 	}
 
 	my $CurStep;

@@ -2,7 +2,7 @@
 bfa7df3f9dfa819b3de2824a1b5eb3f2  devutils/ubuchk.test
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 2992bb26459073734e057cfdeab2ccd6  source/apt-undo-install
-11524f2262fa5a3570632b93515db308  source/battery_monitor
+0818fb2fb4348d6a0fe1931d5498f6df  source/battery-monitor
 d8943fe1564b9d36067dec6f7f4313c3  source/clean-locales
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
 f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
