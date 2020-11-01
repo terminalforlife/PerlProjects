@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  1 Nov 22:55:01 GMT 2020
+# Last Change       - Sun  1 Nov 23:14:34 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,7 +20,6 @@
 #TODO: Add check for X amount of space taken up in Trash.
 #TODO: Add check for fan speeds; alert when low/off.
 #TODO: Add check for listening TCP/UDP ports, via netstat(8) or ss(8).
-#TODO: Add check for not having any swap area at all.
 #TODO: Add check for using something other than `UUID=` in `fstab`.
 #TODO: Add checks for unsecure network-related packages. (RSH, for example)
 #TODO: Add keys for block size 1000 and 1024, and for SI toggling.
@@ -107,6 +106,7 @@ sub Usage{
 		  -v, --version            - Output the version datestamp.
 		  --force-reset            - Force generation of config file.
 		  --force-run              - Execute as though in Ubuntu Linux.
+		  --hush-ignored           - When verbose, omit 'Ignoring' messages.
 		  --list-dbalerts          - List alerts found within the database.
 		  --list-keys              - List available configuration keys.
 		  --skip=N[,N ...]         - Skip one or more N alerts, by ID.
@@ -128,7 +128,7 @@ my (
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
 	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor, %ColorHash,
-	$ANSIColors, $Char_Margin, %Syms, $ShowTTL
+	$ANSIColors, $Char_Margin, %Syms, $ShowTTL, $HushIgnored
 );
 
 my $MainDir = "$ENV{HOME}/.config/$Progrm";
@@ -160,6 +160,8 @@ while (defined($ARGV[0])){
 		$ForceReset = 'true'
 	}elsif($ARGV[0] eq '--force-run'){
 		$ForceRun = 'true'
+	}elsif($ARGV[0] eq '--hush-ignored'){
+		$HushIgnored = 'true'
 	}elsif($ARGV[0] =~ /^(--query|-Q)$/){
 		length($ARGV[1]) > 0 or die("Option '$ARGV[0]' requires an alert ID");
 
@@ -851,7 +853,7 @@ if ($KernParams eq 'true'){
 		) if $Value != $GoodValue
 	}
 }else{
-	Info("Ignoring kernel parameters.")
+	Info("Ignoring kernel parameters.") unless $HushIgnored eq 'true'
 }
 
 #--------------------------------------------------PATH Permissions & Ownership
@@ -902,6 +904,7 @@ if ($PathPerms eq 'true'){
 	}
 }else{
 	Info("Ignoring PATH permissions & ownership.")
+		unless $HushIgnored eq 'true'
 }
 
 #-----------------------------------------------------Packages Yet to Be Purged
@@ -917,7 +920,7 @@ if ($PurgeChk eq 'true'){
 
 	Info('No packages were found unpurged.') if @NotPurged == 0
 }else{
-	Info("Ignoring any unpurged packages.")
+	Info("Ignoring any unpurged packages.") unless $HushIgnored eq 'true'
 }
 
 #-----------------------------------------------------------APT Security Tweaks
@@ -975,7 +978,7 @@ if ($HardAPT eq 'true'){
 		Info("Missing prerequisites -- skipping 'HardAPT' key.")
 	}
 }else{
-	Info("Ignoring APT configuration.")
+	Info("Ignoring APT configuration.") unless $HushIgnored eq 'true'
 }
 
 #--------------------------------------------------------------------SSH Client
@@ -1011,7 +1014,7 @@ if ($SSHClient eq 'true'){
 		Info("Missing prerequisites -- skipping 'SSHClient' key.")
 	}
 }else{
-	Info("Ignoring SSH permissions & settings.")
+	Info("Ignoring SSH permissions & settings.") unless $HushIgnored eq 'true'
 }
 
 #--------------------------------------------------------------------SSH Server
@@ -1085,6 +1088,7 @@ if ($SSHServer eq 'true'){
 	}
 }else{
 	Info("Ignoring whether SSH server is present.")
+		unless $HushIgnored eq 'true'
 }
 
 #---------------------------------------------------------Packages Best Avoided
@@ -1100,7 +1104,7 @@ if (@UnwantedPKGs > 0){
 		) if grep({($_ =~ m/(.*)(?::.*)/)[0] eq $CurPKG} @Installed)
 	}
 }else{
-	Info("Ignoring any unwanted packages.")
+	Info("Ignoring any unwanted packages.") unless $HushIgnored eq 'true'
 }
 
 #----------------------------------------------------------------SystemD Tweaks
@@ -1154,7 +1158,7 @@ if ($SystemD eq 'true'){
 		Info("Missing prerequisites -- skipping 'SystemD' key.")
 	}
 }else{
-	Info("Ignoring SystemD-related tweaks.")
+	Info("Ignoring SystemD-related tweaks.") unless $HushIgnored eq 'true'
 }
 
 #----------------------------------------------------------------Kernel Modules
@@ -1213,7 +1217,7 @@ if ($KernMods eq 'true'){
 		Info("Missing prerequisites -- skipping 'KernMods' key.")
 	}
 }else{
-	Info("Ignoring kernel modules.")
+	Info("Ignoring kernel modules.") unless $HushIgnored eq 'true'
 }
 
 #--------------------------------------------------------Check Filesystem Sizes
@@ -1261,7 +1265,7 @@ if ($DiskSpace eq 'true'){
 		Info("Missing prerequisites -- skipping 'DiskSpace' key.")
 	}
 }else{
-	Info("Ignoring disk space availability.")
+	Info("Ignoring disk space availability.") unless $HushIgnored eq 'true'
 }
 
 #----------------------Specific File & Directory Permissions, Group & Ownership
@@ -1301,6 +1305,7 @@ if ($DirPerms eq 'true'){
 	}
 }else{
 	Info("Ignoring special file permissions & ownership.")
+		unless $HushIgnored eq 'true'
 }
 
 #-----------------------------------------------------------------Laptop Checks
@@ -1392,6 +1397,7 @@ if ($Laptop eq 'true'){
 	}
 }else{
 	Info("Ignoring tweaks for a portable machine.")
+		unless $HushIgnored eq 'true'
 }
 
 #------------------------------------------------------CPU Marked as Vulnerable
@@ -1435,7 +1441,7 @@ if ($ProcVuln eq 'true'){
 		Info("Missing prerequisites -- skipping 'ProcVuln' key.")
 	}
 }else{
-	Info("Ignoring any CPU vulnerabilities.")
+	Info("Ignoring any CPU vulnerabilities.") unless $HushIgnored eq 'true'
 }
 
 #--------------------------------------------------------Mount Options for HOME
@@ -1492,7 +1498,7 @@ if ($MountHome eq 'true'){
 		Info("Missing prerequisites -- skipping 'MountHome' key.")
 	}
 }else{
-	Info("Ignoring any HOME mount options.")
+	Info("Ignoring any HOME mount options.") unless $HushIgnored eq 'true'
 }
 
 #---------------------------------------------------------CPU Core Temperatures
@@ -1577,7 +1583,7 @@ if ($CPUTemp eq 'true'){
 		}
 	}
 }else{
-	Info("Ignoring CPU temperatures.")
+	Info("Ignoring CPU temperatures.") unless $HushIgnored eq 'true'
 }
 
 #----------------------------------------------------------APT Cache Disk Usage
@@ -1627,7 +1633,7 @@ if ($AptCache eq 'true'){
 		Info("Missing prerequisites -- skipping 'AptCache' key.")
 	}
 }else{
-	Info("Ignoring APT cache disk usage.")
+	Info("Ignoring APT cache disk usage.") unless $HushIgnored eq 'true'
 }
 
 #-----------------------------------------------------------------------LightDM
@@ -1676,7 +1682,7 @@ if ($LightDM eq 'true'){
 		Info("Missing prerequisites -- skipping 'LightDM' key.")
 	}
 }else{
-	Info("Ignoring any LightDM configurations.")
+	Info("Ignoring any LightDM configurations.") unless $HushIgnored eq 'true'
 }
 
 #----------------------------------------------------------RootKits, Worms, etc
@@ -1713,7 +1719,7 @@ if ($RootKits eq 'true'){
 		}
 	}
 }else{
-	Info("Ignoring rootkits, detected or not.")
+	Info("Ignoring rootkits, detected or not.") unless $HushIgnored eq 'true'
 }
 
 #------------------------------------------------------------------User's Cache
@@ -1744,7 +1750,7 @@ if ($HomeCache eq 'true'){
 		Info("Missing prerequisites -- skipping 'HomeCache' key.")
 	}
 }else{
-	Info("Ignoring user's own general cache.")
+	Info("Ignoring user's own general cache.") unless $HushIgnored eq 'true'
 }
 
 #-------------------------------------------------------------User's Thumbnails
@@ -1775,7 +1781,7 @@ if ($Thumbnails eq 'true'){
 		Info("Missing prerequisites -- skipping 'Thumbnails' key.")
 	}
 }else{
-	Info("Ignoring user's own thumbnail cache.")
+	Info("Ignoring user's own thumbnail cache.") unless $HushIgnored eq 'true'
 }
 
 #------------------------------------------------------------DPKG Configuration
@@ -1823,7 +1829,7 @@ if ($DpkgConf eq 'true'){
 		Info("Missing prerequisites -- skipping 'DpkgConf' key.")
 	}
 }else{
-	Info("Ignoring any DPKG configurations.")
+	Info("Ignoring any DPKG configurations.") unless $HushIgnored eq 'true'
 }
 
 #-------------------------------------------------------------------------Swaps
@@ -1895,7 +1901,7 @@ if ($Swaps eq 'true'){
 		}elsif ($SwapCount == 0){
 			Alert(
 				8760,
-				"Detected no available space area on the system.",
+				"Detected no assigned swap space on the system.",
 				"Suggested action is to add a swap file or partition."
 			)
 		}
@@ -1905,7 +1911,7 @@ if ($Swaps eq 'true'){
 		Info("Missing prerequisites -- skipping 'Swaps' key.")
 	}
 }else{
-	Info("Ignoring any Swap configurations.")
+	Info("Ignoring any Swap configurations.") unless $HushIgnored eq 'true'
 }
 
 #---------------------------------------------------------------------------RAM
@@ -1968,7 +1974,7 @@ if ($RAM eq 'true'){
 		Info("Missing prerequisites -- skipping 'RAM' key.")
 	}
 }else{
-	Info("Ignoring RAM availability.")
+	Info("Ignoring RAM availability.") unless $HushIgnored eq 'true'
 }
 
 #------------------------------------------------------------------CMOS Battery
@@ -2001,7 +2007,7 @@ if ($CMOS eq 'true'){
 		Info("Missing prerequisites -- skipping 'CMOS' key.")
 	}
 }else{
-	Info("Ignoring any CMOS battery.")
+	Info("Ignoring any CMOS battery.") unless $HushIgnored eq 'true'
 }
 
 #-------------------------------------------------------------------/etc/passwd
@@ -2070,7 +2076,7 @@ if ($ChkPasswd eq 'true'){
 			if $ID0NonRoots eq 'true'
 	}
 }else{
-	Info("Ignoring system's passwd file.")
+	Info("Ignoring system's passwd file.") unless $HushIgnored eq 'true'
 }
 
 #--------------------------------------------------------SystemD Units/Services
@@ -2102,7 +2108,7 @@ if ($UFW eq 'true'){
 		Info("Missing prerequisites -- skipping 'UFW' key.")
 	}
 }else{
-	Info("Ignoring any installations of UFW.")
+	Info("Ignoring any installations of UFW.") unless $HushIgnored eq 'true'
 }
 
 if ($AppArmor eq 'true'){
@@ -2133,6 +2139,7 @@ if ($AppArmor eq 'true'){
 	}
 }else{
 	Info("Ignoring any installations of AppArmor.")
+		unless $HushIgnored eq 'true'
 }
 
 #---------------------------------------------------------Failed Login Attempts
@@ -2154,7 +2161,7 @@ if ($FailedLogins eq 'true'){
 		Info("Missing prerequisites -- skipping 'FailedLogins' key.")
 	}
 }else{
-	Info("Ignoring any failed login attempts.")
+	Info("Ignoring any failed login attempts.") unless $HushIgnored eq 'true'
 }
 
 #------------------------------------------------------------------------Finish
@@ -2167,4 +2174,5 @@ if ($ShowTTL eq 'true'){
 	) if $AlertCount > 0;
 }else{
 	Info("Omitting display of total number of alerts.")
+		unless $HushIgnored eq 'true'
 }
