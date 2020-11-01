@@ -3,60 +3,55 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/notify-upgrade
 # Started On        - Wed 15 Jan 00:45:46 GMT 2020
-# Last Change       - Fri 24 Jan 20:25:45 GMT 2020
+# Last Change       - Sun  1 Nov 18:05:43 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
-# Unfinished project.
+# Requires that `apt-get` be found in `/usr/bin/`, else fail. This is to be
+# expected in most, if not all Debian/Ubuntu-based distributions of Linux.
 #
 # Dependencies:
 #
 #  apt (>= 1.2.32)
 #  libgtk2-notify-perl (>= 0.05-4build2)
-#  libtfl-perl (>= 2020-01-03)
 #----------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-24";
+my $Progrm = 'notify-upgrade';
+my $CurVer = "2020-11-01";
 
-sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
 
-		            Simple package upgrade notifer for Debian and similar.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
 
-		SYNTAX:     $TFL::PROGNAME [OPTS]
-
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-
-		NOTE:       Per the provided cron job, the check occurs every hour.
+		  Per the provided cron job, the check occurs every hour.
 	} =~ tr/\t//dr)
 }
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(1); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}else{
-		Err(1, "Incorrect option(s) specified.")
+	} else {
+		die("Incorrect option(s) specified")
 	}
 
 	shift(@ARGV)
 }
 
-DepChk('apt-get');
+-x '/usr/bin/apt-get' or die("File '/usr/bin/apt-get' missing");
 
 my (%Stats, $Total);
 
-foreach (`apt-get -s dist-upgrade`){
+foreach (`apt-get -s dist-upgrade`) {
 	next unless /^[0-9]+ upgraded,/;
 
 	my @Arr = split(' ', $_);
@@ -78,8 +73,8 @@ foreach (`apt-get -s dist-upgrade`){
 my $Category = $Stats{'Category'};
 $Total += $_ foreach values(%$Category);
 
-if ($Total > 0){
-	use Gtk2::Notify '-init', 'Notify Upgrade';
+if ($Total > 0) {
+	use Gtk2::Notify '-init', 'Notify-Upgrade';
 
 	my $Message = "Detected $Total available package change(s).";
 	my $Noti = Gtk2::Notify->new("Notify Upgrade $Message");

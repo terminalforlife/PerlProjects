@@ -32,7 +32,7 @@ b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
 56db8fb84e88be6e555302986d370a99  source/lsbins/lsbins
 a05bf48ce4cc9e66a95c001efd64c4f9  source/lsbins/lsbins.1.gz
 13e1614125736f2537856a8affba1064  source/mkdeb
-45eb879f26e09ef3d4cfc607b9b80c3d  source/notify-upgrade
+9f7d9be0764269b02852a4cd86054d45  source/notify-upgrade
 eade09b4413ebc944a87b83e98ed295d  source/previewer
 68d869825a38b876a4ebef643d5f9bc7  source/redshifter
 6053ce2c2e61c3c0afcce0c0069d2f5d  source/suptime
@@ -48,7 +48,7 @@ a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 7153d4edcf1dfa13fc8f917f9ab69d5f  source/ubuchk/reorder.sh
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
 642b9f0f1e4f019005e0b4aaeffc90c2  source/ubuchk/screenshots/Screenshot_2020-03-10_00:59:02.jpg
-cb149bbc3b5e0d399997ea838b7cc528  source/ubuchk/ubuchk
+52ada95481f09077485112070ed4ab76  source/ubuchk/ubuchk
 c1d4b8fdabbd9999530ce81bf81cbdbb  source/ubuchk/ubuchk.8.gz
 d4ee8973f3f4263b1d8bb2ff126f8536  source/ubuchk/ubuchk-db
 021ca590604ee154ef67441b2f54c79d  source/ubuchk/ubuchk-installer
