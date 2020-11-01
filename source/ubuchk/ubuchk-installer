@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Fri 16 Oct 21:25:06 BST 2020
+# Last Change       - Sun  1 Nov 20:09:10 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -19,15 +19,11 @@
 #
 #   Download the archive of it directly from GitHub, then extract its contents.
 #
-# Either way, ensure you're in the root of the repository, meaning that you
-# should be at the top-level of it, toegher with the main `README.md` file.
-#
-# Why as `root`? Because making system-wide changes, such as installing the
-# UbuChk man page, bash(1) completion support, alert database, and default
-# configuration file typically (and should) all require elevated privileges.
+# Since this installer just fetches from GitHub, you needn't actually download
+# the entire PerlProjects repository to install it; only the installer.
 #
 # If you want a HOME-only installation, you'll have to either use Cito, or
-# otherwise install it manually, but you'll miss out on a lot of features.
+# otherwise install it manually, but you may miss out on a lot of features.
 #
 # NOTE: This installer will not make use of `postinst` as in the packages.
 #
