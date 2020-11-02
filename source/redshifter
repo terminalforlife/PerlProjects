@@ -1,76 +1,82 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/redshifter
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Tue 28 Jan 17:07:16 GMT 2020
+# Last Change       - Mon  2 Nov 14:29:36 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Dependencies:
 #
-#   libtfl-perl (>= 2020-01-03)
-#----------------------------------------------------------------------------------
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err', 'DepChk';
-use File::Basename 'dirname';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-28";
+my $CurVer = "2020-11-02";
+my $Progrm = 'redshifter';
 
 sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+	print(qq{Usage: $Progrm [OPTS] [ACTION]
 
-		            Quality-of-life Perl wrapper for Redshift.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -f, --file PATH          - Use PATH instead of the default.
 
-		SYNTAX:     $TFL::PROGNAME [OPTS] [ACTION]
-
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --file|-f PATH          - Use PATH instead of the default.
-
-		ACTIONS:    lower N                 - Lower the current gamma by N.
-		            set N                   - Manually set the gamma to N.
-		            raise N                 - Raise the current gamma by N.
-		            reset                   - Reset to the default of 6500.
-
-		FILE:       ~/.config/rs-gamma
+		  lower [N]                - Lower the current gamma by N.
+		  raise [N]                - Raise the current gamma by N.
+		  reset                    - Reset to the default of 6500.
+		  set [N]                  - Manually set the gamma to N.
 	} =~ tr/\t//dr)
 }
 
 my ($Temp, $GammasNow);
 my $Buffer = "$ENV{HOME}/.config/rs-gamma";
+my $ConfigDir = ($Buffer =~ m{(.*)?(?:/.*)})[0];
 
-Err(1, "At least one argument is required.") if @ARGV == 0;
+scalar(@ARGV) == 0 and die("Argument(s) required");
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(1); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^(--file|-f)$'){
+	} elsif ($ARGV[0] =~ '^(--file|-f)$') {
 		shift();
 
-		Err(1, "Option '--file|-f' given a directory.") if -d $ARGV[0];
+		-d $ARGV[0] and die("Option '--file|-f' given a directory");
 
 		$Buffer = $ARGV[0];
-	}elsif ($ARGV[0] =~ '^-'){
-		Err(1, "Incorrect option(s) specified.")
-	}else{
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect option(s) specified")
+	} else {
 		last
 	}
 
 	shift(@ARGV)
 }
 
-DepChk('redshift');
+my @Bins;
+foreach my $Dir (split(':', $ENV{PATH})) {
+	opendir(my $DH, $Dir);
+	push(@Bins, readdir($DH));
+	closedir($DH)
+}
 
-sub GetSetValue{ # Usage: {[<] | [>]} [GAMMA_INT]
+grep({$_ eq 'redshift'} @Bins) or die("Dependency 'redshift' not found");
+
+# Usage: {[<] | [>]} [GAMMA_INT]
+sub GetSetValue {
+	if (-f $Buffer) {
+		-r $Buffer or die("File '$Buffer' lacks read access");
+		-w $Buffer or die("File '$Buffer' lacks write access");
+	}
+
 	open(my $FH, $_[0], $Buffer);
 
 	print($FH "$_[1]\n") if $_[0] eq '>';
@@ -80,20 +86,21 @@ sub GetSetValue{ # Usage: {[<] | [>]} [GAMMA_INT]
 }
 
 sub ChkVal{ # Usage: [ACTION] [VALUE]
-	Err(1, "Action '$_[0]' needs an integer.") unless $_[1] =~ '^[0-9]+$';
+	$_[1] =~ '^[0-9]+$' or die("Action '$_[0]' needs an integer");
 
 	if ($_[0] eq 'raise'){
 		$Temp = $GammasNow + $_[1];
 
-		Err(1, "Maximum gamma available is 25000.") unless $Temp <= 25000;
+		$Temp <= 25000 or die("Maximum gamma available is 25000");
 	}elsif ($_[0] eq 'lower'){
 		$Temp = $GammasNow - $_[1];
 
-		Err(1, "Minimum gamma available is 1000.") unless $Temp >= 1000;
+		$Temp >= 1000 or die("Minimum gamma available is 1000");
 	}
 }
 
-mkdir(dirname($Buffer)) unless -d dirname($Buffer);
+# Just in-case the user doesn't yet have a `.config` directory.
+-d $ConfigDir or mkdir($ConfigDir);
 
 if (-f $Buffer){
 	GetSetValue('<')
@@ -109,27 +116,27 @@ while (defined($ARGV[0])){
 		ChkVal('set', $ARGV[0]);
 		GetSetValue('>', $ARGV[0]);
 
-		system("redshift -o -O $ARGV[0]K 1> /dev/null 2>&1")
+		system("redshift -o -O $ARGV[0]K 1> /dev/null")
 	}elsif ($ARGV[0] eq 'reset'){
 		GetSetValue('>', '6500');
 
-		system('redshift -o -O 6500K 1> /dev/null 2>&1')
+		system('redshift -o -O 6500K 1> /dev/null')
 	}elsif ($ARGV[0] eq 'raise'){
 		shift();
 
 		ChkVal('raise', $ARGV[0]);
 		GetSetValue('>', $Temp);
 
-		system("redshift -o -O ${Temp}K 1> /dev/null 2>&1")
+		system("redshift -o -O ${Temp}K 1> /dev/null")
 	}elsif ($ARGV[0] eq 'lower'){
 		shift();
 
 		ChkVal('lower', $ARGV[0]);
 		GetSetValue('>', $Temp);
 
-		system("redshift -o -O ${Temp}K 1> /dev/null 2>&1")
+		system("redshift -o -O ${Temp}K 1> /dev/null")
 	}else{
-		Err(1, "Incorrect action(s) specified.")
+		die("Incorrect action(s) specified")
 	}
 
 	shift(@ARGV)
