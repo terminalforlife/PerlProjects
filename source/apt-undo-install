@@ -1,69 +1,64 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/apt-undo-install
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install
 # Started On        - Tue 23 Apr 18:46:07 BST 2019
-# Last Change       - Fri 31 Jan 23:32:38 GMT 2020
+# Last Change       - Mon  2 Nov 17:24:33 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
 # Dependencies:
 #
 #   apt (>= 1.2.32)
 #   bsdmainutils (>= 9.0.6)
 #   less (>= 481-2.1)
 #   libapt-pkg-perl (>= 0.1.29build7)
-#   libtfl-perl (>= 2020-01-03)
 #   perl (>= 5.22.1-9)
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-31";
+my $CurVer = "2020-11-02";
+my $Progrm = 'apt-undo-install';
 
 my $AptLogFile = '/var/log/apt/history.log';
 
-sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
 
-		            A Perl solution to undo recent APT installations.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  --output-only:[F]        - List only installed packages.
+		  -V, --view               - View the contents of the logfile.
+		  -c, --count [N]          - Undo N number of installations.
+		  -d, --date [YYYY-MM-DD]  - Specify by the installation date.
+		  -l, --logfile [FILE]     - Specify an alternative logfile.
+		  -t, --time [HH:MM:SS]    - Specify by the installation time.
 
-		SYNTAX:     $TFL::PROGNAME [OPTS]
+		  Remaining options are passed over to apt-get(8).
 
-		OPTS:       --help|-h|-?            - Display this help information.
-		            --version|-v            - Output the version datestamp.
-		            --count|-c N            - Undo N number of installations.
-		            --date|-d YYYY-MM-DD    - Specify by the installation date.
-		            --logfile|-l FILE       - Specify an alternative logfile.
-		            --output-only:F         - Just list installed packages.
-		            --time|-t HH:MM:SS      - Specify by the installation time.
-		            --view|-V               - View the contents of the logfile.
+		  Valid '--output-only:' formats are 'col', 'desc', and 'list'.
 
-		            Remaining options are passed over to apt-get.
-
-		NOTE:       The '--date|-d' and '--time|-t' options may fail to work
-		            with your APT logfile if you're using non-standard
-		            localisation settings for an English-speaker. These flags
-		            should also not be used with the '--count|-c' flag.
-
-		            The following output formats are as follows:
-
-		              --output-only:col, --output-only:desc, --output-only:list
-
-		EXAMPLE:    $TFL::PROGNAME --purge --autoremove -c 2
-		            $TFL::PROGNAME -l /tmp/history.log --output-only:list
-		            $TFL::PROGNAME --date 2017-00-00 --time 20:00:00
-
-		FILE:       $AptLogFile
+		  The '--date|-d' and '--time|-t' options may fail to work with your
+		  APT logfile if you're using non-standard localisation settings for an
+		  English-speaker. These flags should also not be used with the
+		  '--count|-c' flag.
 	} =~ tr/\t//dr)
 }
 
+# By default, just the one package install process will be undone.
 my $TimesExec = 1;
 
 my (
@@ -71,62 +66,75 @@ my (
 	$BeQuiet, $ToSim, $FiltaDate, $FiltaTime
 );
 
-while(defined($ARGV[0])){
-	if($ARGV[0] =~ '^(--help|-h|-\?)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
-	}elsif($ARGV[0] =~ '^(--version|-v)$'){
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print($CurVer . "\n"); exit(0)
-	}elsif($ARGV[0] =~ '^(--logfile|-l)$'){
-		shift();
-
-		if (length($ARGV[0]) == 0){
-			FErr(1, __LINE__, "Option '--logfile|-l' requires a file.")
-		}elsif (not -f $ARGV[0] and not -r $ARGV[0]){
-			FErr(1, __LINE__, "Unable to find or read APT's logfile.")
-		}
-
-		$AptLogFile = $ARGV[0]
-	}elsif($ARGV[0] =~ '^--view|-V$'){
-		$ViewLog = 1
-	}elsif($ARGV[0] =~ '^(--date|-d)$'){
-		shift();
-
-		FErr(1, __LINE__, "Invalid date specified.")
-			unless $ARGV[0] =~ '^[0-9]+-[0-9]+-[0-9]+$';
-
-		$FiltaDate = $ARGV[0]
-	}elsif($ARGV[0] =~ '^(--time|-t)$'){
-		shift();
-
-		FErr(1, __LINE__, "Invalid time specified.")
-			unless $ARGV[0] =~ '^[0-9]+:[0-9]+:[0-9]+$';
-
-		$FiltaTime = $ARGV[0]
-	}elsif($ARGV[0] =~ '^(--count|-c)$'){
-		shift();
-
-		FErr(1, __LINE__, "Invalid count specified.")
-			unless $ARGV[0] =~ '^[0-9]+$';
-
-		$TimesExec = $ARGV[0]
-	}elsif($ARGV[0] =~ '^--output-only:(desc|list|col)$'){
+	} elsif ($ARGV[0] =~ '^--output-only:(desc|list|col)$') {
 		$OutputFormat = substr($ARGV[0], 14);
 		$OutOnly = 1
-	}elsif($ARGV[0] =~ '^-'){
+	} elsif ($ARGV[0] =~ '^--view|-V$') {
+		$ViewLog = 1
+	} elsif ($ARGV[0] =~ '^(--count|-c)$') {
+		shift();
+
+		$ARGV[0] =~ '^[0-9]+$' or die("Invalid count specified");
+
+		$TimesExec = $ARGV[0]
+	} elsif ($ARGV[0] =~ '^(--date|-d)$') {
+		shift();
+
+		$ARGV[0] =~ '^[0-9]+-[0-9]+-[0-9]+$' or die("Invalid date specified");
+
+		$FiltaDate = $ARGV[0]
+	} elsif ($ARGV[0] =~ '^(--logfile|-l)$') {
+		shift();
+
+		length($ARGV[0]) == 0 and die("Option '--logfile|-l' requires a file");
+
+		$AptLogFile = $ARGV[0]
+	} elsif ($ARGV[0] =~ '^(--time|-t)$') {
+		shift();
+
+		$ARGV[0] =~ '^[0-9]+:[0-9]+:[0-9]+$' or die("Invalid time specified");
+
+		$FiltaTime = $ARGV[0]
+	} elsif ($ARGV[0] =~ '^-') {
 		last # <-- Pass over to apt-get.
-	}else{
-		FErr(1, __LINE__, "Unrecognised argument(s) specified.")
+	} else {
+		die("Unrecognised arguments) specified.")
 	}
 
 	shift()
 }
 
+sub DepChk{
+	my @Files;
+	foreach my $Dir (split(':', $ENV{'PATH'})) {
+		-d $Dir or next;
+		opendir(my $DH, $Dir) or next;
+		push(@Files, readdir($DH));
+		closedir($DH);
+	}
+
+	my $Found = scalar(@_);
+	foreach my $CurDep (@_) {
+		grep({$_ eq $CurDep} @Files) and $Found--
+	}
+
+	return($Found)
+}
+
 DepChk('apt-get', 'column', 'less');
 
-if($ViewLog){
+if ($ViewLog) {
 	system(qq{less "$AptLogFile"});
 	exit(0)
 }
+
+-f $AptLogFile or die("File '$AptLogFile' not found");
+-r $AptLogFile or die("File '$AptLogFile' is unreadable");
 
 open(my $FH, '<', $AptLogFile);
 my @Data = <$FH>;
@@ -134,79 +142,76 @@ close($FH);
 
 my $InstallWC = 0;
 my @InstallOnlyLines;
-foreach (@Data){
+foreach (@Data) {
 	next unless $_ =~ '^Install:';
 
 	push(@InstallOnlyLines, $_);
 	$InstallWC++
 }
 
-FErr(1, __LINE__, "Cannot undo greater than the available $InstallWC time(s).")
-	if $TimesExec > $InstallWC;
+$TimesExec > $InstallWC and die("Only $InstallWC available undo(s).");
 
 my @InstalledPKGs;
-if($FiltaDate and $FiltaTime){
+if ($FiltaDate and $FiltaTime) {
 	my $SeenDate = 'false';
 	my $Count = 0;
 	my @CurLine;
 
-	foreach my $Buffer (@Data){
+	foreach my $Buffer (@Data) {
 		next if length($Buffer) <= 1;
 		@CurLine = split(" ", $Buffer);
 
-		if($CurLine[0] eq "Start-Date:"){
-			if($CurLine[1] eq $FiltaDate and $CurLine[2] eq $FiltaTime){
+		if ($CurLine[0] eq "Start-Date:") {
+			if ($CurLine[1] eq $FiltaDate and $CurLine[2] eq $FiltaTime) {
 				$SeenDate = 'true';
 				$Count = 0
 			}
 		}
 
-		$Count++ if $SeenDate eq 'true';
-		next unless $Count == 4 and $CurLine[0] eq 'Install:';
+		$SeenDate eq 'true' and $Count++;
+		unless ($Count == 4 and $CurLine[0] eq 'Install:') { next }
 
-		foreach (@CurLine){
-			push(@InstalledPKGs, $_) unless $_ =~ '^(Install:|.*[\(\)].*)'
+		foreach (@CurLine) {
+			/^(Install:|.*[\(\)].*)/ or push(@InstalledPKGs, $_)
 		}
 
 		last
 	}
 
-	FErr(1, __LINE__, "Invalid time and/or date specified.")
-		unless @InstalledPKGs
-}elsif(not($FiltaDate and $FiltaTime) and ($FiltaDate or $FiltaTime)){
-	FErr(1, __LINE__, "Options '--date|-d' and '--time|-t' come as a pair.")
+	@InstalledPKGs or die("Invalid time and/or date specified")
+} elsif (not ($FiltaDate and $FiltaTime) and ($FiltaDate or $FiltaTime)) {
+	die("Options '--date|-d' and '--time|-t' come as a pair")
 }else{
 	my $DesiredIndices = $InstallWC - $TimesExec;
-	foreach ($DesiredIndices..$InstallWC){
+	foreach ($DesiredIndices..$InstallWC) {
 		next unless $InstallOnlyLines[$_]; # <-- Avoids empty line errors.
 
-		foreach (split(" ", $InstallOnlyLines[$_])){
-			push(@InstalledPKGs, $_)
-				unless $_ =~ '^(Install:|.*[\)\(].*|automatic)$'
+		foreach (split(" ", $InstallOnlyLines[$_])) {
+			/^(Install:|.*[\)\(].*|automatic)$/ or push(@InstalledPKGs, $_)
 		}
 	}
 }
 
-unless($OutOnly){
+unless ($OutOnly) {
 	system(
 		"apt-get @ARGV remove -o Dpkg::Progress-Fancy=true" .
 		" -o Dpkg::Progress=true @InstalledPKGs"
 	)
-}else{
-	if($OutputFormat eq 'desc'){
+} else {
+	if ($OutputFormat eq 'desc') {
 		use AptPkg::Cache;
 
 		my $Cache = AptPkg::Cache->new();
 		my $Descs = $Cache->packages('DescriptionList');
-		foreach(@InstalledPKGs){
+		foreach (@InstalledPKGs) {
 			my $Gets = $Cache->get($_);
 			my $Name = $Gets->{'FullName'};
 			my $Desc = $Descs->lookup("$_")->{'ShortDesc'};
 			printf("%s - %s\n", $Name, $Desc)
 		}
-	}elsif($OutputFormat eq 'col'){
+	} elsif ($OutputFormat eq 'col') {
 		system("printf '%s\n' @InstalledPKGs | column")
-	}elsif($OutputFormat eq 'list'){
+	} elsif ($OutputFormat eq 'list') {
 		print("$_\n") foreach @InstalledPKGs
 	}
 }

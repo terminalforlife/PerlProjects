@@ -1,7 +1,7 @@
 6b7a4a2c9f0260d4eda49a79bd9d184b  devutils/gitsap.test
 bfa7df3f9dfa819b3de2824a1b5eb3f2  devutils/ubuchk.test
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
-2992bb26459073734e057cfdeab2ccd6  source/apt-undo-install
+044aa9ff39b799d2cdf3b3d040af33cc  source/apt-undo-install
 0818fb2fb4348d6a0fe1931d5498f6df  source/battery-monitor
 d8943fe1564b9d36067dec6f7f4313c3  source/clean-locales
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
