@@ -1,0 +1,78 @@
+#!/usr/bin/env perl
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/ptz
+# Started On        - Sat 18 May 21:21:35 BST 2019
+# Last Change       - Mon  2 Nov 16:34:44 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Limited functionality compared to the shell version.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use Time::Piece;
+
+my $CurVer = "2020-11-02";
+my $Progrm = 'ptz';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [YYYY-MM-DD]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -c, --no-commas          - Omit commas from returned value.
+	} =~ tr/\t//dr)
+}
+
+my $DoCommas = 'True';
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ /^(--help|-h|-\?)$/) {
+		Usage(); exit 0
+	} elsif($ARGV[0] =~ /^(--version|-v)$/) {
+		print("$CurVer\n"); exit 0
+	} elsif($ARGV[0] =~ /^(--no-commas|-c)$/) {
+		$DoCommas = 'False'
+	} elsif($ARGV[0] =~ /^-.*/) {
+		die("Incorrect argument(s) specified")
+	} else {
+		last
+	}
+
+	shift(@ARGV)
+}
+
+my $Target = shift();
+
+sub CommaInt {
+	my $Number = reverse(shift());
+    $Number =~ s/(\d{3})(?=\d)/$1,/g;
+    return(reverse($Number))
+}
+
+$Target =~ '^\d{4}-\d{2}-\d{2}$' or die("Invalid target date");
+
+# Fetch current time, then target time, in seconds since epoch.
+my $CurrentTime = localtime->epoch();
+my $TargetTime = Time::Piece->strptime($Target, '%Y-%m-%d')->epoch();
+
+if ($DoCommas eq 'True') {
+	print(CommaInt($TargetTime - $CurrentTime) . "\n")
+} else {
+	print($TargetTime - $CurrentTime . "\n")
+}
