@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  2 Nov 00:22:07 GMT 2020
+# Last Change       - Mon  2 Nov 00:53:13 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,6 +11,7 @@
 #
 # Features:
 #
+#TODO: Check for module `pam_namespace` for user's own `/tmp` and `/var/tmp`.
 #TODO: Add check for `/proc/kallsyms` being 400 and 0:0. (security hardening)
 #
 #      This tweak is apparently accomplished by adding a chmod(1) command to
@@ -823,9 +824,10 @@ if ($KernParams eq 'true'){
 		'9191:0:/proc/sys/net/ipv4/conf/all/send_redirects',
 		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
 		'9623:1:/proc/sys/kernel/dmesg_restrict',
+		'9992:0:/proc/sys/net/ipv4/ip_forward',
+		'9993:1:/proc/sys/kernel/unprivileged_bpf_disabled',
 		'9998:1:/proc/sys/fs/protected_symlinks',
-		'9999:1:/proc/sys/fs/protected_hardlinks',
-		'9993:1:/proc/sys/kernel/unprivileged_bpf_disabled'
+		'9999:1:/proc/sys/fs/protected_hardlinks'
 	){
 		($AlertID, $GoodValue, $Path) = split(':');
 		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;

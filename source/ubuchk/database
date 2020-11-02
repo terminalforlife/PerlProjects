@@ -279,3 +279,7 @@ A Linux system administrator, named Frederik, found over at https://blog.frehi.b
 You might find the following exhaustive post an interesting read:
 .
 https://lwn.net/Articles/660331
+:9992
+In 2017, Gus Khawaja of Plural Sight (https://www.pluralsight.com) recommends setting this kernel parameter to `0`, disabling the ability to forward IP addresses, and increasing security as a result.
+.
+You may find this parameter is already disabled by default on your Linux installation, but if you're reading this, chances are you've discovered it's enabled. If you're sure you have no need to forward IP addresses, go ahead and disable this parameter.
