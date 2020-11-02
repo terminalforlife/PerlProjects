@@ -3,27 +3,34 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019
-# Last Change       - Sat 15 Feb 02:08:52 GMT 2020
+# Last Change       - Mon  2 Nov 02:23:51 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
 # Dependencies:
 #
-#   liblist-moreutils-perl (>= 0.413-1build1)
-#   libtfl-perl (>= 2020-01-03)
-#----------------------------------------------------------------------------------
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL;
-use File::Basename 'basename';
-use List::MoreUtils 'uniq';
 
-my $CurVer = "2020-02-15";
+no warnings 'uninitialized';
 
-sub Usage{
-	print(qq{Usage: $TFL::PROGNAME [OPTS] [MATCH]
+my $CurVer = "2020-11-02";
+my $Progrm = 'lsbins';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [MATCH]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -39,89 +46,108 @@ my $CaseInsen = 'false';
 my $ExtReg = 'false';
 my $ShowAll = 'false';
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
-		Usage(1); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^(--ignore-case|-i)$'){
+	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
 		$CaseInsen = 'true'
-	}elsif ($ARGV[0] =~ '^(--extended-regexp|-E)$'){
+	} elsif ($ARGV[0] =~ '^(--extended-regexp|-E)$') {
 		$ExtReg = 'true'
-	}elsif ($ARGV[0] =~ '^(--nodescribe|-N)$'){
+	} elsif ($ARGV[0] =~ '^(--nodescribe|-N)$') {
 		$NoDescribe = 'true'
-	}elsif ($ARGV[0] =~ '^(--show-all|-a)$'){
+	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
 		$ShowAll = 'true'
-	}elsif ($ARGV[0] =~ '^-.*'){
-		TFL::Err(1, "Unrecognised option(s) specified")
-	}else{
+	} elsif ($ARGV[0] =~ '^-.*') {
+		die("Unrecognised option(s) specified")
+	} else {
 		last
 	}
 
 	shift()
 }
 
-TFL::Err(1, 'Only one MATCH is applicable.') if scalar(@ARGV) > 1;
+scalar(@ARGV) > 1 and die('Only one MATCH is applicable');
 
-unless (defined($ARGV[0])){
-	if ($ExtReg eq 'true'){
-		TFL::Err(1, "Option '--extended-regexp|-E' provided, but missing MATCH.")
-	}elsif ($CaseInsen eq 'true'){
-		TFL::Err(1, "Option '--ignore-case|-i' provided, but missing MATCH.")
+unless (defined($ARGV[0])) {
+	if ($ExtReg eq 'true') {
+		die("Option '--extended-regexp|-E' provided, but missing MATCH")
+	} elsif ($CaseInsen eq 'true') {
+		die("Option '--ignore-case|-i' provided, but missing MATCH")
 	}
 }
 
-# Generate list of `PATH` executable files.
-my @Exes;
-foreach (split(':', $ENV{PATH})){
-	foreach (glob("$_/*")){
-		push(@Exes, basename($_)) if -f -r -x
+my (@ExeArray, %ExeHash);
+foreach my $Dir (split(':', $ENV{PATH})) {
+	-d $Dir or next;
+
+	opendir(my $DH, $Dir);
+
+	foreach my $File (readdir($DH)) {
+		-f -r -x "$Dir/$File" or next;
+
+		# Push only the unique files' basename into the array.
+		my $BaseName = ($File =~ m{(?:.*/)?([^/].*)})[0];
+		unless ($ExeHash{$BaseName} == 1) {
+			push(@ExeArray, $BaseName);
+			$ExeHash{$BaseName} = 1
+		}
 	}
+
+	closedir($DH)
 }
 
-@Exes = uniq(sort(@Exes));
+@ExeArray = sort({$a cmp $b} @ExeArray);
 
-#TODO: Would much rather set and concatenate a variable for this, but how?
-sub DoMatch{
-	return(0) unless defined($ARGV[0]);
+sub DoMatch {
+	defined($ARGV[0]) or return(0);
 
 	# If a MATCH is provided, check for it, then skip if found.
-	if ($CaseInsen eq 'true'){
-		return(0) if $_[0] =~ /$ARGV[0]/i;
-	}elsif ($ExtReg eq 'true'){
-		return(0) if $_[0] =~ /$ARGV[0]/x;
-	}elsif ($CaseInsen eq 'true' and $ExtReg eq 'true'){
-		return(0) if $_[0] =~ /$ARGV[0]/ix;
-	}else{
-		return(0) if $_[0] =~ $ARGV[0];
+	if ($CaseInsen eq 'true') {
+		$_[0] =~ /$ARGV[0]/i and return(0)
+	} elsif ($ExtReg eq 'true') {
+		$_[0] =~ /$ARGV[0]/x and return(0)
+	} elsif ($CaseInsen eq 'true' and $ExtReg eq 'true') {
+		$_[0] =~ /$ARGV[0]/ix and return(0)
+	} else {
+		$_[0] =~ $ARGV[0] and return(0)
 	}
 
 	return(1)
 }
 
-if ($NoDescribe ne 'true' and TFL::DepChk(':', 'man') == 0){
+sub DepChk {
+	my @Files;
+	foreach my $Dir (split(':', $ENV{'PATH'})) {
+		-d $Dir or next;
+		opendir(my $DH, $Dir);
+		push(@Files, readdir($DH));
+		closedir($DH);
+	}
+
+	grep({$_ eq 'man'} @Files) or return(1)
+}
+
+if ($NoDescribe ne 'true' and DepChk('man') == 1){
 	my $OldName = '';
-	foreach (`man -f @Exes 2> /dev/null`){
+	foreach (`man -f @ExeArray 2> /dev/null`) {
 		chomp();
 		my $Name = (split(' ', $_))[0];
 
 		# Using `OldName` to avoid alternative descriptions.
-		next if $Name eq $OldName and $ShowAll ne 'true';
-
-		my $Desc = s/^.* - //gr;
+		if ($Name eq $OldName and $ShowAll ne 'true') { next }
 
 		# Capitalise the first letter of the description.
-		my $FirstChar = substr($Desc, 0, 1);
-		my $Remaining = substr($Desc, 1);
-		$Desc = ' - ' . uc($FirstChar) . $Remaining;
+		my $Desc = ' - ' . ucfirst(s/^.* - //gr);
 
-		next unless DoMatch($Name) == 0;
+		DoMatch($Name) == 0 or next;
 		printf("%s%s\n", $Name, $Desc);
 
 		$OldName = $Name
 	}
 }else{
-	foreach (@Exes){
+	foreach (@ExeArray){
 		next unless DoMatch($_) == 0;
 		printf("%s\n", $_)
 	}
