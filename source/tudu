@@ -3,70 +3,68 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/tudu
 # Started On        - Sat 14 Dec 19:42:12 GMT 2019
-# Last Change       - Wed 15 Jan 23:37:40 GMT 2020
+# Last Change       - Mon  2 Nov 02:42:28 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
 # Dependencies:
 #
-#   libtfl-perl (>= 2020-01-03)
 #   libfile-listing-perl (>= 6.04-1)
-#   liblist-moreutils-perl (>= 0.413-1build1)
 #   libterm-readkey-perl (>= 2.33-1build1)
+#   perl (>= 5.22.1-9)
 #----------------------------------------------------------------------------------
 
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err';
 use File::Find;
-use List::MoreUtils;
 use Term::ReadKey 'GetTerminalSize';
 use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized', 'File::Find';
 
-my $CurVer = "2020-01-15";
+my $Progrm = 'tudu';
+my $ProgrmFancy = 'TuDu';
+my $CurVer = "2020-11-02";
 
 sub Usage{
-	my $Info = qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+	print(qq{Usage: $Progrm [OPTS] [REGEX]
 
-		            Configurable developer tool to overview projects' todos.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  --config PATH            - Override default file with PATH.
+		  --force-reset            - Force regeneration of user's config.
+		  --parseable              - Parseable output, similar to raw.
+		  -P, --alt-path PATH      - Override value in config with PATH.
+		  -i, --ignore-case        - Case-insensitive search for REGEX.
 
-		SYNTAX:     $TFL::PROGNAME [OPTS] [REGEX]
+		  The use of '--' is supported in $ProgrmFancy.
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --ignore-case|-i        - Case-insensitive search for REGEX.
-		            --alt-path|-P PATH      - Override value in config with PATH.
-		            --config PATH           - Override default file with PATH.
-		            --force-reset           - Force regeneration of user's config.
-		            --parseable             - Parseable output, similar to raw.
+		  When specifying an alternative PATH, it's possible and
+		  intended that the user could provide a file, instead of a
+		  directory.
 
-		NOTE:       Signifying the end of OPTS with '--' is supported.
+		  Where REGEX is a REGEX string to filter todo entries.
 
-		            When specifying an alternative PATH, it's possible and intended
-		            that the user could provide a file, instead of a directory.
+		  All binary files will be ignored, as will those for which
+		  needed permissions are lacking.
 
-		            Where REGEX is a REGEX string to use to filter todo entries.
+		  CONFIG:     A user configuration file ('~/.config/$Progrm/config')
+		              will be generated when $ProgrmFancy is executed without such a
+		              file existing.
 
-		            All binary files will be ignored, as will those for which
-		            needed permissions are lacking.
-
-		CONFIG:     A user configuration file (see below) will be generated when
-		            the program is executed without such a file existing.
-
-		            The default 'Target' is the current working directory, and the
-		            default TODO string is '#TODO:', where '#' indicates a comment.
-
-		            Once the 'config' file has been generated, adjust as needed.
-
-		FILE:       ~/.config/$TFL::PROGNAME/config
-	};
-
-	print($Info =~ tr/\t//dr)
+		              The default 'Target' is the current working directory, -
+		              and the default TODO string is '#TODO:', where '#'
+		              indicates a comment.
+	} =~ tr/\t//dr)
 }
 
 my (
@@ -77,7 +75,7 @@ my (
 # Snip the one whitespace before the todo entry.
 my $TodoStrLen = length($TodoStr) + 1;
 
-my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
+my $MainDir = "$ENV{HOME}/.config/$Progrm";
 mkdir($MainDir) unless -d $MainDir;
 
 my $TargetFile = "$MainDir/target";
@@ -104,7 +102,7 @@ while(defined($ARGV[0])){
 	}elsif($ARGV[0] =~ '^(--alt-path|-P)$'){
 		shift(@ARGV);
 
-		Err(1, "Option '--alt-path|-P' requires a PATH.")
+		die("Option '--alt-path|-P' requires a PATH")
 			unless length($ARGV[0]) > 0;
 
 		$Target = $ARGV[0];
@@ -112,7 +110,7 @@ while(defined($ARGV[0])){
 	}elsif($ARGV[0] =~ '^(--config|-c)$'){
 		shift(@ARGV);
 
-		Err(1, "Option '--config|-c' requires a PATH.")
+		die("Option '--config|-c' requires a PATH")
 			unless length($ARGV[0]) > 0;
 
 		$ConfigFile = $ARGV[0]
@@ -121,7 +119,7 @@ while(defined($ARGV[0])){
 	}elsif($ARGV[0] eq '--parseable'){
 		$Parseable = 'true'
 	}elsif($ARGV[0] =~ '^-'){
-		Err(1, "Incorrect option(s) -- see: $TFL::PROGNAME -h")
+		die("Incorrect option(s)")
 	}else{
 		last
 	}
@@ -130,9 +128,9 @@ while(defined($ARGV[0])){
 }
 
 if (scalar(@ARGV) > 1){
-	Err(1, "Too many arguments -- see: $TFL::PROGNAME -h")
+	die("Too many arguments")
 }elsif ($DoCase eq 'i' and scalar(@ARGV) == 0){
-	Err(1, "Option '--ignore-case|-i' used, but no REGEX provided.")
+	die("Option '--ignore-case|-i' used, but no REGEX provided")
 }
 
 # Use of this function is to avoid escaping issues in REGEX.
@@ -145,7 +143,7 @@ unlink($ConfigFile) if $ForceReset eq 'true';
 # Read the `config` file, if found, then populate the config hash.
 if (-f -r -T $ConfigFile){
 	sub Boolean{
-		Err(1, "Invalid boolean '$_[0]' detected.")
+		die("Invalid boolean '$_[0]' detected")
 			unless $_[0] eq 'true' or $_[0] eq 'false'
 	}
 
@@ -187,30 +185,30 @@ if (-f -r -T $ConfigFile){
 			}elsif ($Key =~ '^Char_.*'){
 				next if $Pretty eq 'false' and $Key ne 'Char_Ofl';
 
-				Err(1, "Key '$Key' equals too long a value.")
+				die("Key '$Key' equals too long a value")
 					if length($Value) > 1;
 
 				$CharHash{$Key} = $Value
 			}elsif ($Key =~ '^Color_.*'){
 				$ColorHash{$Key} = $Value =~ tr/['"]//dr
 			}else{
-				Err(1, "Invalid color '$Value' detected.")
+				die("Invalid color '$Value' detected")
 					unless colorvalid($Value);
 			}
 		}else{
-			Err(1, "Invalid key '$Key' detected.")
+			die("Invalid key '$Key' detected")
 		}
 	}
 }else{
-	Err(1, "User configuration file could not be generated.")
+	die("User configuration file could not be generated")
 		unless -w -x ($ConfigFile =~ m{(.*)(?:/.*)})[0];
 
 	# Generate the default config.
 	open(my $FH, '>', $ConfigFile);
 
-	my $Contents = qq{# User configuration file for `$TFL::PROGNAME` ($CurVer)
+	my $Contents = qq{# User configuration file for $ProgrmFancy ($CurVer)
 
-		# Specify the location (file or directory) for $TFL::PROGNAME to use. If the CWD
+		# Specify the location (file or directory) for $ProgrmFancy to use. If the CWD
 		# is specified (the default value), the search is made non-recursively.
 		Target=./
 
@@ -262,7 +260,7 @@ if (-f -r -T $ConfigFile){
 	printf($FH "%s\n", $Contents =~ tr/\t//dr);
 
 	close($FH);
-	printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
+	printf("File '~/.config/$Progrm/config' generated -- please restart.\n");
 	exit(0)
 }
 
@@ -368,7 +366,7 @@ sub GetTodo{
 }
 
 if (-d $Target){
-	Err(1, 'Directory inaccessible.') unless -r -x $Target;
+	die('Directory inaccessible') unless -r -x $Target;
 
 	our @FileArr;
 
@@ -391,12 +389,12 @@ if (-d $Target){
 
 	foreach (@FileArr){GetTodo($_)}
 }elsif (-f $Target){
-	Err(1, 'File unreadable.') unless -r $Target;
-	Err(1, 'File is binary.') if -r -B $Target;
+	die('File unreadable') unless -r $Target;
+	die('File is binary') if -r -B $Target;
 
 	GetTodo($Target)
 }else{
-	Err(1, 'Non-existent or invalid target specified.')
+	die('Non-existent or invalid target specified')
 }
 
 if ($EntryTTL == 0){
