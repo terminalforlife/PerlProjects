@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  1 Nov 23:52:46 GMT 2020
+# Last Change       - Mon  2 Nov 00:22:07 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,6 +11,13 @@
 #
 # Features:
 #
+#TODO: Add check for `/proc/kallsyms` being 400 and 0:0. (security hardening)
+#
+#      This tweak is apparently accomplished by adding a chmod(1) command to
+#      that effect in `/etc/rc.local`, or similar file, to ensure it works at
+#      boot-time.
+#
+#TODO: Add file permissions and ownership section (not just directories).
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `AllowUsers` check to `SSHServer` key.
 #TODO: Add `kernel.exec-shield` parameter; recommend value of `1`.
@@ -94,7 +101,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-01';
+my $CurVer = '2020-11-02';
 my $Progrm = 'ubuchk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
@@ -817,7 +824,8 @@ if ($KernParams eq 'true'){
 		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
 		'9623:1:/proc/sys/kernel/dmesg_restrict',
 		'9998:1:/proc/sys/fs/protected_symlinks',
-		'9999:1:/proc/sys/fs/protected_hardlinks'
+		'9999:1:/proc/sys/fs/protected_hardlinks',
+		'9993:1:/proc/sys/kernel/unprivileged_bpf_disabled'
 	){
 		($AlertID, $GoodValue, $Path) = split(':');
 		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;
