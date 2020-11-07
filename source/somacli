@@ -1,0 +1,144 @@
+#!/usr/bin/perl
+#cito M:755 O:0 G:0 T:/usr/bin/somacli
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/somacli
+# Started On        - Fri  6 Nov 23:18:28 GMT 2020
+# Last Change       - Sat  7 Nov 00:04:09 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Very basic, for now. Might expand on it, but the core functionality is there.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.26.1-6)
+#   perl-modules-5.26 (>= 5.26.1-6)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use HTTP::Tiny;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2020-11-07';
+my $Progrm = 'somacli';
+my $ProgrmFancy = 'Soma CLI';
+
+sub Usage{
+	print(qq{Usage: $Progrm [OPTS] [STATION]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -s, --stations           - List available station information.
+	} =~ tr/\t//dr)
+}
+
+my $ShowInfo;
+
+while (defined($ARGV[0])){
+	if ($ARGV[0] =~ '^(--help|-h)$'){
+		Usage(); exit(0)
+	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+		print("$CurVer\n"); exit(0)
+	}elsif ($ARGV[0] =~ '^(--stations|-s)$'){
+		$ShowInfo = 'True'
+	}elsif ($ARGV[0] =~ '^-'){
+		Err(1, "Incorrect option(s) specified.")
+	}else{
+		last
+	}
+
+	shift()
+}
+
+scalar(@ARGV) > 1 and die("Too many arguments provided");
+
+my $PlayURL = 'https://somafm.com';
+
+#--------------------------------------------Parse Site for Station Information
+
+my $WebPage = HTTP::Tiny->new()->get($PlayURL . '/listen');
+$WebPage->{'success'} or die("Problems connecting to SomaFM");
+
+my %Station = ();
+my ($MaxLenName, $Name, $Desc, $Counter, $URL);
+
+# We need this default value for the information header itself.
+my $MaxLenCounter = 6;
+
+# This isn't really all that effecient; it's a nice place-holder for future
+# expansion of SomaCLI, though. It gets used well when listing stations.
+foreach (split("\n", $WebPage->{'content'})) {
+	chomp();
+
+	if ($_ =~ '^\<h3\>.*\</h3\>$') {
+		# This is what the user has to enter to select a station; inconvenient.
+		$Name = ($_ =~ m{(^\<h3\>)(.*)(\</h3\>$)})[1];
+
+		# Determine maximum length needed for printf() later on.
+		$MaxLenName < length($Name) and $MaxLenName = length($Name)
+	} elsif ($_ =~ '^\<p class="descr"\>') {
+		$Desc = ($_ =~ m{(^\<p class="descr"\>)(.*)(\</p\>$)})[1];
+		$Station{$Name}{'Desc'} = $Desc
+	} elsif ($_ =~ '\<nobr>MP3:') {
+		$URL = ($_ =~ m{(\<a href=\")(.*)(\"\>)})[1];
+		$Station{$Name}{'URL'} = $URL
+	} elsif ($_ =~ '^\<dd\>[0-9]+\</dd\>$') {
+		$Counter = ($_ =~ m{(\<dd\>)(.*)(\</dd\>)})[1];
+		$Station{$Name}{'Counter'} = $Counter;
+
+		# Determine maximum length needed for printf() later on.
+		$MaxLenCounter < length($Counter) and $MaxLenCounter = length($Counter)
+	} elsif ($_ =~ '\<!-- end stations --\>') {
+		# Station list has ended, so we're done here.
+		last
+	}
+}
+
+# Free some memory.
+undef($WebPage);
+
+#---------------------------------------------------Display Station Information
+
+if ($ShowInfo eq 'True') {
+	printf(
+		"%-*s  %-*s\n",
+		$MaxLenName, 'STATION',
+		$MaxLenCounter, 'ACTIVE'
+	);
+
+	printf(
+		"%-*s  %-*d\n",
+		$MaxLenName, $_,
+		$MaxLenCounter, $Station{$_}{'Counter'}
+	) foreach sort({$a cmp $b} keys(%Station));
+
+	exit(0)
+}
+
+length($ARGV[0]) == 0 and die("Station NAME not provided");
+
+#-----------------------------------------------------Play Station with MPlayer
+
+exists($Station{$ARGV[0]}) or die("Station not found");
+
+print("Playing '$ARGV[0]' (Ctrl + C to Quit) ... ");
+
+# Ideally, I'd have Perl play this file itself, but I don't know how. The
+# closest I can think of, is to use GStreamer, but I'm not sure how, because
+# I'm finding the documentation to be lackluster.
+system(
+	'mplayer -nogui -input nodefault-bindings:conf=/dev/null ' .
+	"-really-quiet -playlist '$PlayURL$Station{$ARGV[0]}{URL}' " .
+	'1> /dev/null 2>&1'
+);
