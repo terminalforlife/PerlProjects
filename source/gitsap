@@ -3,12 +3,20 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Sat  1 Feb 00:40:42 GMT 2020
+# Last Change       - Sat  7 Nov 23:58:00 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # This project is based on a script I wrote in shell (Bash) called `gitsa`
 # which did the same thing but on a much simpler and slower scale.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+#TODO: The `Target` fails if the user provides just `/`.
 #
 # Dependencies:
 #
@@ -16,48 +24,39 @@
 #   libfile-listing-perl (>= 6.04-1)
 #   libgit-repository-perl (>= 1.317-1)
 #   libnumber-bytes-human-perl (>= 0.09-1)
-#   libtfl-perl (>= 2020-01-08)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
-
-#TODO: The `Target` fails if the user provides just `/`.
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr', 'Boolean', 'DepChk';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-02-01";
+my $CurVer = "2020-11-07";
+my $Progrm = 'gitsap';
+my $ProgrmFancy = 'GitSAP';
 
-sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [REGEX]
 
-		            Display an elegant overview of your git repositories.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -i, --ignore-case        - Case-insensitive REGEX search.
+		  -P, --alt-path [PATH]    - Override value in config.
+		  --config [PATH]          - Override default file.
+		  --force-reset            - Force generation of config file.
+		  --parseable              - Parseable output, similar to raw.
 
-		SYNTAX:     $TFL::PROGNAME [OPTS] [REGEX]
+		The use of '--' is supported in $ProgrmFancy.
 
-		OPTS:       --help|-h|-?            - Display this help information.
-		            --version|-v            - Output the version datestamp.
-		            --ignore-case|-i        - Case-insensitive REGEX search.
-		            --alt-path|-P PATH      - Override value in config.
-		            --config PATH           - Override default file.
-		            --force-reset           - Force generation of config file.
-		            --parseable             - Parseable output, similar to raw.
-
-		NOTE:       Signifying the end of OPTS with '--' is supported.
-
-		            Where REGEX is a REGEX string to use to filter repositories
+		NOTES:      Where REGEX is a REGEX string to use to filter repositories
 		            by the full path, relative to the 'Target' location.
 
-		CONFIG:     A user configuration file (see below) will be generated
+		            A user configuration file (see below) will be generated
 		            when the program is executed without such a file existing.
 
-		            Once the 'config' file has been generated, set as needed.
-
-		FILE:       ~/.config/$TFL::PROGNAME/config
+		The configuration file is stored at: ~/.config/$Progrm/config
 	} =~ tr/\t//dr)
 }
 
@@ -67,44 +66,44 @@ my (
 	$ShowLatest, $LatestFormat, $AbsoPath, $ANSIColors
 );
 
-my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
+my $MainDir = "$ENV{HOME}/.config/$Progrm";
 my $ConfigFile = "$MainDir/config";
 
 mkdir($MainDir) unless -d $MainDir;
 
-while (defined($ARGV[0])){
-	if($ARGV[0] =~ /^--$/){
+while (defined($ARGV[0])) {
+	if($ARGV[0] =~ /^--$/) {
 		last # <-- End of option processing.
-	}elsif ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+	}elsif ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(1); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	}elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}elsif($ARGV[0] =~ '^(--ignore-case|-i)$'){
+	}elsif($ARGV[0] =~ '^(--ignore-case|-i)$') {
 		$DoCase = 'i'
-	}elsif($ARGV[0] =~ '^(--alt-path|-P)$'){
+	}elsif($ARGV[0] =~ '^(--alt-path|-P)$') {
 		shift(@ARGV);
 
-		FErr(1, __LINE__, "Option '--alt-path|-P' requires a PATH.")
+		die("Option '--alt-path|-P' requires a PATH")
 			unless length($ARGV[0]) > 0;
 
 		$Target = $ARGV[0] =~ s/\/$//r;
 		$SolidTarget = 'true'
-	}elsif($ARGV[0] =~ '^(--config|-c)$'){
+	}elsif($ARGV[0] =~ '^(--config|-c)$') {
 		shift(@ARGV);
 
-		unless (length($ARGV[0]) > 0){
-			FErr(1, __LINE__, "Option '--config|-c' requires a PATH.")
-		}elsif (not -f -r $ARGV[0]){
-			FErr(1, __LINE__, "Alternative configuration file missing or inaccessible.")
+		unless (length($ARGV[0]) > 0) {
+			die("Option '--config|-c' requires a PATH")
+		}elsif (not -f -r $ARGV[0]) {
+			die("Alternative configuration file missing or inaccessible")
 		}
 
 		$ConfigFile = $ARGV[0]
-	}elsif($ARGV[0] eq '--parseable'){
+	}elsif($ARGV[0] eq '--parseable') {
 		$Parseable = 'true';
-	}elsif($ARGV[0] =~ '^(--force-reset|-F)$'){
+	}elsif($ARGV[0] =~ '^(--force-reset|-F)$') {
 		$ForceReset = 'true'
-	}elsif($ARGV[0] =~ '^-'){
-		FErr(1, __LINE__, "Incorrect option(s) specified.")
+	}elsif($ARGV[0] =~ '^-') {
+		die("Incorrect options) specified")
 	}else{
 		last
 	}
@@ -114,13 +113,20 @@ while (defined($ARGV[0])){
 
 my $RegexStr = $ARGV[0] if defined($ARGV[0]);
 
-if (scalar(@ARGV) > 1){
-	FErr(1, __LINE__, "Too many arguments -- see: $TFL::PROGNAME -h")
-}elsif ($DoCase eq 'i' and scalar(@ARGV) == 0){
-	FErr(1, __LINE__, "Option '--ignore-case|-i' used, but no REGEX provided.")
+if (scalar(@ARGV) > 1) {
+	die("Too many arguments provided")
+}elsif ($DoCase eq 'i' and scalar(@ARGV) == 0) {
+	die("Option '--ignore-case|-i' used, but no REGEX provided")
 }
 
-DepChk('git');
+my @Files;
+foreach my $Dir (split(':', $ENV{'PATH'})) {
+	opendir(my $DH, $Dir);
+	push(@Files, readdir($DH));
+	closedir($DH)
+}
+
+grep({$_ eq 'git'} @Files) or die("Dependency 'git' not found");
 
 my %Index = (
 	'CKeys' => [
@@ -167,82 +173,85 @@ my $ValidKeysTTL = @{$Index{'Sets'}} + @{$Index{'CKeys'}} + keys(%{$Index{'Syms'
 
 unlink($ConfigFile) if $ForceReset eq 'true';
 
-if (-f -r -T $ConfigFile){
+sub Boolean {
+	$_[0] =~ '^(true|false)$' or die("Invalid boolean '$_[0]' detected")
+}
+
+if (-f -r -T $ConfigFile) {
 	open(my $FH, '<', $ConfigFile);
 	my @Data = <$FH>;
 	close($FH);
 
 	my $TTL = 0;
-	foreach (@Data){
+	foreach (@Data) {
 		next if length($_) <= 1 or $_ =~ '^#';
 		chomp(my ($Key, $Value) = split('=', $_));
 
 		# Tally up the total number of keys found, to check after below block.
 		$TTL++;
 
-		if ($Key eq 'Target'){
-			FErr(1, __LINE__, "Key 'Target' not set -- see: $TFL::PROGNAME -h")
-				if $Value eq 'NULL';
+		if ($Key eq 'Target') {
+			$Value eq 'NULL' and die("Key 'Target' not set");
 
 			$Target = $Value =~ s/\/$//r unless $SolidTarget eq 'true'
-		}elsif ($Key eq 'RegexStr'){
+		}elsif ($Key eq 'RegexStr') {
 			$RegexStr = $Value unless length($Value) == 0
-		}elsif ($Key eq 'ShowBranch'){
+		}elsif ($Key eq 'ShowBranch') {
 			Boolean($Value);
 			$ShowBranch = $Value
-		}elsif ($Key eq 'ShowSize'){
+		}elsif ($Key eq 'ShowSize') {
 			Boolean($Value);
 			$ShowSize = $Value
-		}elsif ($Key eq 'Parseable'){
+		}elsif ($Key eq 'Parseable') {
 			Boolean($Value);
 			$Parseable = $Value unless $Parseable eq 'true'
-		}elsif ($Key eq 'OmitClean'){
+		}elsif ($Key eq 'OmitClean') {
 			Boolean($Value);
 			$OmitClean = $Value
-		}elsif ($Key eq 'ShowLatest'){
+		}elsif ($Key eq 'ShowLatest') {
 			Boolean($Value);
 			$ShowLatest = $Value
-		}elsif ($Key eq 'ANSIColors'){
+		}elsif ($Key eq 'ANSIColors') {
 			Boolean($Value);
 			$ANSIColors = $Value
-		}elsif ($Key eq 'AbsoPath'){
+		}elsif ($Key eq 'AbsoPath') {
 			Boolean($Value);
 			$AbsoPath = $Value
-		}elsif ($Key eq 'LatestFormat'){
-			FErr(1, __LINE__, "Invalid '$Key' value detected.")
-				unless $Value =~ '^(array|simple|describe)$';
+		}elsif ($Key eq 'LatestFormat') {
+			$Value =~ '^(array|simple|describe)$'
+				or die("Invalid '$Key' value detected");
 
 			$LatestFormat = $Value
-		}elsif ($Key =~ '^Color_.*'){
-			FErr(1, __LINE__, "Invalid color '$Value' detected.")
-				unless colorvalid($Value);
+		}elsif ($Key =~ '^Color_.*') {
+			colorvalid($Value) or die("Invalid color '$Value' detected");
 
 			next if $ANSIColors eq 'false';
 
 			$ColorHash{$Key} = color($Value =~ tr/['"]//dr)
-		}elsif ($Key =~ '^Char_.*'){
-			unless (exists(${$Index{'Syms'}}{$Key})){
-				FErr(1, __LINE__, "Invalid 'Char_*' key detected.")
-			}elsif (length($Value) > 1){
-				FErr(1, __LINE__, "Invalid 'Char_*' value detected.")
-			}elsif (length($Value) == 0){
+		}elsif ($Key =~ '^Char_.*') {
+			unless (exists(${$Index{'Syms'}}{$Key})) {
+				die("Invalid 'Char_*' key detected")
+			}elsif (length($Value) > 1) {
+				die("Invalid 'Char_*' value detected")
+			}elsif (length($Value) == 0) {
 				next
 			}
 
 			${$Index{'Syms'}}{$Key} = $Value =~ tr/['"]//dr
-		}elsif ($Key eq 'Compact'){
+		}elsif ($Key eq 'Compact') {
 			Boolean($Value);
 			$Compact = $Value
 		}else{
-			FErr(1, __LINE__, "Invalid key '$Key' detected.")
+			die("Invalid key '$Key' detected")
 		}
 	}
 
-	FErr(1, __LINE__, 'One or more keys are missing.') if $TTL < $ValidKeysTTL;
+	$TTL < $ValidKeysTTL and die('One or more keys are missing');
 
 	# This should catch rogue keys which passed by Char_* and Color_* tests.
-	FErr(1, __LINE__, "One or more 'Char_*' and/or 'Color_*' keys are invalid.")
-		if $TTL > $ValidKeysTTL
+	if ($TTL > $ValidKeysTTL) {
+		die("One or more 'Char_*' and/or 'Color_*' keys are invalid")
+	}
 }else{
 	open(my $FH, '>', $ConfigFile);
 
@@ -324,7 +333,7 @@ if (-f -r -T $ConfigFile){
 	} =~ tr/\t//dr);
 
 	close($FH);
-	printf("File '~/.config/$TFL::PROGNAME/config' generated -- please restart.\n");
+	printf("File '~/.config/$Progrm/config' generated -- please restart.\n");
 	exit(0)
 }
 
@@ -332,15 +341,15 @@ if (-f -r -T $ConfigFile){
 my $CNorm = color('reset') if $ANSIColors eq 'true';
 
 # Handle user-provided environment variables.
-foreach (keys(%ENV)){
-	$Target = $Target =~ s|\$$_|$ENV{$_}|gr if exists($ENV{$_});
+foreach (keys(%ENV)) {
+	exists($ENV{$_}) and $Target = $Target =~ s|\$$_|$ENV{$_}|gr
 }
 
 # Handle user-provided tilde (`~`) in place of `HOME`; first `~/` only.
 $Target = $Target =~ s|^~|$ENV{'HOME'}|r if $Target =~ '^~/';
 
-FErr(1, __LINE__, "Target directory not provided.") unless length($Target) > 0;
-FErr(1, __LINE__, "Target directory not found.") unless -d $Target;
+length($Target) > 0 or die("Target directory not provided");
+-d $Target or die("Target directory not found");
 
 use Git::Repository;
 
@@ -349,7 +358,7 @@ sub GetRepos{
 
 	#TODO: Temporary. Redirect `Git::Repository` to `/dev/null`, but how?
 	# If we're within a repository, handle it, then bail.
-	if (system('git rev-parse --show-toplevel 1> /dev/null 2>&1') == 0){
+	if (system('git rev-parse --show-toplevel 1> /dev/null 2>&1') == 0) {
 		my $Git = Git::Repository->new('work_tree' => getcwd());
 		return(($Git->run('rev-parse', '--show-toplevel'))) if $_[0] eq '.';
 		undef($Git); # <-- Free up some memory.
@@ -357,7 +366,7 @@ sub GetRepos{
 
 	# Gather an initial list of directories within 'Target'.
 	my @Dirs;
-	foreach (glob("$_[0]/{*,.*}")){
+	foreach (glob("$_[0]/{*,.*}")) {
 		next if m{/(\.\.|\.)$};
 		push(@Dirs, $_) if -d -r -x;
 	}
@@ -366,15 +375,15 @@ sub GetRepos{
 	# one. This was initially done by `File::Find`, but there seemed to have
 	# been annoying limitations, plus this approach seems a lot faster.
 	my @FileArr;
-	foreach (@Dirs){
-		foreach (glob("$_/{*,.*}")){
+	foreach (@Dirs) {
+		foreach (glob("$_/{*,.*}")) {
 			next if m{/(\.\.|\.)$};
 
 			# Keep adding to the array until it's empty, resulting in the loop
 			# coming to an end. Like a while loop iterating over arguments.
 			push(@Dirs, $_) if -d -r -x;
 
-			if (-d -r -x $_ and ($_ =~ m{(?:.*/)(.*)})[0] eq '.git'){
+			if (-d -r -x $_ and ($_ =~ m{(?:.*/)(.*)})[0] eq '.git') {
 				push(@FileArr, $_ =~ s/\/\.git$//r) and last
 			}
 		}
@@ -392,20 +401,20 @@ sub SetSymDesc{
 }
 
 my (@Results, $Result, $LastCom, $ShowPath);
-foreach (GetRepos($Target)){
+foreach (GetRepos($Target)) {
 	# The path used for the code stuff.
 	my $Path = $_;
 
 	# Here, we set and parse the path the user will see.
-	if ($AbsoPath ne 'true'){
+	if ($AbsoPath ne 'true') {
 		$ShowPath = ($Path =~ "(?:$Target/)(.*)")[0]
 	}else{
 		$ShowPath = $Path =~ s/$ENV{'HOME'}/~/r
 	}
 
 	# Look for user-provided REGEX in line, if one is given.
-	if (length($RegexStr) > 0){
-		if ($DoCase eq 'i'){
+	if (length($RegexStr) > 0) {
+		if ($DoCase eq 'i') {
 			next unless m{$RegexStr}i
 		}else{
 			next unless m{$RegexStr}
@@ -414,10 +423,10 @@ foreach (GetRepos($Target)){
 
 	my $Git = Git::Repository->new('work_tree' => $Path);
 
-	if ($ShowLatest eq 'true'){
+	if ($ShowLatest eq 'true') {
 		my (@Arr, $Date, $Author, $Commit);
 
-		foreach ($Git->run('log', '--left-right')){
+		foreach ($Git->run('log', '--left-right')) {
 			# Remove leading and trailing spaces from each index.
 			@Arr = split(' ', $_ =~ s/(^[[:space:]]+|[[:space:]]+$)//r);
 
@@ -427,30 +436,30 @@ foreach (GetRepos($Target)){
 			# Don't want this line, because it's inconsistent.
 			next if /^Merge:/;
 
-			if (/^commit/){
+			if (/^commit/) {
 				$Commit = $Arr[2]
-			}elsif (/^Author:/){
+			}elsif (/^Author:/) {
 				$Author = "$Arr[1] $Arr[2]"
-			}elsif (/^Date:/){
+			}elsif (/^Date:/) {
 				$Date = substr(join(' ', @Arr[1..@Arr]), 0, length($Date) - 1)
 			}
 		}
 
-		if ($LatestFormat eq 'array'){
+		if ($LatestFormat eq 'array') {
 			$LastCom = sprintf(
 				"$ColorHash{'Color_Date'}     [\n         '%s',$CNorm" .
 				"$ColorHash{'Color_Author'}\n         '%s',$CNorm" .
 				"$ColorHash{'Color_Hash'}\n         '%s'\n     ]$CNorm",
 				$Date, $Author, $Commit
 			)
-		}elsif ($LatestFormat eq 'simple'){
+		}elsif ($LatestFormat eq 'simple') {
 			$LastCom = sprintf(
 				"$ColorHash{'Color_Date'}     %s$CNorm" .
 				"$ColorHash{'Color_Author'}\n     %s$CNorm" .
 				"$ColorHash{'Color_Hash'}\n     %s$CNorm",
 				$Date, $Author, $Commit
 			)
-		}elsif ($LatestFormat eq 'describe'){
+		}elsif ($LatestFormat eq 'describe') {
 			$LastCom = sprintf(
 				"$ColorHash{'Color_Date'}     Date    - '%s'$CNorm" .
 				"$ColorHash{'Color_Author'}\n     Author  - '%s'$CNorm" .
@@ -465,11 +474,10 @@ foreach (GetRepos($Target)){
 
 	chomp(my @Status = $Git->run('status'));
 
-	unless (scalar(@Status) > 0){
-		FErr(1, __LINE__, 'Unable to gather git repository status data.')
-	}elsif ($ShowBranch ne 'false'){
-		FErr(1, __LINE__, "Unable to acquire branch information.")
-			unless -f "$Path/.git/HEAD";
+	unless (scalar(@Status) > 0) {
+		die('Unable to gather git repository status data')
+	} elsif ($ShowBranch ne 'false') {
+		-f "$Path/.git/HEAD" or die("Unable to acquire branch information");
 
 		open(my $FH, '<', "$Path/.git/HEAD");
 		$Branch = (<$FH> =~ '(?:.*/)(.*)')[0];
@@ -484,48 +492,48 @@ foreach (GetRepos($Target)){
 	# provided here. I've just yet to come across such a situation, in order to
 	# correctly parse and write it.
 	my ($ModifiedFound, $UntrackedFound, $AheadFound);
-	foreach (@Status){
+	foreach (@Status) {
 		chomp(my @Arr = split(' ', $_));
 
 		# Some situations need some lines from `@Status`, so the following
 		# flags are used, still in order, for use in the other if statement.
-		if ($Arr[0] eq 'modified:'){
+		if ($Arr[0] eq 'modified:') {
 			$ModifiedFound = 'true'
-		}elsif ("$Arr[0]$Arr[1]" eq 'Untrackedfiles:'){
+		} elsif ("$Arr[0]$Arr[1]" eq 'Untrackedfiles:') {
 			$UntrackedFound = 'true'
-		}elsif ("$Arr[0]$Arr[1]$Arr[3]" eq 'Yourbranchahead'){
+		} elsif ("$Arr[0]$Arr[1]$Arr[3]" eq 'Yourbranchahead') {
 			$AheadFound = 'true'
 		}
 
-		if ("$Arr[0]$Arr[1]$Arr[2]$Arr[3]" eq 'Changestobecommitted:'){
+		if ("$Arr[0]$Arr[1]$Arr[2]$Arr[3]" eq 'Changestobecommitted:') {
 			SetSymDesc('Char_Unstaged', 'has changes to commit.') and last
-		}elsif ($ModifiedFound eq 'true'){
+		} elsif ($ModifiedFound eq 'true') {
 			my @Data = $Git->run('diff', '--shortstat');
 
 			my $FilesTTL;
 			$FilesTTL = (split(' ', $_))[0] and last foreach @Data;
 
 			SetSymDesc('Char_Uncommitted', "has $FilesTTL modified file(s).") and last
-		}elsif ($UntrackedFound eq 'true'){
+		} elsif ($UntrackedFound eq 'true') {
 			my @Data = $Git->run('status', '--short');
 
 			my $FilesTTL = 0;
 			/^?? / and $FilesTTL++ foreach @Data;
 
 			SetSymDesc('Char_New', "has $FilesTTL new file(s).") and last
-		}elsif ($AheadFound eq 'true'){
+		} elsif ($AheadFound eq 'true') {
 			my $Leads = $Arr[scalar(@Arr) - 2];
 
 			SetSymDesc('Char_Leads', "leads by $Leads commit(s).") and last
-		}else{
-			if ("$Arr[0]$Arr[1]$Arr[2]" eq 'nothingtocommit,'){
+		} else {
+			if ("$Arr[0]$Arr[1]$Arr[2]" eq 'nothingtocommit,') {
 				my @CommitsRaw = $Git->run('log', '--format=oneline');
 				my $Commits = scalar(@CommitsRaw);
 
 				SetSymDesc('Char_Clean', "is $Commits commit(s) clean.") and last
-			}elsif ("$Arr[0]$Arr[1]$Arr[2]" eq '(fixconflictsand'){
+			} elsif ("$Arr[0]$Arr[1]$Arr[2]" eq '(fixconflictsand') {
 				SetSymDesc('Char_Fix', 'has conflict(s).') and last
-			}elsif ("$Arr[0]$Arr[1]" eq 'Initialcommit'){
+			} elsif ("$Arr[0]$Arr[1]" eq 'Initialcommit') {
 				SetSymDesc('Char_Initial', 'has no commits, yet.') and last
 			}
 		}
@@ -540,14 +548,14 @@ foreach (GetRepos($Target)){
 
 	my $BaseName = ($ShowPath =~ '(?:.*/)?(.*)')[0];
 
-	if ($ShowBranch eq 'true'){
+	if ($ShowBranch eq 'true') {
 		$Desc = "Branch '$Branch' $Desc";
-	}else{
+	} else {
 		# Fixes starting word being lowercase, when the branch string is disabled.
 		$Desc = ucfirst($Desc);
 	}
 
-	if ($ShowSize eq 'true'){
+	if ($ShowSize eq 'true') {
 		use Number::Bytes::Human 'format_bytes';
 		use File::Find;
 
@@ -559,7 +567,7 @@ foreach (GetRepos($Target)){
 		find(
 			sub {
 				my ($INode, $Blocks) = (stat($_))[1,12];
-				unless ($INodeDone{$INode} == 1){
+				unless ($INodeDone{$INode} == 1) {
 					$Bytes += 512 * $Blocks;
 					$INodeDone{$INode} = 1
 				}
@@ -572,9 +580,9 @@ foreach (GetRepos($Target)){
 		$Desc = sprintf("%s, taking up %s.", $SansPeriod, format_bytes($Bytes))
 	}
 
-	if ($Parseable eq 'true'){
+	if ($Parseable eq 'true') {
 		$Result = sprintf("%s%s~~~%s", $DirName, $BaseName, $Desc)
-	}elsif ($Compact eq 'true'){
+	} elsif ($Compact eq 'true') {
 		$Result = sprintf(
 			"$ColorHash{'Color_Symbol'}  %s  $CNorm" .
 			"$ColorHash{'Color_RepoDir'}%s$CNorm" .
@@ -582,7 +590,7 @@ foreach (GetRepos($Target)){
 			"$ColorHash{'Color_Status'}%s$CNorm",
 			$Sym, $DirName, $BaseName, $Desc
 		)
-	}else{
+	} else {
 		$Result = sprintf(
 			"$ColorHash{'Color_Symbol'}  %s  $CNorm" .
 			"$ColorHash{'Color_RepoDir'}%s$CNorm" .
@@ -602,14 +610,14 @@ foreach (GetRepos($Target)){
 	push(@Results, $Result)
 }
 
-if (scalar(@Results) > 0){
+if (scalar(@Results) > 0) {
 	my $Count;
-	foreach (@Results){
+	foreach (@Results) {
 		print("$_\n");
 		print("\n") unless ++$Count == scalar(@Results)
 			or $Compact eq 'true' or $Parseable eq 'true'
 	}
-}else{
+} else {
 	# If all repositories are clean and OmitClean is enabled, this:
 	print(STDERR "Uh-oh! ...nothing to show.\n") and exit(2)
 }
