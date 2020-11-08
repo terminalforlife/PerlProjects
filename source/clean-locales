@@ -3,91 +3,86 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/clean-locales
 # Started On        - Thu  9 May 21:32:57 BST 2019
-# Last Change       - Sun  8 Nov 00:59:09 GMT 2020
+# Last Change       - Sun  8 Nov 01:19:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-#                             !! WARNING !!
+# Features:
 #
-# As of 2020-11-08, this has been temporarily rendered inert, due to potential
-# to remove locales which ARE wanted. Do not execute any edition of
-# clean-locales prior to a release beyond this date.
+# N/A
 #
-# If you've wound up deleting locales you DID wish to keep, I suggest that you
-# reinstall ALL packages again, in order to regenerate the locales from the
-# many packages. Simply running `locale-gen` will not work, at least it didn't
-# for me on Ubuntu 16.04 and 18.04.
+# Bugs:
 #
-#                             !! WARNING !!
+# N/A
 #
 # Dependencies:
 #
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
-#use strict;
-#use warnings;
-#use autodie;
-#use File::Path 'remove_tree';
-#
-#my $CurVer = "2020-11-01";
-#my $Progrm = 'clean-locales';
-#
-#my $LocDir = '/usr/share/locale';
-#
-#sub Usage {
-#	print(qq{Usage: $Progrm [OPTS]
-#
-#		  -h, --help               - Display this help information.
-#		  -v, --version            - Output the version datestamp.
-#		  -d, --dir [PATH]         - Override default working path.
-#
-#		  Non-English locales in '$LocDir' will be deleted.
-#
-#		  Specifially, files ignored are:
-#
-#		    en_*
-#		    locale.alias
-#	} =~ tr/\t//dr)
-#}
-#
-#while (defined($ARGV[0])) {
-#	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
-#		Usage(); exit(0)
-#	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-#		print("$CurVer\n"); exit(0)
-#	} elsif ($ARGV[0] =~ '^(--dir|-d)$') {
-#		shift(); $LocDir = $ARGV[0]
-#	} else {
-#		die("Incorrect argument(s) specified")
-#	}
-#
-#	shift()
-#}
-#
-#die('Root access is required') unless $< == 0;
-#die("Directory '$LocDir' doesn't exist") unless -d $LocDir;
-#
-#my $ErrCount = 0;
-#
-## $_[0] = The directory or file to process.
-#sub DelIt{
-#	sub ErrUpCount{
-#		print($_[0]);
-#		$ErrCount++
-#	}
-#
-#	if (-d $_[0]){
-#		remove_tree($_[0], {safe => 1}) or ErrUpCount("$_[0]  [!]\n")
-#	}elsif (-f $_[0]){
-#		unlink($_[0]) or ErrUpCount("$_[0]  [!]\n")
-#	}else{
-#		ErrUpCount("$_[0]  [?]\n")
-#	}
-#}
-#
-#foreach (glob("$LocDir/*")) {
-#	DelIt($_) unless /^$LocDir\/(en_.*|locale\.alias)$/
-#}
-#
-#$ErrCount > 0 and exit(1)
+use strict;
+use warnings;
+use autodie;
+use File::Path 'remove_tree';
+
+my $CurVer = "2020-11-08";
+my $Progrm = 'clean-locales';
+
+my $LocDir = '/usr/share/locale';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -d, --dir [PATH]         - Override default working path.
+
+		  Non-English locales in '$LocDir' will be deleted.
+
+		  Specifially, files ignored are:
+
+		    en_*
+		    locale.alias
+	} =~ tr/\t//dr)
+}
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--dir|-d)$') {
+		shift(); $LocDir = $ARGV[0]
+	} else {
+		die("Incorrect argument(s) specified")
+	}
+
+	shift()
+}
+
+die('Root access is required') unless $< == 0;
+die("Directory '$LocDir' doesn't exist") unless -d $LocDir;
+
+my $ErrCount = 0;
+
+# $_[0] = The directory or file to process.
+sub DelIt{
+	sub ErrUpCount{
+		print($_[0]);
+		$ErrCount++
+	}
+
+	if (-d $_[0]){
+		remove_tree($_[0], {safe => 1}) or ErrUpCount("$_[0]  [!]\n")
+	}elsif (-f $_[0]){
+		unlink($_[0]) or ErrUpCount("$_[0]  [!]\n")
+	}else{
+		ErrUpCount("$_[0]  [?]\n")
+	}
+}
+
+foreach (glob("$LocDir/*")) {
+	/^$LocDir\/(en_.*|locale\.alias)$/ or DelIt($_)
+}
+
+$ErrCount > 0 and exit(1)
