@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-db
 # Started On        - Mon  2 Mar 15:21:20 GMT 2020
-# Last Change       - Fri 16 Oct 02:41:39 BST 2020
+# Last Change       - Wed 11 Nov 03:56:08 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,18 +15,16 @@
 # Dependencies:
 #
 #   coreutils (>= 8.25-2)
-#   libtflbp-sh (>= 2019-12-10)
 #   wget (>= 1.17.1-1) | curl (>= 7.47.0-1) | cito (>= 2020-02-29)
 #------------------------------------------------------------------------------
 
-set -e
-. /usr/lib/tflbp-sh/Err
-. /usr/lib/tflbp-sh/ChkDep
-. /usr/lib/tflbp-sh/YNInput
-set +e
-
-CurVer='2020-10-16'
+CurVer='2020-11-11'
 Progrm=${0##*/}
+
+Err(){
+	printf 'ERROR: %s\n' "$2" 1>&2
+	[ $1 -eq 1 ] && exit 1
+}
 
 while [ "$1" ]; do
 	case $1 in
@@ -41,11 +39,24 @@ while [ "$1" ]; do
 	shift
 done
 
-ChkDep id
-
 [ `id -u` -eq 0 ] || Err 1 'Root access is required.'
 
 GHUser='terminalforlife'
+
+YNInput(){
+	printf '%s [Y/N] ' "$1"
+	read Answer
+
+	case $Answer in
+		[Yy]|[Yy][Ee][Ss])
+			return 0 ;;
+		[Nn]|[Nn][Oo])
+			return 1 ;;
+		*)
+			printf 'ERROR: Invalid response -- quitting.\n'
+			exit 1 ;;
+	esac
+}
 
 if YNInput "Update UbuChk's alert database?"; then
 	if ! command -v cito 1> /dev/null 2>&1; then
