@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-
+#cito M:755 O:0 G:0 T:/usr/bin/vignify
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/vignify
 # Started On        - Sun 12 Jan 22:02:23 GMT 2020
-# Last Change       - Wed 15 Jan 16:26:31 GMT 2020
+# Last Change       - Fri 13 Nov 15:06:01 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ use X11::Protocol; # <-- libx11-protocol-perl (>= 0.56-7)
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-01-15";
+my $CurVer = "2020-11-13";
 
 unless (@ARGV == 2 or @ARGV == 3){
 	printf(

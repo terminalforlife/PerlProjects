@@ -27,12 +27,12 @@ d2984de504f4cdb32f00121557724c5d  source/gub/gub
 aa15f3454ffd19b25db874c08777b6af  source/janein
 1e8602e4d82e5c39c8f45e3f050e09b6  source/kernelchk
 03de3fd4bb9082b2eaef733a231f1bf0  source/lam/lam
-b826f9f3351c3515b49e62ecbd8794a6  source/ldmod
+27866191aa30e507a8629a2447276110  source/ldmod
 3ba785def282d6b77545cd0ed47f3516  source/lsbins/completions
 0beb986a5722ee2c1c1e695f686e78f7  source/lsbins/lsbins
 a05bf48ce4cc9e66a95c001efd64c4f9  source/lsbins/lsbins.1.gz
 13e1614125736f2537856a8affba1064  source/mkdeb
-9f7d9be0764269b02852a4cd86054d45  source/notify-upgrade
+c83b240dba1bdbbc8dfc605ef4bd06f1  source/notify-upgrade
 eade09b4413ebc944a87b83e98ed295d  source/previewer
 ee19f67bbecde613d2009f86e01ea10a  source/ptz
 586ad4a6d4aa623ee1bd2902564d636a  source/redshifter
@@ -53,7 +53,7 @@ a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 729e3fbea83f70057ee7b576f98edaa0  source/ubuchk/ubuchk.8.gz
 b16bee3fa489621cb3ef9a2649ee7880  source/ubuchk/ubuchk-db
 e75f5ca268a020f586c452083f41b4b5  source/ubuchk/ubuchk-installer
-209d3c1907da506010a2dffaab6bb27b  source/vignify
+4c0d32601488f97949eba6597e605a88  source/vignify
 8f5d04bed61c9379bb1a7d214b6ac3c7  source/wcdl/completions
 bfb6a6035969cc3edff00016b908582e  source/wcdl/wcdl
 8e33c44f328a043491a27eb6ceb246cc  source/wcdl/wcdl.1.gz

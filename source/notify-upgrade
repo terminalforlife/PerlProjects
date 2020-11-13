@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-
+#cito M:755 O:0 G:0 T:/usr/bin/notify-upgrade
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/notify-upgrade
 # Started On        - Wed 15 Jan 00:45:46 GMT 2020
-# Last Change       - Sun  1 Nov 18:05:43 GMT 2020
+# Last Change       - Fri 13 Nov 15:05:33 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ use autodie;
 no warnings 'uninitialized';
 
 my $Progrm = 'notify-upgrade';
-my $CurVer = "2020-11-01";
+my $CurVer = "2020-11-13";
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS]
