@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/kernelchk
 # Started On        - Sun  5 May 13:15:29 BST 2019
-# Last Change       - Sat  1 Feb 00:44:35 GMT 2020
+# Last Change       - Fri 13 Nov 15:17:39 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,73 +12,63 @@
 # Dependencies:
 #
 #    libgtk2-notify-perl (>= 0.05-4build2)
-#    libtfl-perl (>= 2020-01-03)
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err';
 use Gtk2::Notify -init, 'kernelchk';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-02-01";
+my $CurVer = "2020-11-13";
+my $Progrm = 'kernelchk';
 
 my $ProcFile = '/proc/version';
 
-sub Usage{
-	print(qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
 
-		            Check for a change in the Linux kernel version.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -N, --notify             - Send notification on mis-match.
+		  -q, --quiet              - Hush, if versions don't match.
+		  -s, --set                - Save the current kernel version.
 
-		SYNTAX:     $TFL::PROGNAME [OPTS]
+		  If versions don't match, give an exit status of 2.
 
-		OPTS:       --help|-h|-?            - Display this help information.
-		            --version|-v            - Output the version datestamp.
-		            --quiet|-q              - Hush, if versions don't match.
-		            --set|-s                - Save the current kernel version.
-		            --notify|-N             - Send notification on mis-match.
-
-		NOTE:       If versions don't match, give an exit status of 2.
-
-		            With a simple '-q' flag and then testing this program's
-		            exit status, a mis-match can be very easily handled however
-		            the user sees fit.
-
-		FILE:       ~/.config/$TFL::PROGNAME
-		            $ProcFile
+		  With a simple '-q' flag and then testing this program's exit
+		  status, a mis-match can be very easily handled by the user.
 	} =~ tr/\t//dr)
 }
 
 my ($Notify, $BeQuiet, $Set);
 
-while($ARGV[0]){
-	if($ARGV[0] =~ /^(--help|-h|-\?)$/){
+while ($ARGV[0]) {
+	if ($ARGV[0] =~ /^(--help|-h|-\?)$/) {
 		Usage; exit(0)
-	}elsif($ARGV[0] =~ /^(--version|-v)$/){
+	} elsif($ARGV[0] =~ /^(--version|-v)$/) {
 		print("$CurVer\n"); exit(0)
-	}elsif($ARGV[0] =~ /^(--quiet|-q)$/){
+	} elsif($ARGV[0] =~ /^(--quiet|-q)$/) {
 		$BeQuiet = 'true'
-	}elsif($ARGV[0] =~ /^(--notify|-N)$/){
+	} elsif($ARGV[0] =~ /^(--notify|-N)$/) {
 		$Notify = 'true'
-	}elsif($ARGV[0] =~ /^(--set|-s)$/){
+	} elsif($ARGV[0] =~ /^(--set|-s)$/) {
 		$Set = 'true'
-	}else{
-		Err(1, "Incorrect argument(s) specified")
+	} else {
+		die("Incorrect argument(s) specified")
 	}
 
 	shift(@ARGV)
 }
 
-sub CheckFile{
-	Err(1, "File '$_[0]' not found.") unless -f $_[0];
-	Err(1, "Read access to '$_[0]' denied.") unless -r $_[0];
+sub CheckFile {
+	-f $_[0] or die("File '$_[0]' not found");
+	-r $_[0] or die("Read access to '$_[0]' denied")
 }
 
-my $MainDir = "$ENV{HOME}/.config/$TFL::PROGNAME";
-mkdir($MainDir) unless -d  $MainDir;
+my $MainDir = "$ENV{HOME}/.config/$Progrm";
+-d $MainDir or mkdir($MainDir);
 
 my $SavedFile = "$MainDir/saved";
 
@@ -88,7 +78,7 @@ open(my $FH, '<', $ProcFile);
 my $Current = @{[split(' ', <$FH>)]}[2];
 close($FH);
 
-if($Set eq 'true'){
+if ($Set eq 'true') {
 	open(my $FH, '>', $SavedFile);
 	print($FH $Current);
 	close($FH);
