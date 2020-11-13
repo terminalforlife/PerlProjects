@@ -3,14 +3,23 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/TFL.pm
 # Started On        - Mon  6 May 19:29:05 BST 2019
-# Last Change       - Sat 29 Feb 19:36:23 GMT 2020
+# Last Change       - Fri 13 Nov 15:25:03 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
+# DEPRECATION NOTICE:
+#
+#   This module is gradually being phased out; deprecated, in favor of just
+#   adding the subroutines or code within to the programs themselves; it takes
+#   up more space and isn't quite as elegant, but it's a damn-sight easier for
+#   the end user! Even I'm utterly sick of having to install libtfl-perl.
+#
+#   The same applies to libtflbp-sh.
+#
 # Dependencies:
 #
 #   perl (>= 5.22.1-9)
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 package TFL;
 
