@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/somacli
 # Started On        - Fri  6 Nov 23:18:28 GMT 2020
-# Last Change       - Sat  7 Nov 00:29:27 GMT 2020
+# Last Change       - Fri 13 Nov 15:31:44 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ use HTTP::Tiny;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-07';
+my $CurVer = '2020-11-13';
 my $Progrm = 'somacli';
 my $ProgrmFancy = 'Soma CLI';
 
@@ -62,6 +62,10 @@ while (defined($ARGV[0])){
 }
 
 scalar(@ARGV) > 1 and die("Too many arguments provided");
+
+unless ($ShowInfo eq 'True') {
+	scalar(@ARGV) == 0 and die("Station not provided")
+}
 
 my $PlayURL = 'https://somafm.com';
 
