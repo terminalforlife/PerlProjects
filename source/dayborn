@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dayborn
 # Started On        - Mon 10 Feb 23:49:15 GMT 2020
-# Last Change       - Tue 11 Feb 02:17:16 GMT 2020
+# Last Change       - Fri 13 Nov 15:45:13 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,17 +23,16 @@
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err';
 use Date::Format 'time2str';
-use File::Basename 'basename';
 use Time::Piece;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-02-11';
+my $CurVer = '2020-11-13';
+my $Progrm = 'dayborn';
 
 sub Usage{
-	print(qq{Usage: $TFL::PROGNAME [OPTS] [FILE]
+	print(qq{Usage: $Progrm [OPTS] [FILE]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -46,7 +45,7 @@ while (defined($ARGV[0])){
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
 	}elsif ($ARGV[0] =~ '^-'){
-		Err(1, "Incorrect option(s) specified.")
+		die("Incorrect option(s) specified")
 	}else{
 		last
 	}
@@ -54,18 +53,18 @@ while (defined($ARGV[0])){
 	shift()
 }
 
-Err(1, "File name required -- see: $TFL::PROGNAME -h") unless @ARGV == 1;
-Err(1, "Only one file at a time is valid.") if @ARGV > 1;
+scalar(@ARGV) == 1 or die("File name required");
+scalar(@ARGV) > 1 and die("Only one file at a time is valid");
 
-Err(1, "File '$ARGV[0]' not found.") unless -f $ARGV[0];
-Err(1, "File '$ARGV[0]' unreadable.") unless -r $ARGV[0];
-Err(1, "File '$ARGV[0]' is binary.") if -B $ARGV[0];
+-f $ARGV[0] or die("File '$ARGV[0]' not found");
+-r $ARGV[0] or die("File '$ARGV[0]' unreadable");
+-B $ARGV[0] and die("File '$ARGV[0]' is binary");
 
 open(my $FH, '<', $ARGV[0]);
 
 my ($Start, $Now);
 while (<$FH>){
-	next unless /^# (Started|Last) /;
+	/^# (Started|Last) / or next;
 
 	chomp(my @Arr = split(' '));
 
@@ -73,22 +72,26 @@ while (<$FH>){
 	#
 	#   '# Started On        - Mon 10 Feb 23:49:15 GMT 2020'
 	#
-	$Start = Time::Piece->strptime(
-		join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
-	)->epoch() if $Arr[1] eq 'Started';
+	if ($Arr[1] eq 'Started') {
+		$Start = Time::Piece->strptime(
+			join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+		)->epoch()
+	}
 
 	# The following format (sans quotes) is expected:
 	#
 	#   '# Last Change       - Tue 11 Feb 01:00:34 GMT 2020'
 	#
-	$Now = Time::Piece->strptime(
-		join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
-	)->epoch() if $Arr[1] eq 'Last'
+	if ($Arr[1] eq 'Last') {
+		$Now = Time::Piece->strptime(
+			join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+		)->epoch()
+	}
 }
 
 close($FH);
 
-my $Project = basename($ARGV[0]);
+my $Project = ($ARGV[0] =~ m{(?:.*/)?([^/].*)})[0];
 my $DeltaDay = ($Now - $Start) / 60 / 60 / 24;
 
 printf("Project '%s' was born %.2f day's ago.\n", $Project, $DeltaDay)
