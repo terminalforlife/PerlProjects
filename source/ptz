@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ptz
 # Started On        - Sat 18 May 21:21:35 BST 2019
-# Last Change       - Mon  2 Nov 16:34:44 GMT 2020
+# Last Change       - Fri 13 Nov 15:39:30 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ use warnings;
 use autodie;
 use Time::Piece;
 
-my $CurVer = "2020-11-02";
+my $CurVer = "2020-11-13";
 my $Progrm = 'ptz';
 
 sub Usage {
@@ -56,6 +56,8 @@ while (defined($ARGV[0])) {
 
 	shift(@ARGV)
 }
+
+scalar(@ARGV) == 0 and die("Target date of YYYY-MM-DD is required");
 
 my $Target = shift();
 
