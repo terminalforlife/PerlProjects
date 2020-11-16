@@ -3,7 +3,7 @@
 #--------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/getip
 # Started On        - Wed  8 May 14:35:49 BST 2019
-# Last Change       - Sun  1 Nov 18:51:12 GMT 2020
+# Last Change       - Mon 16 Nov 16:37:18 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #--------------------------------------------------------------------------
@@ -20,10 +20,8 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-01";
+my $CurVer = "2020-11-16";
 my $Progrm = 'getip';
-
-my $Domain = 'https://whatismyipaddress.com';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS]
@@ -65,30 +63,26 @@ $IntExtDetected == 2 and die("Either '--internal|-i' or '--external|-e'");
 if ($Internal eq 'true') {
 	use Net::Address::IP::Local;
 
-	print($IntStr . Net::Address::IP::Local->public() . "\n")
+	my $Data = Net::Address::IP::Local->public();
+	if ($Data =~ '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]') {
+		print($IntStr . $Data . "\n")
+	} else {
+		die('Invalid internal IP address detected')
+	}
 }
-
 if ($External eq 'true') {
-	use LWP::UserAgent;
+	use HTTP::Tiny;
 
-	my $UA = LWP::UserAgent->new(
-		'agent' => 'Mozilla/5.0',
-		'max_redirect' => 1,
-		'protocols_allowed' => ['http', 'https'],
-		'timeout' => 3
-	);
-
-	my $Data = $UA->get($Domain);
-
-	$Data->is_success() == 0 or die('Failed to acquire external IP address');
-
-	foreach (split("\n", $Data->decoded_content())) {
-		foreach (split(' ')) {
-			/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]/ or next;
-
-			print($_ =~ s/(.*)<\/span>$/$ExtStr$1/r . "\n");
-
-			exit(0)
+	my $Tiny = HTTP::Tiny->new();
+	my $Response = $Tiny->get('https://whatismyip.akamai.com');
+	if ($Response->{'success'}) {
+		my $Data = $Response->{'content'};
+		if ($Data =~ '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]') {
+			print($IntStr . $Response->{'content'} . "\n")
+		} else {
+			die('Invalid external IP address detected')
 		}
+	} else {
+		die('Unable to determine external IP address')
 	}
 }
