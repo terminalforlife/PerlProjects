@@ -3,7 +3,7 @@
 #--------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/getip
 # Started On        - Wed  8 May 14:35:49 BST 2019
-# Last Change       - Mon 16 Nov 16:37:18 GMT 2020
+# Last Change       - Mon 16 Nov 16:39:41 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ if ($External eq 'true') {
 	if ($Response->{'success'}) {
 		my $Data = $Response->{'content'};
 		if ($Data =~ '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]') {
-			print($IntStr . $Response->{'content'} . "\n")
+			print($ExtStr . $Response->{'content'} . "\n")
 		} else {
 			die('Invalid external IP address detected')
 		}
