@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Sat  7 Nov 23:58:00 GMT 2020
+# Last Change       - Mon 16 Nov 21:57:52 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-07";
+my $CurVer = "2020-11-16";
 my $Progrm = 'gitsap';
 my $ProgrmFancy = 'GitSAP';
 
@@ -422,6 +422,9 @@ foreach (GetRepos($Target)) {
 	}
 
 	my $Git = Git::Repository->new('work_tree' => $Path);
+
+	# Temporary fix for GitSAP dying if just one empty repository is found.
+	$Git->run('status') =~ 'No commits yet' and next;
 
 	if ($ShowLatest eq 'true') {
 		my (@Arr, $Date, $Author, $Commit);
