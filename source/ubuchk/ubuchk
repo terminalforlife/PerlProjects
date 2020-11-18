@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  2 Nov 00:53:13 GMT 2020
+# Last Change       - Wed 18 Nov 18:44:12 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,6 +17,11 @@
 #      This tweak is apparently accomplished by adding a chmod(1) command to
 #      that effect in `/etc/rc.local`, or similar file, to ensure it works at
 #      boot-time.
+#
+#TODO: Use: '/sys/devices/system/cpu/cpu[0-3]/cpufreq/scaling_governor'
+#
+#      Check for 'performance' unless on a laptop, in which case look for
+#      'powersave'.
 #
 #TODO: Add file permissions and ownership section (not just directories).
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
@@ -102,7 +107,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-02';
+my $CurVer = '2020-11-18';
 my $Progrm = 'ubuchk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';

@@ -1,5 +1,3 @@
-6b7a4a2c9f0260d4eda49a79bd9d184b  devutils/gitsap.test
-bfa7df3f9dfa819b3de2824a1b5eb3f2  devutils/ubuchk.test
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
 044aa9ff39b799d2cdf3b3d040af33cc  source/apt-undo-install
 0818fb2fb4348d6a0fe1931d5498f6df  source/battery-monitor
@@ -18,7 +16,7 @@ fcfe8dd3c2445d02b21cb3411544e339  source/dominator/completions
 10dd72459ee323f033c738e4ff9f80e6  source/get-fma
 2a0b6291f278c32e97cc5eede188f218  source/getip
 e6858c18ef7499b24b2fb17e08f52b4f  source/gitbrov
-6e6cead3399ee6dbc2332dab036f9397  source/gitsap
+1ef854004d698798e8b988ea1d456491  source/gitsap
 43140f34ca735bc323df1e85b3d8413a  source/gpreviewer/gpreviewer
 38236af5dd0cf462c380f0ac5c9e3e2f  source/gpreviewer/gpreviewer.desktop
 6f46516ed748fd7d3e430eea3bc3a978  source/gub/completions
@@ -27,7 +25,7 @@ d2984de504f4cdb32f00121557724c5d  source/gub/gub
 aa15f3454ffd19b25db874c08777b6af  source/janein
 298d0e9be1b490138b08b165be2a4c29  source/kernelchk
 03de3fd4bb9082b2eaef733a231f1bf0  source/lam/lam
-27866191aa30e507a8629a2447276110  source/ldmod
+b3f7eec14bcd1d481c84a98c824f4b47  source/ldmod
 3ba785def282d6b77545cd0ed47f3516  source/lsbins/completions
 0beb986a5722ee2c1c1e695f686e78f7  source/lsbins/lsbins
 a05bf48ce4cc9e66a95c001efd64c4f9  source/lsbins/lsbins.1.gz
@@ -49,7 +47,7 @@ a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 7153d4edcf1dfa13fc8f917f9ab69d5f  source/ubuchk/reorder.sh
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
 642b9f0f1e4f019005e0b4aaeffc90c2  source/ubuchk/screenshots/Screenshot_2020-03-10_00:59:02.jpg
-2314e31f8f6b4d6664d368c22a720ade  source/ubuchk/ubuchk
+3f07199eb94a94a1fa53c1c18e97111e  source/ubuchk/ubuchk
 729e3fbea83f70057ee7b576f98edaa0  source/ubuchk/ubuchk.8.gz
 b16bee3fa489621cb3ef9a2649ee7880  source/ubuchk/ubuchk-db
 e75f5ca268a020f586c452083f41b4b5  source/ubuchk/ubuchk-installer
