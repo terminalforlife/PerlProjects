@@ -1,77 +1,66 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/previewer
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/previewer
 # Started On        - Mon 22 Apr 01:30:36 BST 2019
-# Last Change       - Wed 15 Jan 16:35:03 GMT 2020
+# Last Change       - Thu 19 Nov 03:40:57 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
-# Briefly tested and noted to also actually work in Windows 7 Professional.
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   libterm-readkey-perl (>= 2.33-1build1)
+#   libtext-wrapi18n-perl (>= 0.06-7.1)
+#   libwww-perl (>= 6.15-1)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
 
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
-use TFL 'FErr'; # <-- libtfl-perl (>= 2020-01-03)
-use Text::Wrap; # <-- libtext-wrapi18n-perl (>= 0.06-7.1)
-use LWP::UserAgent; # <-- libwww-perl (>= 6.15-1)
-use Term::ReadKey 'GetTerminalSize'; # <-- libterm-readkey-perl (>= 2.33-1build1)
+use Text::Wrap;
+use LWP::UserAgent;
+use Term::ReadKey 'GetTerminalSize';
 
-my $CurVer = "2020-01-15";
+my $CurVer = "2020-11-19";
+my $Progrm = 'previewer';
 
-my $DBSite = 'https://community.linuxmint.com/data/reviews.list';
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [PACKAGE] [RATING]
 
-sub Usage{
-	my $Help = qq{	            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  --db-file [PATH]         - Instead, use this database file.
+		  --db-update              - Download and update the database.
+		  --no-reviews             - Omit the review text from the output.
+		  --raw-output             - Display as it is in the database.
+		  -S, --summary            - Conclude the reviews with a summary.
+		  -a, --show-all           - Show all reviews, regardless of rating.
+		  -b, --boring             - Omit these ASCII psuedo-borders.
+		  -u, --user [NAME]        - Only show review(s) by NAME user.
 
-		            Perl program to pretty-print Linux Mint package reviews.
+		  Although $Progrm uses Linux Mint's review and rating database, it
+		  can still prove useful in Debian- and Ubuntu-based installations.
 
-		SYNTAX:     $TFL::PROGNAME [OPTS] [PACKAGE] [RATING]
+		  If you specifiy your own database file, it must adhere to the same
+		  formatting as the official one, lest $Progrm wind up a buggy mess.
 
-		OPTS:       --help|-h|-?            - Displays this help information.
-		            --version|-v            - Output only the version datestamp.
-		            --summary|-S            - Conclude the reviews with a summary.
-		            --user|-u NAME          - Only show review(s) by NAME user.
-		            --show-all|-a           - Show all reviews, regardless of rating.
-		            --boring|-b             - Omit these ASCII psuedo-borders.
-		            --no-reviews            - Omit the review text from the output.
-		            --raw-output            - Display as it is in the database.
-		            --db-update             - Download and update the database.
-		            --db-file PATH          - Instead, use this database file.
+		  For example:
 
-		NOTE:       Although $TFL::PROGNAME uses Linux Mint's review and rating database, it can
-		            still prove useful in Debian, Ubuntu, and their other derivatives, -
-		            albeit with inaccuracies.
+		    PKG~~~ID~~~USER~~~RATING~~~REVIEW
 
-		            If you specifiy your own database file, it MUST adhere to the same
-		            formatting as the official one, lest $TFL::PROGNAME wind up a buggy mess.
+		  Each field must be separated by three tildes, without any quotes.
 
-		            For example:
-
-		              PKG~~~ID~~~USER~~~RATING~~~REVIEW
-
-		            Each field must be separated by three tildes, without any quotes.
-
-		            An exit status of 2 will be given, if no reviews are found.
-
-		            Previewer is a Perl fork of and vast improvement over the original -
-		            shell program, 'reviewer', written also by 'terminalforlife'.
-
-		EXAMPLE:    $TFL::PROGNAME -b -a --summary firefox
-		            $TFL::PROGNAME --no-reviews -S vim 2
-		            $TFL::PROGNAME --user 'Velimor' mintstick 4
-
-		FILE:       Unless told otherwise, the database is stored here:
-
-		              \$HOME/.config/reviewer.db
-
-		SITE:       $DBSite
-	};
-
-	print($Help =~ tr/\t//dr)
+		  An exit status of 2 will be given, if no reviews are found.
+	} =~ tr/\t//dr)
 }
 
 my $IfUser = '';
@@ -84,72 +73,72 @@ my $NoReviews = 0;
 my $DoRaw = 0;
 my $P1 = '+'; my $P2 = '|';
 my $Database = "$ENV{HOME}/.config/reviewer.db";
+my $DBSite = 'https://community.linuxmint.com/data/reviews.list';
 
-while (scalar(@ARGV) > 0){
-	my $Arg = $ARGV[0];
-
-	if ($Arg =~ '^(--help|-h|-\?)$'){
-		Usage; exit(0)
-	}elsif ($Arg =~ '^(--version|-v)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}elsif ($Arg =~ '^(--summary|-S)$'){
+	} elsif ($ARGV[0] =~ '^(--summary|-S)$') {
 		$ShowStats = 1
-	}elsif ($Arg =~ '^(--show-all|-a)$'){
+	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
 		$ShowAll = 1
-	}elsif ($Arg =~ '^--db-update$'){
+	} elsif ($ARGV[0] =~ '^--db-update$') {
 		$UpdateDB = 1
-	}elsif ($Arg =~ '^--db-file$'){
+	} elsif ($ARGV[0] =~ '^--db-file$') {
 		shift(@ARGV);
 
-		FErr(1, __LINE__, "No database file specified.") unless $Arg;
+		die('No database file specified') unless $ARGV[0];
 
 		$Database = $ARGV[0]
-	}elsif ($Arg =~ '^(--user|-u)$'){
+	} elsif ($ARGV[0] =~ '^(--user|-u)$') {
 		shift(@ARGV);
 
-		FErr(1, __LINE__, "No user specified.") unless $Arg;
+		die('No user specified') unless $ARGV[0];
 
 		$IfUser = $ARGV[0]
-	}elsif ($Arg =~ '^(--boring|-b)$'){
+	} elsif ($ARGV[0] =~ '^(--boring|-b)$') {
 		$BeBoring = 1
-	}elsif ($Arg =~ '^--no-reviews$'){
+	} elsif ($ARGV[0] =~ '^--no-reviews$') {
 		$NoReviews = 1
-	}elsif ($Arg =~ '^--raw-output$'){
+	} elsif ($ARGV[0] =~ '^--raw-output$') {
 		$DoRaw = 1
-	}elsif ($Arg =~ '^-.*'){
-		FErr(1, __LINE__, "Incorrect argument(s) specified.")
-	}else{
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect option(s) specified")
+	} else {
 		last
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
 $Argless = 1 unless defined($ARGV[0]) and defined($ARGV[1]);
 
-unless ($UpdateDB or $IfUser or ($ShowAll and $Argless)){
-	if ($ShowAll and not length($ARGV[0]) == 0){
-		FErr(1, __LINE__, "Missing package name.")
-	}
+unless ($UpdateDB or $IfUser or ($ShowAll and $Argless)) {
+	($ShowAll and length($ARGV[0]) != 0) and die('Missing package name');
 
-	if ($ARGV[1]){
-		if ($ShowAll and $ARGV[1] !~ /^[1-5]{1}$/){
-			FErr(1, __LINE__, "Invalid rating provided.")
-		}elsif ($ShowAll){
-			FErr(1, __LINE__, "Told to show all, but provided a rating.")
+	if ($ARGV[1]) {
+		if ($ShowAll and $ARGV[1] !~ /^[1-5]{1}$/) {
+			die('Invalid rating provided')
+		} elsif ($ShowAll) {
+			die('Told to show all, but provided a rating')
 		}
-	}else{
-		unless ($ShowAll){
-			FErr(1, __LINE__, "A rating is by default required.")
-		}
+	} else {
+		$ShowAll or die('A rating is by default required')
 	}
 }
 
-if ($UpdateDB){
+if ($UpdateDB) {
 	open(my $FH, '>', $Database);
 
-	my $UA = LWP::UserAgent->new();
-	$UA->agent('Mozilla/5.0');
+	my $UA = LWP::UserAgent->new(
+		'agent' => 'Mozilla/5.0',
+		'protocols_allowed' => ['http', 'https'],
+		'max_redirects' => 1,
+		'timeout' => 10
+	);
+
 	my $BufferFER = $UA->get($DBSite)->decoded_content;
 	print($FH $BufferFER);
 
@@ -158,13 +147,12 @@ if ($UpdateDB){
 	exit(0)
 }
 
-$Text::Wrap::columns = @{[GetTerminalSize]}[0];
+$Text::Wrap::columns = (GetTerminalSize)[0];
 
-FErr(1, __LINE__, "Database missing -- have you used '--db-update' yet?")
-	unless -f $Database;
+-f $Database or die('Database missing');
 
 open(my $FH, '<', $Database);
-my @FILE_DATA = <$FH>;
+my @FileData = <$FH>;
 close($FH);
 
 my %Ratings; # <-- Hash of each rating, for later incrementing, set below.
@@ -172,15 +160,17 @@ $Ratings{$_} = 0 foreach 1..5;
 my $TotalCount = 0; # <-- TTL comments by user, or for a package.
 my $Count = 0; # <-- TTL comments displayed by user, or for a package.
 
-sub IncVars{ # <-- $Rate is passed here.
-	foreach(1..5){$Ratings{$_}++ if $_[0] == $_}
+sub IncVars { # <-- $Rate is passed here.
+	foreach (1..5) {
+		$Ratings{$_}++ if $_[0] == $_
+	}
 }
 
-sub Format{ # <-- Arguments are typically $Said, $Rate, then $User.
-	if ($DoRaw){
-		unless ($NoReviews){
+sub Format { # <-- Arguments are typically $Said, $Rate, then $User.
+	if ($DoRaw) {
+		unless ($NoReviews) {
 			print($_);
-		}else{
+		} else {
 			my @TEMP = split('~~~', $_);
 			print("$TEMP[0]~~~$TEMP[1]~~~$TEMP[2]~~~$TEMP[3]~~~\n");
 		}
@@ -188,9 +178,9 @@ sub Format{ # <-- Arguments are typically $Said, $Rate, then $User.
 		return(0)
 	}
 
-	if ($NoReviews){
+	if ($NoReviews) {
 		printf("%d/5 ('%s')\n", $_[1], $_[2])
-	}else{
+	} else {
 		printf(
 			"%d/5 ('%s')\n $P1\n%s $P1\n",
 			$_[1], $_[2], wrap(" $P2 ", " $P2 ", $_[0])
@@ -198,56 +188,59 @@ sub Format{ # <-- Arguments are typically $Said, $Rate, then $User.
 	}
 }
 
-if ($BeBoring){$P1 = ' '; $P2 = ' '}
+if ($BeBoring) {
+	$P1 = ' ';
+	$P2 = ' '
+}
 
 my $PackOld;
-foreach (@FILE_DATA){
-	my @CurLine = split("~~~", $_);
+foreach (@FileData) {
+	my @CurLine = split('~~~');
 
 	my $Pack = $CurLine[0];
 	my $Rate = $CurLine[3];
 	my $Said = $CurLine[4];
 	my $User = $CurLine[2];
 
-	if (length($IfUser) > 0){ # <-- Go by users.
-		if (not $ARGV[0]){
-			if ($IfUser eq $User){
+	if (length($IfUser) > 0) { # <-- Go by users.
+		if (not $ARGV[0]) {
+			if ($IfUser eq $User) {
 				$Count++;
 				$TotalCount++;
 				IncVars($Rate);
 				print("\n > '$Pack'\n\n");
 				Format($Said, $Rate, $User);
 			}
-		}elsif ($Pack eq $ARGV[0]){
-			if ($IfUser eq $User){
+		} elsif ($Pack eq $ARGV[0]) {
+			if ($IfUser eq $User) {
 				$Count++;
 				$TotalCount++;
 				IncVars($Rate);
 				Format($Said, $Rate, $User);
 			}
 		}
-	}elsif ($ARGV[0]){ # <-- Go by packages.
-		if ($Pack eq $ARGV[0]){
+	} elsif ($ARGV[0]) { # <-- Go by packages.
+		if ($Pack eq $ARGV[0]) {
 			$TotalCount++;
 			IncVars($Rate);
 
-			if ($ShowAll){
+			if ($ShowAll) {
 				$Count++;
 				Format($Said, $Rate, $User)
-			}elsif ($ARGV[1] and $Rate == $ARGV[1]){
+			} elsif ($ARGV[1] and $Rate == $ARGV[1]) {
 				$Count++;
 				Format($Said, $Rate, $User)
 			}
 		}
-	}elsif ($ShowAll and $Argless){ # <-- Just show all reviews.
+	} elsif ($ShowAll and $Argless) { # <-- Just show all reviews.
 		$Count++;
 		$TotalCount++;
 		IncVars($Rate);
 
 		# Ensure print isn't unnecessarily repeated.
-		if ($PackOld and $PackOld ne $Pack){
+		if ($PackOld and $PackOld ne $Pack) {
 			print("\n > '$Pack'\n\n");
-		}elsif (not $PackOld){
+		} elsif (not $PackOld) {
 			print("\n > '$Pack'\n\n");
 		}
 
@@ -258,13 +251,13 @@ foreach (@FILE_DATA){
 	}
 }
 
-if ($Count == 0){
+if ($Count == 0) {
 	print(STDERR "Uh-oh! ...no reviews were found.\n");
 	exit(2)
 }
 
-if ($ShowStats){
-	sub Display{
+if ($ShowStats) {
+	sub Display {
 		my $Buffer = qq{
 			 $_[1]$_[2]
 			 $_[0] Reviews:     $Count/$TotalCount
