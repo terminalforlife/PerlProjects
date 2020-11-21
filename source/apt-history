@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sat 21 Nov 22:58:09 GMT 2020
+# Last Change       - Sat 21 Nov 23:32:44 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -40,8 +40,10 @@ sub Usage {
 		  -C, --no-color           - Disable ANSII color escape sequences.
 		  -D, --display [STYLE]    - Display packages in STYLE. See below.
 		  -H, --history [FILE]     - Use an alternative 'history.log' file.
+		  -U, --user-id [UID]      - Filter the logged results by UID.
 		  -c, --command            - Also show the actual command executed.
 		  -r, --reverse            - Display history in reverse; oldest first.
+		  -u, --user [USER]        - Filter the logged results by USER.
 
 		  Available package listing STYLEs are 'OneLine' and 'Wrapped'.
 		  Available TYPEs are 'Install', 'Purge', 'Remove', and 'Upgrade'.
@@ -55,7 +57,8 @@ my $HistFile = '/var/log/apt/history.log';
 my (
 	%History, $Date, $Time, $Command, $ReqByUser, $ReqByUID, $Action,
 	$Packages, $DoReverse, @SortedKeys, $ActionString, $DoCommand, $NoColor,
-	$C_Arch, $C_Reset, $C_FancyDateTime, $C_Action, $OnlyAction
+	$C_Arch, $C_Reset, $C_FancyDateTime, $C_Action, $OnlyAction, $FilterUser,
+	$FilterUID
 );
 
 while (defined($ARGV[0])) {
@@ -92,6 +95,24 @@ while (defined($ARGV[0])) {
 			die("Invalid execution action TYPE provided")
 		} else {
 			$OnlyAction = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^(--user|-u)$') {
+		shift();
+
+		if (length($ARGV[0]) == 0) {
+			die("No USER specified for filtering")
+		} else {
+			$FilterUser = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^(--user-id|-U)$') {
+		shift();
+
+		if (length($ARGV[0]) == 0) {
+			die("No UID specified for filtering")
+		} elsif ($ARGV[0] !~ '^[0-9]*$') {
+			die("Invalid UID provided")
+		} else {
+			$FilterUID = $ARGV[0]
 		}
 	} elsif ($ARGV[0] =~ '^(--reverse|-r)$') {
 		$DoReverse = 'True'
@@ -168,6 +189,12 @@ foreach my $Key (@SortedKeys) {
 	my $FancyDateTime = Time::Piece->strptime(
 		"$History{$Key}{'Date'} $History{$Key}{'Time'}", '%Y-%m-%d %X'
 	);
+
+	if (length($FilterUser) > 0) {
+		$FilterUser eq $History{$Key}{'ReqByUser'} or next
+	} elsif (length($FilterUID) > 0) {
+		$FilterUID eq $History{$Key}{'ReqByUID'} or next
+	}
 
 	if (length($OnlyAction) > 0) {
 		$OnlyAction eq $History{$Key}{'Action'} or next
