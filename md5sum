@@ -1,4 +1,5 @@
 6f0089eedba087e8a4eba6c9298e19ba  source/apt-download-deps
+27edbf1749eeff947783a35050d56445  source/apt-history
 044aa9ff39b799d2cdf3b3d040af33cc  source/apt-undo-install
 0818fb2fb4348d6a0fe1931d5498f6df  source/battery-monitor
 51a0970e20f6d9f04185f869ff273a23  source/clean-locales
@@ -12,7 +13,7 @@ d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 8ea2464493d8272a8b66227144e1c017  source/depends
 fcfe8dd3c2445d02b21cb3411544e339  source/dominator/completions
 6e1c43388a513d60b621701e820b6783  source/dominator/dominator
-2283fa9424dc1b1052d6ed4a2e88ac46  source/fix-ff-gtk
+d2141c947d4fb6fd4941fe334cc17b10  source/fix-ff-gtk
 10dd72459ee323f033c738e4ff9f80e6  source/get-fma
 2a0b6291f278c32e97cc5eede188f218  source/getip
 e6858c18ef7499b24b2fb17e08f52b4f  source/gitbrov
