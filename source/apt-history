@@ -1,0 +1,220 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/apt-history
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/apt-history
+# Started On        - Sat 21 Nov 16:11:20 GMT 2020
+# Last Change       - Sat 21 Nov 22:58:09 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   libterm-readkey-perl (>= 2.33-1build1)
+#   libtext-wrapi18n-perl (>= 0.06-7.1)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2020-11-21';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -A, --action [TYPE]      - Filter action by TYPE. See below.
+		  -C, --no-color           - Disable ANSII color escape sequences.
+		  -D, --display [STYLE]    - Display packages in STYLE. See below.
+		  -H, --history [FILE]     - Use an alternative 'history.log' file.
+		  -c, --command            - Also show the actual command executed.
+		  -r, --reverse            - Display history in reverse; oldest first.
+
+		  Available package listing STYLEs are 'OneLine' and 'Wrapped'.
+		  Available TYPEs are 'Install', 'Purge', 'Remove', and 'Upgrade'.
+	} =~ tr/\t//dr)
+}
+
+my $Pad = ' ' x 4;
+my $PKGStyle = 'OneLine';
+my $HistFile = '/var/log/apt/history.log';
+
+my (
+	%History, $Date, $Time, $Command, $ReqByUser, $ReqByUID, $Action,
+	$Packages, $DoReverse, @SortedKeys, $ActionString, $DoCommand, $NoColor,
+	$C_Arch, $C_Reset, $C_FancyDateTime, $C_Action, $OnlyAction
+);
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--history|-H)$') {
+		shift();
+
+		if (length($ARGV[0]) == 0) {
+			die("Alternative 'history.log' FILE not provided")
+		} elsif (not -f $ARGV[0]) {
+			die("File '$ARGV[0]' not found")
+		} else {
+			$HistFile = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^(--display|-D)$') {
+		shift();
+
+		if (length($ARGV[0]) == 0) {
+			die("Package display STYLE not provided")
+		} elsif ($ARGV[0] !~ '^(OneLine|Wrapped)$') {
+			die("Invalid package display STYLE provided")
+		} else {
+			$PKGStyle = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^(--action|-A)$') {
+		shift();
+
+		if (length($ARGV[0]) == 0) {
+			die("No execution action TYPE provided")
+		} elsif ($ARGV[0] !~ '^(Install|Remove|Upgrade|Purge)$') {
+			die("Invalid execution action TYPE provided")
+		} else {
+			$OnlyAction = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^(--reverse|-r)$') {
+		$DoReverse = 'True'
+	} elsif ($ARGV[0] =~ '^(--command|-c)$') {
+		$DoCommand = 'True'
+	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+		$NoColor = 'True'
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect option(s) specified")
+	} else {
+		last
+	}
+
+	shift()
+}
+
+#---------------------------------------------------Gather Data & Populate Hash
+
+-r $HistFile or die("File '$HistFile' unreadable");
+
+open(my $FH, '<', $HistFile);
+
+while (<$FH>) {
+	chomp();
+
+	if (/^Start-Date:/) {
+		($Date, $Time) = (split(' '))[1..2]
+	} elsif (/^Commandline:/) {
+		$Command = (m{(?:$&)(.*)})[0]
+	} elsif (/^Requested-By:/) {
+		my $ReqBy = (m{(?:$&)(.*)})[0];
+		($ReqByUser, $ReqByUID) = (split(' ', $ReqBy))[0..1];
+	} elsif (/^(Install|Purge|Remove|Upgrade):/) {
+		($Action, $Packages) = (m{(^$&)(.*)})[0..1];
+
+		# We're finished gathering data, so populate hash, now.
+		$History{"${Date}_$Time"} = {
+			'Date' => $Date,
+			'Time' => $Time,
+			'Command' => $Command,
+			'ReqByUser' => $ReqByUser,
+			'ReqByUID' => $ReqByUID =~ tr/()//dr,
+			'Action' => $Action =~ tr/://dr,
+			'Packages' => $Packages
+		}
+	}
+}
+
+close($FH);
+
+#-------------------------------------------------------------Use Gathered Data
+
+use Term::ANSIColor;
+use Term::ReadKey 'GetTerminalSize';
+use Text::Wrap;
+use Time::Piece;
+
+unless ($NoColor eq 'True') {
+	$C_Action = color('bright_yellow');
+	$C_Arch = color('bright_black');
+	$C_FancyDateTime = color('bright_green');
+	$C_Reset = color('reset')
+}
+
+if ($DoReverse eq 'True') {
+	@SortedKeys = sort({$a cmp $b} keys(%History));
+} else {
+	@SortedKeys = sort({$b cmp $a} keys(%History));
+}
+
+$Text::Wrap::columns = (GetTerminalSize())[0];
+
+foreach my $Key (@SortedKeys) {
+	my $FancyDateTime = Time::Piece->strptime(
+		"$History{$Key}{'Date'} $History{$Key}{'Time'}", '%Y-%m-%d %X'
+	);
+
+	if (length($OnlyAction) > 0) {
+		$OnlyAction eq $History{$Key}{'Action'} or next
+	}
+
+	print(
+		"$C_FancyDateTime$FancyDateTime$C_Reset\n\n"
+	);
+
+	# For pretty-printing the correct verb.
+	if ($History{$Key}{'Action'} eq 'Install') {
+		$ActionString = "${C_Action}installed$C_Reset"
+	} elsif ($History{$Key}{'Action'} eq 'Remove') {
+		$ActionString = "${C_Action}removed$C_Reset"
+	} elsif ($History{$Key}{'Action'} eq 'Purge') {
+		$ActionString = "${C_Action}purged$C_Reset"
+	} elsif ($History{$Key}{'Action'} eq 'Upgrade') {
+		$ActionString = "${C_Action}upgraded$C_Reset"
+	}
+
+	unless (length($History{$Key}{'ReqByUser'}) == 0) {
+		printf(
+			"%sUser '%s' (%d) %s the following:\n", $Pad,
+			$History{$Key}{'ReqByUser'},
+			$History{$Key}{'ReqByUID'},
+			$ActionString,
+		);
+	} else {
+		printf("%sSystem %s the following:\n", $Pad, $ActionString);
+	}
+
+	# Populate array with just the package names.
+	my @Packages;
+	foreach (sort({$a cmp $b} split(' ', $History{$Key}{'Packages'}))) {
+		unless (/[\(\),]/) {
+			my ($Name, $Arch) = split(':');
+			$Arch = "$C_Arch:$Arch$C_Reset";
+			push(@Packages, "$Name$Arch")
+		}
+	}
+
+	print("\n");
+	if ($PKGStyle eq 'OneLine') {
+		print("$Pad$_\n") foreach (@Packages);
+	} elsif ($PKGStyle eq 'Wrapped') {
+		print(wrap("$Pad", "$Pad", join(' ', @Packages)) . "\n");
+	}
+
+	print("\n")
+}
