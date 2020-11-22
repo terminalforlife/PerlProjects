@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sun 22 Nov 01:50:47 GMT 2020
+# Last Change       - Sun 22 Nov 02:13:08 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -232,7 +232,8 @@ $Text::Wrap::columns = (GetTerminalSize())[0];
 
 foreach my $Key (@SortedKeys) {
 	my $FancyDateTime = Time::Piece->strptime(
-		"$History{$Key}{'Date'} $History{$Key}{'Time'}", '%Y-%m-%d %X'
+		"$History{$Key}{'Date'} $History{$Key}{'Time'}", '%Y-%m-%d %H:%M:%S'
+		#     Using just '%X' doesn't seem to work in Pop! OS 20.04. --^
 	);
 
 	if (length($FilterUser) > 0) {
