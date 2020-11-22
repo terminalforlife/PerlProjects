@@ -6,6 +6,7 @@
 What follows is a list of programs* for which the source code is stored here, as of 2020-02-10:
 
   * [apt-download-deps](source/apt-download-deps) - Download all dependencies for one or more Debian packages.
+  * [apt-history](source/apt-history) - View, filter, and pretty-print APT's log.
   * [apt-undo-install](source/apt-undo-install) - A Perl solution to undo recent APT installations.
   * [clean-locales](source/clean-locales) - Remove non-English localizations.
   * [cpufreq](source/cpufreq) - Display the current CPU core frequencies.
