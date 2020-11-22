@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sat 21 Nov 23:36:33 GMT 2020
+# Last Change       - Sun 22 Nov 00:23:40 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,10 +12,11 @@
 #TODO: Display the actual command executed.
 #TODO: Provide package listing output suitable for piping.
 #TODO: Communicate with APT to determine packages still installed?
+#TODO: When filtering for users, have option to show only 'System ...' entries.
 #
 # Bugs:
 #
-# N/A
+#TODO: Account for filting by both UID and User simultaneously.
 #
 # Dependencies:
 #
@@ -30,7 +31,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-21';
+my $CurVer = '2020-11-22';
 my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
 
 sub Usage {
@@ -44,6 +45,7 @@ sub Usage {
 		  -H, --history [FILE]     - Use an alternative 'history.log' file.
 		  -U, --user-id [UID]      - Filter the logged results by UID.
 		  -c, --command            - Also show the actual command executed.
+		  -p, --package [PKG]      - Show results affecting only PKG.
 		  -r, --reverse            - Display history in reverse; oldest first.
 		  -u, --user [USER]        - Filter the logged results by USER.
 
@@ -60,7 +62,7 @@ my (
 	%History, $Date, $Time, $Command, $ReqByUser, $ReqByUID, $Action,
 	$Packages, $DoReverse, @SortedKeys, $ActionString, $DoCommand, $NoColor,
 	$C_Arch, $C_Reset, $C_FancyDateTime, $C_Action, $OnlyAction, $FilterUser,
-	$FilterUID
+	$FilterUID, $FilterPKG
 );
 
 while (defined($ARGV[0])) {
@@ -77,6 +79,14 @@ while (defined($ARGV[0])) {
 			die("File '$ARGV[0]' not found")
 		} else {
 			$HistFile = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^(--package|-p)$') {
+		shift();
+
+		if (length($ARGV[0]) == 0) {
+			die("Filter package PKG not provided")
+		} else {
+			$FilterPKG = $ARGV[0]
 		}
 	} elsif ($ARGV[0] =~ '^(--display|-D)$') {
 		shift();
@@ -167,7 +177,7 @@ close($FH);
 
 #-------------------------------------------------------------Use Gathered Data
 
-use Term::ANSIColor;
+use Term::ANSIColor 'colorstrip', 'color';
 use Term::ReadKey 'GetTerminalSize';
 use Text::Wrap;
 use Time::Piece;
@@ -202,10 +212,6 @@ foreach my $Key (@SortedKeys) {
 		$OnlyAction eq $History{$Key}{'Action'} or next
 	}
 
-	print(
-		"$C_FancyDateTime$FancyDateTime$C_Reset\n\n"
-	);
-
 	# For pretty-printing the correct verb.
 	if ($History{$Key}{'Action'} eq 'Install') {
 		$ActionString = "${C_Action}installed$C_Reset"
@@ -217,6 +223,27 @@ foreach my $Key (@SortedKeys) {
 		$ActionString = "${C_Action}upgraded$C_Reset"
 	}
 
+	# Populate array with just the current package names.
+	my @Packages;
+	foreach (sort({$a cmp $b} split(' ', $History{$Key}{'Packages'}))) {
+		unless (/[\(\),]/) {
+			my ($Name, $Arch) = split(':');
+			$Arch = "$C_Arch:$Arch$C_Reset";
+			push(@Packages, "$Name$Arch")
+		}
+	}
+
+	if (length($FilterPKG) > 0) {
+		# Need to strip ANSI escape sequences otherwise grep() is borked.
+		grep({colorstrip($_) eq $FilterPKG} @Packages) or next
+	}
+
+	#---------------------------------------------------------Begin Main Output
+
+	print(
+		"$C_FancyDateTime$FancyDateTime$C_Reset\n\n"
+	);
+
 	unless (length($History{$Key}{'ReqByUser'}) == 0) {
 		printf(
 			"%sUser '%s' (%d) %s the following:\n", $Pad,
@@ -226,16 +253,6 @@ foreach my $Key (@SortedKeys) {
 		);
 	} else {
 		printf("%sSystem %s the following:\n", $Pad, $ActionString);
-	}
-
-	# Populate array with just the package names.
-	my @Packages;
-	foreach (sort({$a cmp $b} split(' ', $History{$Key}{'Packages'}))) {
-		unless (/[\(\),]/) {
-			my ($Name, $Arch) = split(':');
-			$Arch = "$C_Arch:$Arch$C_Reset";
-			push(@Packages, "$Name$Arch")
-		}
 	}
 
 	print("\n");
