@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sun 22 Nov 01:21:47 GMT 2020
+# Last Change       - Sun 22 Nov 01:27:27 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -53,7 +53,7 @@ sub Usage {
 		  Available package listing STYLEs are 'OneLine' and 'Wrapped'.
 		  Available TYPEs are 'Install', 'Purge', 'Remove', and 'Upgrade'.
 
-		  If color is enabled, package in red are no longer installed.
+		  If color is enabled, packages in red are no longer installed.
 	} =~ tr/\t//dr)
 }
 
