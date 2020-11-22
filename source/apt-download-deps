@@ -3,64 +3,56 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-download-deps
 # Started On        - Sat  4 Jan 21:55:31 GMT 2020
-# Last Change       - Fri 31 Jan 22:37:11 GMT 2020
+# Last Change       - Sun 22 Nov 14:43:04 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Dependencies:
 #
 #   libapt-pkg-perl (>= 0.1.29build7)
-#   libtfl-perl (>= 2020-01-03)
 #   perl (>= 5.22.1-9)
 #----------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err', 'DepChk';
 use AptPkg::Cache;
 
-my $CurVer = "2020-01-31";
+my $CurVer = '2020-11-22';
+my $Progrm = 'apt-download-deps';
 
-sub Usage{
-	my $Info = qq{            @{[uc($TFL::PROGNAME)]} ($CurVer)
-		            $TFL::AUTHOR
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [PKG_1 [PKG_2] ...]
 
-		            Download dependencies for one or more Debian packages.
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  --include-base|-b       - Also download base package(s).
 
-		SYNTAX:     $TFL::PROGNAME [OPTS] [PKG_1 [PKG_2] ...]
-
-		OPTS:       --help|-h|-?            - Display this help information.
-		            --version|-v            - Output the version datestamp.
-		            --include-base|-b       - Also download base package(s).
-
-		NOTE:       This program, written in Perl, is ideal for situations in
-		            which the user wishes to transfer to or store packages on
-		            another machine for later offline use.
-	};
-
-	print($Info =~ tr/\t//dr)
+		  This program, written in Perl, is ideal for situations in
+		  which the user wishes to transfer to or store packages on
+		  another machine for later offline use.
+	} =~ tr/\t//dr)
 }
 
 my $BaseToo = 'false';
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(1); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^(--include-base|-b)$'){
+	} elsif ($ARGV[0] =~ '^(--include-base|-b)$') {
 		$BaseToo = 'true'
-	}elsif ($ARGV[0] =~ '^-'){
-		Err(1, "Incorrect argument(s) specified.")
-	}else{
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect argument(s) specified")
+	} else {
 		last
 	}
 
 	shift()
 }
 
-Err(1, 'At least one package is required.') if scalar(@ARGV) == 0;
+scalar(@ARGV) == 0 and die('At least one package is required.');
 
 my $Cache = AptPkg::Cache->new();
 
@@ -70,7 +62,7 @@ sub FetchDeps{
 	my $Vers = $Get->{'VersionList'};
 
 	unless (defined($Vers)){
-		Err(0, "Package '$_[0]' not found.");
+		warn("Package '$_[0]' not found");
 		$MissingPKG = 'true';
 		return(0)
 	}
@@ -89,6 +81,24 @@ sub FetchDeps{
 	}
 
 	return(@Packages)
+}
+
+#TODO: Simplify this process, since it's just one dependency.
+sub DepChk{
+	my @Files;
+	foreach my $Dir (split(':', $ENV{'PATH'})) {
+		-d $Dir or next;
+		opendir(my $DH, $Dir) or next;
+		push(@Files, readdir($DH));
+		closedir($DH);
+	}
+
+	my $Found = scalar(@_);
+	foreach my $CurDep (@_) {
+		grep({$_ eq $CurDep} @Files) and $Found--
+	}
+
+	return($Found)
 }
 
 DepChk('apt-get');
