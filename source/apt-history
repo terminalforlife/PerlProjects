@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sun 22 Nov 00:23:40 GMT 2020
+# Last Change       - Sun 22 Nov 01:21:47 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -39,6 +39,7 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  --no-color-status        - Don't show packages not installed in red.
 		  -A, --action [TYPE]      - Filter action by TYPE. See below.
 		  -C, --no-color           - Disable ANSII color escape sequences.
 		  -D, --display [STYLE]    - Display packages in STYLE. See below.
@@ -51,18 +52,21 @@ sub Usage {
 
 		  Available package listing STYLEs are 'OneLine' and 'Wrapped'.
 		  Available TYPEs are 'Install', 'Purge', 'Remove', and 'Upgrade'.
+
+		  If color is enabled, package in red are no longer installed.
 	} =~ tr/\t//dr)
 }
 
 my $Pad = ' ' x 4;
 my $PKGStyle = 'OneLine';
 my $HistFile = '/var/log/apt/history.log';
+my $StatusFile = '/var/lib/dpkg/status';
 
 my (
 	%History, $Date, $Time, $Command, $ReqByUser, $ReqByUID, $Action,
 	$Packages, $DoReverse, @SortedKeys, $ActionString, $DoCommand, $NoColor,
 	$C_Arch, $C_Reset, $C_FancyDateTime, $C_Action, $OnlyAction, $FilterUser,
-	$FilterUID, $FilterPKG
+	$FilterUID, $FilterPKG, $C_Name, $NoColorStatus
 );
 
 while (defined($ARGV[0])) {
@@ -128,6 +132,8 @@ while (defined($ARGV[0])) {
 		}
 	} elsif ($ARGV[0] =~ '^(--reverse|-r)$') {
 		$DoReverse = 'True'
+	} elsif ($ARGV[0] =~ '^--no-color-status$') {
+		$NoColorStatus = 'True'
 	} elsif ($ARGV[0] =~ '^(--command|-c)$') {
 		$DoCommand = 'True'
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
@@ -175,6 +181,33 @@ while (<$FH>) {
 
 close($FH);
 
+#----------------------------------Gather Array of Currently Installed Packages
+
+# I could get something like this done via the APT perl module, but that's yet
+# another dependency, so I thought I'd just go the pure-Perl route.
+
+open($FH, '<', $StatusFile);
+
+my (@InstalledPKGs, $InstalledPKG, $InstalledArch, $PKGStatus);
+while (<$FH>) {
+	chomp();
+
+	if (/^Package:/) {
+		$InstalledPKG = (split(' '))[1]
+	} elsif (/^Status:/) {
+		$PKGStatus = $_ =~ s/^Status: //r
+	} elsif (/^Architecture:/) {
+		$InstalledArch = (split(' '))[1];
+		$InstalledPKG = "$InstalledPKG:$InstalledArch";
+
+		if ($PKGStatus eq 'install ok installed') {
+			push(@InstalledPKGs, $InstalledPKG)
+		}
+	}
+}
+
+close($FH);
+
 #-------------------------------------------------------------Use Gathered Data
 
 use Term::ANSIColor 'colorstrip', 'color';
@@ -186,6 +219,7 @@ unless ($NoColor eq 'True') {
 	$C_Action = color('bright_yellow');
 	$C_Arch = color('bright_black');
 	$C_FancyDateTime = color('bright_green');
+	$C_Name = color('bright_red');
 	$C_Reset = color('reset')
 }
 
@@ -225,9 +259,17 @@ foreach my $Key (@SortedKeys) {
 
 	# Populate array with just the current package names.
 	my @Packages;
-	foreach (sort({$a cmp $b} split(' ', $History{$Key}{'Packages'}))) {
-		unless (/[\(\),]/) {
-			my ($Name, $Arch) = split(':');
+	foreach my $PKG (sort({$a cmp $b} split(' ', $History{$Key}{'Packages'}))) {
+		unless ($PKG =~ /[\(\),]/) {
+			my ($Name, $Arch) = split(':', $PKG);
+
+			# If package is not currently installed, change its color to red.
+			unless ($NoColor eq 'True' or $NoColorStatus eq 'True') {
+				unless (grep({$_ eq $PKG} @InstalledPKGs)) {
+					$Name = "$C_Name$Name$C_Reset";
+				}
+			}
+
 			$Arch = "$C_Arch:$Arch$C_Reset";
 			push(@Packages, "$Name$Arch")
 		}
