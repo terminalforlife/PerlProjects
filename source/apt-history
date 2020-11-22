@@ -3,15 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sun 22 Nov 01:47:20 GMT 2020
+# Last Change       - Sun 22 Nov 01:50:47 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Features:
 #
-#TODO: Display the actual command executed.
 #TODO: Provide package listing output suitable for piping.
-#TODO: Communicate with APT to determine packages still installed?
 #TODO: When filtering for users, have option to show only 'System ...' entries.
 #
 # Bugs:
