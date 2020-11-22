@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sun 22 Nov 01:27:27 GMT 2020
+# Last Change       - Sun 22 Nov 01:45:21 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -66,7 +66,7 @@ my (
 	%History, $Date, $Time, $Command, $ReqByUser, $ReqByUID, $Action,
 	$Packages, $DoReverse, @SortedKeys, $ActionString, $DoCommand, $NoColor,
 	$C_Arch, $C_Reset, $C_FancyDateTime, $C_Action, $OnlyAction, $FilterUser,
-	$FilterUID, $FilterPKG, $C_Name, $NoColorStatus
+	$FilterUID, $FilterPKG, $C_Name, $NoColorStatus, $C_Command
 );
 
 while (defined($ARGV[0])) {
@@ -159,7 +159,7 @@ while (<$FH>) {
 	if (/^Start-Date:/) {
 		($Date, $Time) = (split(' '))[1..2]
 	} elsif (/^Commandline:/) {
-		$Command = (m{(?:$&)(.*)})[0]
+		$Command = (m{(?:$& )(.*)})[0]
 	} elsif (/^Requested-By:/) {
 		my $ReqBy = (m{(?:$&)(.*)})[0];
 		($ReqByUser, $ReqByUID) = (split(' ', $ReqBy))[0..1];
@@ -212,12 +212,13 @@ close($FH);
 
 use Term::ANSIColor 'colorstrip', 'color';
 use Term::ReadKey 'GetTerminalSize';
-use Text::Wrap;
+use Text::Wrap 'wrap';
 use Time::Piece;
 
 unless ($NoColor eq 'True') {
 	$C_Action = color('bright_yellow');
 	$C_Arch = color('bright_black');
+	$C_Command = color('bright_black');
 	$C_FancyDateTime = color('bright_green');
 	$C_Name = color('bright_red');
 	$C_Reset = color('reset')
@@ -282,9 +283,21 @@ foreach my $Key (@SortedKeys) {
 
 	#---------------------------------------------------------Begin Main Output
 
-	print(
-		"$C_FancyDateTime$FancyDateTime$C_Reset\n\n"
-	);
+	print("$C_FancyDateTime$FancyDateTime$C_Reset\n\n");
+
+	if ($DoCommand eq 'True') {
+		# To denote that it's a newline, as it would be on the command-line.
+		$Text::Wrap::separator = "\\\n";
+
+		printf(
+			"%s\n", wrap($Pad, $Pad,
+				"$C_Command$History{$Key}{Command}$C_Reset\n\n"
+			)
+		);
+
+		# Restore it to a standard newline, for the rest of apt-history.
+		$Text::Wrap::separator = "\n";
+	}
 
 	unless (length($History{$Key}{'ReqByUser'}) == 0) {
 		printf(
