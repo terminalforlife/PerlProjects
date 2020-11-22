@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sun 22 Nov 01:45:21 GMT 2020
+# Last Change       - Sun 22 Nov 01:47:20 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -287,7 +287,7 @@ foreach my $Key (@SortedKeys) {
 
 	if ($DoCommand eq 'True') {
 		# To denote that it's a newline, as it would be on the command-line.
-		$Text::Wrap::separator = "\\\n";
+		$Text::Wrap::separator = " \\\n";
 
 		printf(
 			"%s\n", wrap($Pad, $Pad,
