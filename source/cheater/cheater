@@ -1,0 +1,213 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/cheater
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/cheater/cheater
+# Started On        - Sun 22 Nov 20:45:37 GMT 2020
+# Last Change       - Tue 24 Nov 02:05:17 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# With the blessing from Igor Chubin, author of 'cheat.sh' and associated
+# repositories, I've written an alternative interface to the plentiful source
+# of information over at Chubin's GitHub repository 'cheat.sheets'.
+#
+# If you'd like to add to Cheater, you can do so while also helping 'cheat.sh'.
+# Simply submit your 'cheat sheets' to the 'cheat.sheets' repository.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   libwww-perl (>= 6.31-1)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use LWP::UserAgent;
+use Term::ANSIColor 'color';
+use File::Path 'make_path';
+
+no warnings 'uninitialized';
+
+my $CurVer = '2020-11-24';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [QUERY_1 [QUERY_2] ...]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -H, --highlight [REGEX]  - Highlight REGEX in the requested sheet(s).
+	} =~ tr/\t//dr)
+}
+
+my $ShareDir = "/usr/share/$Progrm";
+my $ExcludedFile = "$ShareDir/excluded_lines";
+
+my $DirURL = 'https://github.com/chubin/cheat.sheets/tree/master/sheets';
+my $RawURL = 'https://raw.githubusercontent.com/chubin/cheat.sheets/master/sheets';
+
+my %Colors = (
+	'desc' => color('bright_black'),
+	'match' => color('bright_red'),
+	'reset' => color('reset')
+);
+
+my $Pad = ' ' x 4;
+my (@AvailFiles, $Highlight);
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--highlight|-H)$') {
+		shift();
+
+		if (length($ARGV[0]) == 0) {
+			die("Missing REGEX")
+		} else {
+			$Highlight = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect option(s) specified")
+	} else {
+		last
+	}
+
+	shift()
+}
+
+scalar(@ARGV) == 0 and die('Missing COMMAND to query');
+-d $ShareDir or die("Directory '$ShareDir' not found");
+
+#-----------------------------------------------------Initialize LWP::UserAgent
+
+my $UA = LWP::UserAgent->new(
+	'agent' => 'Mozilla/5.0',
+	'max_redirects' => 1,
+	'protocols_allowed' => ['http', 'https'],
+	'timeout' => 10
+);
+
+#-------------------------Generate List of Available Files, Then Check $ARGV[0]
+
+my $Response = $UA->get($DirURL);
+if ($Response->is_success()) {
+	foreach (split("\n", $Response->decoded_content())) {
+		if ($_ =~ 'href="/chubin/cheat.sheets/blob/master/sheets/') {
+			chomp(my $Link = s/.*">(.*)<\/a.*/$1/r);
+			push(@AvailFiles, $Link)
+		}
+	}
+} else {
+	die('Failed to discover available sheets')
+}
+
+undef($Response);
+
+my $ErrCount;
+foreach my $CurArg (@ARGV) {
+	unless (grep({$_ eq $CurArg} @AvailFiles)) {
+		warn("Sheet '$CurArg' not found");
+		$ErrCount++
+	}
+}
+
+$ErrCount == 0 or exit(1);
+
+#----------------------------------------------Populate List of Lines to Ignore
+
+my @Excludes;
+if (-f $ExcludedFile) {
+	-r $ExcludedFile or die("File '$ExcludedFile' unreadable");
+
+	open(my $FH, '<', $ExcludedFile);
+
+	while (<$FH>) {
+		chomp();
+
+		push(@Excludes, $_) unless (/^$/ or /^#/)
+	}
+
+	close($FH);
+} else {
+	die("File '$ExcludedFile' missing")
+}
+
+#----------------------------------------------------------Display the Sheet(s)
+
+my @FinalLines;
+foreach my $CurSheet (@ARGV) {
+	my $HeaderSeen = 'False';
+	my $Response = $UA->get("$RawURL/$CurSheet");
+	if ($Response->is_success()) {
+		foreach my $Line (split("\n", $Response->decoded_content())) {
+			# This is of no consequence to us, as we're working differently.
+			# This is a special line talked about between Chubin and
+			# contributors, such as myself, which would contain parameters much
+			# like Vim's modeline.
+			$Line =~ /^# cheat.sh: / and next;
+
+			# Ignore the first 'block' of comments, since we already know what
+			# we chose. The short description would be nice to include, but
+			# right now the database isn't ready for such an assumption.
+			if ($HeaderSeen eq 'True') {
+				if ($Line =~ /^# /) {
+					my $ComStrip = $Line =~ s/^#\s*//r;
+
+					# Some lines have to be ignored by Cheater, because they
+					# aren't relevant to the way we're using the sheets.
+					grep({$Line =~ /$_/} @Excludes) and next;
+
+					# One here...
+					if (length($Highlight) > 0 and $Line =~ /$Highlight/) {
+						my $Replace = "$Colors{match}$&$Colors{desc}";
+						$ComStrip = $ComStrip =~ s/$&/$Replace/rg
+					}
+
+					push(@FinalLines, "$Colors{desc}$ComStrip$Colors{reset}\n")
+				} elsif ($Line =~ /^#$/) {
+					push(@FinalLines, "\n")
+				} else {
+					my $ElseLine = $Line;
+
+					# ...and one here, to ensure we restore the right color.
+					if (length($Highlight) > 0 and /$Highlight/) {
+						my $Replace = "$Colors{match}$&$Colors{reset}";
+						$ElseLine = $ElseLine =~ s/$&/$Replace/rg
+					}
+
+					push(@FinalLines, "$ElseLine\n")
+				}
+			} else {
+				if ($Line =~ /^# /) {
+					next
+				} elsif ($Line =~ /^$/) {
+					$HeaderSeen = 'True'
+				}
+			}
+		}
+
+		# Ensures a newline between sheets.
+		scalar(@ARGV) > 1 and push(@FinalLines, "\n")
+	} else {
+		die("Failed to access sheet '$CurSheet' data via GitHub")
+	}
+}
+
+#-----------------------------------Remove Duplicate Lines, Include >1 NewLines
+
+my $OldLine;
+foreach my $NewLine (@FinalLines) {
+	$NewLine ne $OldLine and print($NewLine);
+	$OldLine = $NewLine
+}
