@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Tue 24 Nov 02:31:01 GMT 2020
+# Last Change       - Tue 24 Nov 02:55:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ my $DirURL = 'https://github.com/chubin/cheat.sheets/tree/master/sheets';
 my $RawURL = 'https://raw.githubusercontent.com/chubin/cheat.sheets/master/sheets';
 
 my $Pad = ' ' x 4;
-my ($NoPager, %Colors, @AvailFiles, $Highlight, $NoColors);
+my ($NoPager, $PagerFound, %Colors, @AvailFiles, $Highlight, $NoColors);
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
@@ -107,6 +107,30 @@ unless ($NoColors eq 'True') {
 		'match' => '',
 		'reset' => ''
 	);
+}
+
+# Check for less and/or more in PATH, if is paging enabled.
+my @Executables;
+unless ($NoPager eq 'True') {
+	foreach my $Dir (split(':', $ENV{'PATH'})) {
+		opendir(my $DH, $Dir);
+		push(@Executables, readdir($DH));
+		closedir($DH)
+	}
+}
+
+# Set the pager which is found, using more(1) as a fallback.
+grep({$_ eq 'more'} @Executables) and $PagerFound = 'more';
+grep({$_ eq 'less'} @Executables) and $PagerFound = 'less -R 2>&1';
+
+# If we have to use more(1), die() if using colors; unsupported.
+if ($PagerFound eq 'more') {
+	$NoColors ne 'True' and die('Color not supported in more(1)')
+}
+
+# We cannot use highlighting while disabling colors.
+if (length($Highlight) > 0 and $NoColors eq 'True') {
+	die('Highlighting unavailable, because colors are disabled')
 }
 
 #-----------------------------------------------------Initialize LWP::UserAgent
@@ -211,7 +235,7 @@ foreach my $CurSheet (@ARGV) {
 					my $ElseLine = $Line;
 
 					# ...and one here, to ensure we restore the right color.
-					if (length($Highlight) > 0 and /$Highlight/) {
+					if (length($Highlight) > 0 and $ElseLine =~ /$Highlight/) {
 						my $Replace = "$Colors{match}$&$Colors{reset}";
 						$ElseLine = $ElseLine =~ s/$&/$Replace/rg
 					}
@@ -237,7 +261,7 @@ foreach my $CurSheet (@ARGV) {
 #------------------------------------Begin Displaying Lines & Remove Duplicates
 
 unless ($NoPager eq 'True') {
-	open(my $Pipe, '| less -R');
+	open(my $Pipe, "| $PagerFound");
 
 	my $OldLine;
 	foreach my $NewLine (@FinalLines) {

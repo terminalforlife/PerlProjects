@@ -2,7 +2,7 @@
 f6f2149ef6fe4fbaf9e4b8bf7bfb4f1e  source/apt-history
 044aa9ff39b799d2cdf3b3d040af33cc  source/apt-undo-install
 0818fb2fb4348d6a0fe1931d5498f6df  source/battery-monitor
-60d14e25a38b40470b0966ad425e148b  source/cheater/cheater
+82344607977b459a12ca445ef687e4a7  source/cheater/cheater
 6f49c19a7fc7af204bb05b7051ef877b  source/cheater/excluded_lines
 51a0970e20f6d9f04185f869ff273a23  source/clean-locales
 7188f08ddd9546050a94e0741dc705a6  source/completions/apt-undo-install
