@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Sun  1 Nov 20:09:10 GMT 2020
+# Last Change       - Tue 24 Nov 03:53:47 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ do
 		printf '\033[32m[OK]\033[0m\n'
 
 		printf '* Verifying file contents ... '
-		Contents=`cat "$TmpDir/$File"`
+		Contents=`< "$TmpDir/$File"`
 		if [ "$(sed '1!d' "$TmpDir/$File")" = '404: Not Found' ]; then
 			ErrCount=$((ErrCount + 1))
 			printf '\033[31m[ERR]\033[0m\n'
