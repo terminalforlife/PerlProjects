@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Tue 24 Nov 02:55:16 GMT 2020
+# Last Change       - Tue 24 Nov 03:17:29 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -43,17 +43,13 @@ my $CurVer = '2020-11-24';
 my $Progrm = 'cheater';
 
 sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [QUERY_1 [QUERY_2] ...]
+	print(qq{Usage: $Progrm [OPTS] [SHEET_1 [SHEET_2] ...]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  -C, --no-colors          - Disable ANSI color escape sequences.
 		  -H, --highlight [REGEX]  - Highlight REGEX in the requested sheet(s).
 		  -P, --no-pager           - Do not use less(1) or more(1) for paging.
-
-		  Disabling colors will limit $Progrm to using '#' comment lines in
-		  order to discern the difference between code and descriptions. This
-		  will also disable the highlighting-via-REGEX feature.
 	} =~ tr/\t//dr)
 }
 
