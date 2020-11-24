@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Tue 24 Nov 02:19:42 GMT 2020
+# Last Change       - Tue 24 Nov 02:31:01 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -49,6 +49,7 @@ sub Usage {
 		  -v, --version            - Output the version datestamp.
 		  -C, --no-colors          - Disable ANSI color escape sequences.
 		  -H, --highlight [REGEX]  - Highlight REGEX in the requested sheet(s).
+		  -P, --no-pager           - Do not use less(1) or more(1) for paging.
 
 		  Disabling colors will limit $Progrm to using '#' comment lines in
 		  order to discern the difference between code and descriptions. This
@@ -63,7 +64,7 @@ my $DirURL = 'https://github.com/chubin/cheat.sheets/tree/master/sheets';
 my $RawURL = 'https://raw.githubusercontent.com/chubin/cheat.sheets/master/sheets';
 
 my $Pad = ' ' x 4;
-my (%Colors, @AvailFiles, $Highlight, $NoColors);
+my ($NoPager, %Colors, @AvailFiles, $Highlight, $NoColors);
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
@@ -72,6 +73,8 @@ while (defined($ARGV[0])) {
 		print("$CurVer\n"); exit(0)
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
 		$NoColors = 'True'
+	} elsif ($ARGV[0] =~ '^(--no-pager|-P)$') {
+		$NoPager = 'True'
 	} elsif ($ARGV[0] =~ '^(--highlight|-H)$') {
 		shift();
 
@@ -231,10 +234,22 @@ foreach my $CurSheet (@ARGV) {
 	}
 }
 
-#---------Display Lines, But Also Remove Duplicate Lines, Including >1 NewLines
+#------------------------------------Begin Displaying Lines & Remove Duplicates
 
-my $OldLine;
-foreach my $NewLine (@FinalLines) {
-	$NewLine ne $OldLine and print($NewLine);
-	$OldLine = $NewLine
+unless ($NoPager eq 'True') {
+	open(my $Pipe, '| less -R');
+
+	my $OldLine;
+	foreach my $NewLine (@FinalLines) {
+		$NewLine ne $OldLine and print($Pipe $NewLine);
+		$OldLine = $NewLine
+	}
+
+	close($Pipe)
+} else {
+	my $OldLine;
+	foreach my $NewLine (@FinalLines) {
+		$NewLine ne $OldLine and print($NewLine);
+		$OldLine = $NewLine
+	}
 }
