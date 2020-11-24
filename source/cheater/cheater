@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Tue 24 Nov 02:05:17 GMT 2020
+# Last Change       - Tue 24 Nov 02:19:42 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,6 +13,9 @@
 #
 # If you'd like to add to Cheater, you can do so while also helping 'cheat.sh'.
 # Simply submit your 'cheat sheets' to the 'cheat.sheets' repository.
+#
+# I wanted to use GitHub's API and its handy JSON output, but of course they
+# heavily restrict it.
 #
 # Features:
 #
@@ -33,19 +36,23 @@ use warnings;
 use autodie;
 use LWP::UserAgent;
 use Term::ANSIColor 'color';
-use File::Path 'make_path';
 
 no warnings 'uninitialized';
 
 my $CurVer = '2020-11-24';
-my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+my $Progrm = 'cheater';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS] [QUERY_1 [QUERY_2] ...]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  -C, --no-colors          - Disable ANSI color escape sequences.
 		  -H, --highlight [REGEX]  - Highlight REGEX in the requested sheet(s).
+
+		  Disabling colors will limit $Progrm to using '#' comment lines in
+		  order to discern the difference between code and descriptions. This
+		  will also disable the highlighting-via-REGEX feature.
 	} =~ tr/\t//dr)
 }
 
@@ -55,20 +62,16 @@ my $ExcludedFile = "$ShareDir/excluded_lines";
 my $DirURL = 'https://github.com/chubin/cheat.sheets/tree/master/sheets';
 my $RawURL = 'https://raw.githubusercontent.com/chubin/cheat.sheets/master/sheets';
 
-my %Colors = (
-	'desc' => color('bright_black'),
-	'match' => color('bright_red'),
-	'reset' => color('reset')
-);
-
 my $Pad = ' ' x 4;
-my (@AvailFiles, $Highlight);
+my (%Colors, @AvailFiles, $Highlight, $NoColors);
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+		$NoColors = 'True'
 	} elsif ($ARGV[0] =~ '^(--highlight|-H)$') {
 		shift();
 
@@ -88,6 +91,20 @@ while (defined($ARGV[0])) {
 
 scalar(@ARGV) == 0 and die('Missing COMMAND to query');
 -d $ShareDir or die("Directory '$ShareDir' not found");
+
+unless ($NoColors eq 'True') {
+	%Colors = (
+		'desc' => color('bright_black'),
+		'match' => color('bright_red'),
+		'reset' => color('reset')
+	);
+} else {
+	%Colors = (
+		'desc' => '',
+		'match' => '',
+		'reset' => ''
+	);
+}
 
 #-----------------------------------------------------Initialize LWP::UserAgent
 
@@ -145,7 +162,7 @@ if (-f $ExcludedFile) {
 
 #----------------------------------------------------------Display the Sheet(s)
 
-my @FinalLines;
+my ($ComStrip, @FinalLines);
 foreach my $CurSheet (@ARGV) {
 	my $HeaderSeen = 'False';
 	my $Response = $UA->get("$RawURL/$CurSheet");
@@ -162,7 +179,12 @@ foreach my $CurSheet (@ARGV) {
 			# right now the database isn't ready for such an assumption.
 			if ($HeaderSeen eq 'True') {
 				if ($Line =~ /^# /) {
-					my $ComStrip = $Line =~ s/^#\s*//r;
+					unless ($NoColors eq 'True') {
+						$ComStrip = $Line =~ s/^#\s*//r
+					} else {
+						# Using this same variable just because I'm being lazy.
+						$ComStrip = $Line
+					}
 
 					# Some lines have to be ignored by Cheater, because they
 					# aren't relevant to the way we're using the sheets.
@@ -176,7 +198,12 @@ foreach my $CurSheet (@ARGV) {
 
 					push(@FinalLines, "$Colors{desc}$ComStrip$Colors{reset}\n")
 				} elsif ($Line =~ /^#$/) {
-					push(@FinalLines, "\n")
+					unless ($NoColors eq 'True') {
+						push(@FinalLines, "\n")
+					} else {
+						# Otherwise it might be a bit confusing.
+						push(@FinalLines, "#\n")
+					}
 				} else {
 					my $ElseLine = $Line;
 
@@ -204,7 +231,7 @@ foreach my $CurSheet (@ARGV) {
 	}
 }
 
-#-----------------------------------Remove Duplicate Lines, Include >1 NewLines
+#---------Display Lines, But Also Remove Duplicate Lines, Including >1 NewLines
 
 my $OldLine;
 foreach my $NewLine (@FinalLines) {
