@@ -8,6 +8,7 @@ What follows is a list of programs* for which the source code is stored here, as
   * [apt-download-deps](source/apt-download-deps) - Download all dependencies for one or more Debian packages.
   * [apt-history](source/apt-history) - View, filter, and pretty-print APT's log.
   * [apt-undo-install](source/apt-undo-install) - A Perl solution to undo recent APT installations.
+  * [cheater](source/cheater) - Command-line alternative to the 'cheat.sh' web interface.
   * [clean-locales](source/clean-locales) - Remove non-English localizations.
   * [cpufreq](source/cpufreq) - Display the current CPU core frequencies.
   * [getip](source/getip) - View your internal and/or external IP address.
