@@ -1,40 +1,41 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/vignify
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/vignify
 # Started On        - Sun 12 Jan 22:02:23 GMT 2020
-# Last Change       - Fri 13 Nov 15:06:01 GMT 2020
+# Last Change       - Thu 26 Nov 04:54:04 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
-# Just a small script I wrote one night while messing around with the Image::Magick
-# module. It will scale the image up to your current screen's resolution, and add a
-# vignette effect, plus some other things.
+#------------------------------------------------------------------------------
+# Just a small script I wrote one night while messing around with the
+# Image::Magick module. It will scale the image up to your current screen's
+# resolution, and add a vignette effect, plus some other things.
 #
-# I plan to use this and some other things to make some cool backgrounds for videos
-# I put up on my YouTube channel, Learn Linux.
-#----------------------------------------------------------------------------------
+# I plan to use this and some other things to make some cool backgrounds for
+# videos I put up on my YouTube channel, Learn Linux.
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err', 'YNInput'; # <-- libtfl-perl (>= 2020-01-12)
 use Image::Magick; # <-- libimage-magick-perl (>= 8:6.8.9.9-7)
 use X11::Protocol; # <-- libx11-protocol-perl (>= 0.56-7)
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-13";
+my $CurVer = "2020-11-26";
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
 
 unless (@ARGV == 2 or @ARGV == 3){
-	printf(
-		"Usage: %s [IN] [OUT] [COMPOSITE]\n",
-		$0 =~ m{(?:.*/)?(.*)}
-	) and exit(1)
+	print("Usage: $Progrm [IN] [OUT] [COMPOSITE]\n"); exit(1)
 }elsif (not -f -r $ARGV[0]){
-	Err(1, 'Input file missing or unreadable.')
+	die('Input file missing or unreadable')
 }elsif (not -d $ARGV[1] =~ m{([^./].*)(?:/.*)} || './'){
-	Err(1, 'Output path missing or unreadable.')
+	die('Output path missing or unreadable')
 }
 
 my $Input = $ARGV[0];
@@ -65,6 +66,19 @@ $Image->Vignette(
 );
 
 $Image->Display(':0');
+
+sub YNInput{
+	print("$_[0] [Y/N] ");
+	my $Reply = <STDIN>;
+
+	if ($Reply =~ '^([Nn]|[Nn][Oo])$'){
+		return(0)
+	}elsif (length($Reply) == 0 or $Reply !~ '^([Yy]|[Yy][Ee][Ss])$'){
+		return(2)
+	}else{
+		return(1)
+	}
+}
 
 if (YNInput('Save?')){
 	$Image->Write($Output)
