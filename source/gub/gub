@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gub
 # Started On        - Mon 16 Mar 03:18:44 GMT 2020
-# Last Change       - Tue 17 Mar 21:24:11 GMT 2020
+# Last Change       - Thu 26 Nov 05:08:22 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -26,21 +26,20 @@
 #
 # Dependencies:
 #
-#   libtfl-perl (>= 2020-01-03)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
 use autodie;
-use TFL 'Err';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-03-17';
+my $CurVer = '2020-11-26';
+my $Progrm = 'gub';
 
-sub Usage{
-	print(qq{Usage: $TFL::PROGNAME [OPTS] [USER]
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [USER]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -62,24 +61,24 @@ my $SSHDir = '<N/A>';               my $Shell = '<N/A>';
 my $UID = '<N/A>';                  my $XAuthority = '<N/A>';
 my $XSessionErrs = '<N/A>';
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h)$'){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^(--parseable|-p)$'){
+	} elsif ($ARGV[0] =~ '^(--parseable|-p)$') {
 		$Parseable = 'true'
-	}elsif ($ARGV[0] =~ '^-'){
-		Err(1, "Incorrect option(s) specified.")
-	}else{
+	} elsif ($ARGV[0] =~ '^-') {
+		die('Incorrect option(s) specified')
+	} else {
 		last
 	}
 
 	shift()
 }
 
-Err(1, 'Missing USER argument.') unless length($ARGV[0]) > 0;
-Err(1, 'Only one user at a time is valid.') unless @ARGV == 1;
+die('Missing USER argument') unless length($ARGV[0]) > 0;
+die('Only one user at a time is valid') unless @ARGV == 1;
 
 my $Target = $ARGV[0];
 my $PwdFile = '/etc/passwd';
@@ -87,10 +86,10 @@ my $PwdFile = '/etc/passwd';
 open(my $FH, '<', $PwdFile);
 
 my $Found;
-while (<$FH>){
+while (<$FH>) {
 	chomp(my @Line = split(':'));
 
-	if ($Line[0] eq $Target){
+	if ($Line[0] eq $Target) {
 		$Found = 'true';
 
 		$UID = $Line[2];
@@ -103,7 +102,7 @@ while (<$FH>){
 
 close($FH);
 
-Err(1, 'Unable to find USER.') unless $Found eq 'true';
+die('Unable to find USER') unless $Found eq 'true';
 
 my ($HomeModeRaw, $HomeOwnerRaw, $HomeGroupRaw) = (stat($HomeDir))[2,4,5];
 $HomeMode = $HomeModeRaw unless length($HomeModeRaw) == 0;
@@ -112,71 +111,71 @@ $HomeGroup = $HomeGroupRaw unless length($HomeGroupRaw) == 0;
 
 $HomeMode = sprintf('%04o', $HomeMode & 07777);
 
-if (-x $HomeDir){
+if (-x $HomeDir) {
 	chomp($HomeSize = (split(' ', `du -sh '$HomeDir' 2> /dev/null`))[0]);
 
-	if (-f "$HomeDir/.bash_functions"){
+	if (-f "$HomeDir/.bash_functions") {
 		$BashFunctions = 'true'
-	}else{
+	} else {
 		$BashFunctions = 'false'
 	}
 
-	if (-f "$HomeDir/.bash_history"){
+	if (-f "$HomeDir/.bash_history") {
 		$BashHistory = 'true'
-	}else{
+	} else {
 		$BashHistory = 'false'
 	}
 
-	if (-f "$HomeDir/.bash_aliases"){
+	if (-f "$HomeDir/.bash_aliases") {
 		$BashAliases = 'true'
-	}else{
+	} else {
 		$BashAliases = 'false'
 	}
 
-	if (-f "$HomeDir/.profile"){
+	if (-f "$HomeDir/.profile") {
 		$Profile = 'true'
-	}else{
+	} else {
 		$Profile = 'false'
 	}
 
-	if (-f "$HomeDir/.bashrc"){
+	if (-f "$HomeDir/.bashrc") {
 		$BashRC = 'true'
-	}else{
+	} else {
 		$BashRC = 'false'
 	}
 
-	if (-f "$HomeDir/.sudo_as_admin_successful"){
+	if (-f "$HomeDir/.sudo_as_admin_successful") {
 		$SAAS = 'true'
-	}else{
+	} else {
 		$SAAS = 'false'
 	}
 
-	if (-f "$HomeDir/.xsession-errors"){
+	if (-f "$HomeDir/.xsession-errors") {
 		$XSessionErrs = 'true'
-	}else{
+	} else {
 		$XSessionErrs = 'false'
 	}
 
-	if (-f "$HomeDir/.Xauthority"){
+	if (-f "$HomeDir/.Xauthority") {
 		$XAuthority = 'true'
-	}else{
+	} else {
 		$XAuthority = 'false'
 	}
 
-	if (-f "$HomeDir/dead.letter"){
+	if (-f "$HomeDir/dead.letter") {
 		$DeadLetter = 'true'
-	}else{
+	} else {
 		$DeadLetter = 'false'
 	}
 
-	if (-d "$HomeDir/.ssh"){
+	if (-d "$HomeDir/.ssh") {
 		$SSHDir = 'true'
-	}else{
+	} else {
 		$SSHDir = 'false'
 	}
 }
 
-unless ($Parseable eq 'true'){
+unless ($Parseable eq 'true') {
 	print(qq{      Target User: $Target
 	        Full Name: $Name
 
@@ -203,7 +202,7 @@ unless ($Parseable eq 'true'){
 	    Sudo as Admin: $SAAS
 	 X Session Errors: $XSessionErrs
 	} =~ tr/\t//dr)
-}else{
+} else {
 	print(qq{Target_User=$Target
 		Full_Name=$Name
 		Real_User_ID=$UID
