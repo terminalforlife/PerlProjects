@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Thu 26 Nov 17:54:43 GMT 2020
+# Last Change       - Thu 26 Nov 18:03:56 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -235,12 +235,13 @@ if ($DoReverse eq 'True') {
 # This is normal, when the logs rotate, but the user might think something was
 # wrong; came across this myself and was really confused!
 if (scalar(@SortedKeys) == 0) {
-	printf "No APT log entries found -- nothing to do.\n";
-	exit(0)
+	print(STDERR "No APT log entries found -- nothing to do.\n");
+	exit(0) # <-- Cleaner; no need to keep going if we're here.
 }
 
 $Text::Wrap::columns = (GetTerminalSize())[0];
 
+my $Count = 0;
 foreach my $Key (@SortedKeys) {
 	my $FancyDateTime = Time::Piece->strptime(
 		"$History{$Key}{'Date'} $History{$Key}{'Time'}", '%Y-%m-%d %H:%M:%S'
@@ -293,6 +294,10 @@ foreach my $Key (@SortedKeys) {
 
 	#---------------------------------------------------------Begin Main Output
 
+	# Once filtering is all done, see how many entries were found. We just need
+	# this, to discover if nothing was found under the filters used or not.
+	$Count++;
+
 	print("$C_FancyDateTime$FancyDateTime$C_Reset\n\n");
 
 	if ($DoCommand eq 'True') {
@@ -329,3 +334,5 @@ foreach my $Key (@SortedKeys) {
 
 	print("\n")
 }
+
+$Count == 0 and print(STDERR "No APT log entries found with given filters.\n");
