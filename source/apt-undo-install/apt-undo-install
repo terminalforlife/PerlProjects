@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/apt-undo-install
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/apt-undo-install
+# Project Name      - PerlProjects/source/apt-undo-install/apt-undo-install
 # Started On        - Tue 23 Apr 18:46:07 BST 2019
-# Last Change       - Mon  2 Nov 17:24:33 GMT 2020
+# Last Change       - Thu 26 Nov 05:27:32 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-02";
+my $CurVer = "2020-11-26";
 my $Progrm = 'apt-undo-install';
 
 my $AptLogFile = '/var/log/apt/history.log';
