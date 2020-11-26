@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-download-deps
 # Started On        - Sat  4 Jan 21:55:31 GMT 2020
-# Last Change       - Sun 22 Nov 14:43:04 GMT 2020
+# Last Change       - Thu 26 Nov 04:58:18 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ use warnings;
 use autodie;
 use AptPkg::Cache;
 
-my $CurVer = '2020-11-22';
+my $CurVer = '2020-11-26';
 my $Progrm = 'apt-download-deps';
 
 sub Usage {
@@ -52,7 +52,7 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-scalar(@ARGV) == 0 and die('At least one package is required.');
+scalar(@ARGV) == 0 and die('At least one package is required');
 
 my $Cache = AptPkg::Cache->new();
 
@@ -83,25 +83,15 @@ sub FetchDeps{
 	return(@Packages)
 }
 
-#TODO: Simplify this process, since it's just one dependency.
-sub DepChk{
-	my @Files;
-	foreach my $Dir (split(':', $ENV{'PATH'})) {
-		-d $Dir or next;
-		opendir(my $DH, $Dir) or next;
-		push(@Files, readdir($DH));
-		closedir($DH);
-	}
-
-	my $Found = scalar(@_);
-	foreach my $CurDep (@_) {
-		grep({$_ eq $CurDep} @Files) and $Found--
-	}
-
-	return($Found)
+my @Executables;
+foreach my $Dir (split(':', $ENV{'PATH'})) {
+	-d $Dir or next;
+	opendir(my $DH, $Dir) or next;
+	push(@Executables, readdir($DH));
+	closedir($DH);
 }
 
-DepChk('apt-get');
+grep({$_ eq 'apt-get'} @Executables) or die("Dependency 'apt-get' not met");
 
 my @ToDL;
 while (scalar(@ARGV) > 0){
