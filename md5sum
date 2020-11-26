@@ -16,8 +16,6 @@ d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 695c767884655b4d65f66eed27e9a841  source/cpufreq
 35c831c3e3ea5f17df20932f341cdb58  source/dayborn
 8ea2464493d8272a8b66227144e1c017  source/depends
-fcfe8dd3c2445d02b21cb3411544e339  source/dominator/completions
-6e1c43388a513d60b621701e820b6783  source/dominator/dominator
 9281b61f9bde73116963a13b887df074  source/fix-ff-gtk
 10dd72459ee323f033c738e4ff9f80e6  source/get-fma
 2a0b6291f278c32e97cc5eede188f218  source/getip
