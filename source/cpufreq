@@ -3,22 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cpufreq
 # Started On        - Sat  4 May 15:51:08 BST 2019
-# Last Change       - Sun  1 Nov 18:55:47 GMT 2020
+# Last Change       - Thu 26 Nov 05:14:47 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# Features:
-#
-# N/A
-#
-# Bugs:
-#
-# N/A
-#
 # Dependencies:
 #
 #   perl (>= 5.22.1-9)
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -26,7 +18,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-01';
+my $CurVer = '2020-11-26';
 my $Progrm = 'cpufreq';
 
 sub Usage {
