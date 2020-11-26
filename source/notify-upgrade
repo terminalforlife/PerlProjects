@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/notify-upgrade
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/notify-upgrade
 # Started On        - Wed 15 Jan 00:45:46 GMT 2020
-# Last Change       - Fri 13 Nov 15:05:33 GMT 2020
+# Last Change       - Thu 26 Nov 05:02:25 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Requires that `apt-get` be found in `/usr/bin/`, else fail. This is to be
 # expected in most, if not all Debian/Ubuntu-based distributions of Linux.
 #
@@ -14,7 +14,8 @@
 #
 #  apt (>= 1.2.32)
 #  libgtk2-notify-perl (>= 0.05-4build2)
-#----------------------------------------------------------------------------------
+#  perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -22,8 +23,8 @@ use autodie;
 
 no warnings 'uninitialized';
 
+my $CurVer = "2020-11-26";
 my $Progrm = 'notify-upgrade';
-my $CurVer = "2020-11-13";
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS]
