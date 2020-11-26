@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dayborn
 # Started On        - Mon 10 Feb 23:49:15 GMT 2020
-# Last Change       - Fri 13 Nov 15:45:13 GMT 2020
+# Last Change       - Thu 26 Nov 04:55:11 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,7 +16,6 @@
 #
 # Dependencies:
 #
-#   libtfl-perl (>= 2020-01-03)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
@@ -28,7 +27,7 @@ use Time::Piece;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-13';
+my $CurVer = '2020-11-26';
 my $Progrm = 'dayborn';
 
 sub Usage{
