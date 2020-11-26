@@ -3,12 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sun 22 Nov 02:13:08 GMT 2020
+# Last Change       - Thu 26 Nov 17:54:43 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Features:
 #
+#TODO: Allow apt-history to use X-number of older log files, using GZIP.
 #TODO: Provide package listing output suitable for piping.
 #TODO: When filtering for users, have option to show only 'System ...' entries.
 #
@@ -29,7 +30,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-22';
+my $CurVer = '2020-11-26';
 my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
 
 sub Usage {
@@ -62,9 +63,9 @@ my $StatusFile = '/var/lib/dpkg/status';
 
 my (
 	%History, $Date, $Time, $Command, $ReqByUser, $ReqByUID, $Action,
-	$Packages, $DoReverse, @SortedKeys, $ActionString, $DoCommand, $NoColor,
+	$Packages, $DoReverse, $ActionString, $DoCommand, $NoColor, $C_Command,
 	$C_Arch, $C_Reset, $C_FancyDateTime, $C_Action, $OnlyAction, $FilterUser,
-	$FilterUID, $FilterPKG, $C_Name, $NoColorStatus, $C_Command
+	$FilterUID, $FilterPKG, $C_Name, $NoColorStatus
 );
 
 while (defined($ARGV[0])) {
@@ -77,8 +78,6 @@ while (defined($ARGV[0])) {
 
 		if (length($ARGV[0]) == 0) {
 			die("Alternative 'history.log' FILE not provided")
-		} elsif (not -f $ARGV[0]) {
-			die("File '$ARGV[0]' not found")
 		} else {
 			$HistFile = $ARGV[0]
 		}
@@ -147,64 +146,68 @@ while (defined($ARGV[0])) {
 
 #---------------------------------------------------Gather Data & Populate Hash
 
+-f $HistFile or die("File '$HistFile' not found");
 -r $HistFile or die("File '$HistFile' unreadable");
 
-open(my $FH, '<', $HistFile);
+if (open(my $FH, '<', $HistFile)) {
+	while (<$FH>) {
+		chomp();
 
-while (<$FH>) {
-	chomp();
+		if (/^Start-Date:/) {
+			($Date, $Time) = (split(' '))[1..2]
+		} elsif (/^Commandline:/) {
+			$Command = (m{(?:$& )(.*)})[0]
+		} elsif (/^Requested-By:/) {
+			my $ReqBy = (m{(?:$&)(.*)})[0];
+			($ReqByUser, $ReqByUID) = (split(' ', $ReqBy))[0..1];
+		} elsif (/^(Install|Purge|Remove|Upgrade):/) {
+			($Action, $Packages) = (m{(^$&)(.*)})[0..1];
 
-	if (/^Start-Date:/) {
-		($Date, $Time) = (split(' '))[1..2]
-	} elsif (/^Commandline:/) {
-		$Command = (m{(?:$& )(.*)})[0]
-	} elsif (/^Requested-By:/) {
-		my $ReqBy = (m{(?:$&)(.*)})[0];
-		($ReqByUser, $ReqByUID) = (split(' ', $ReqBy))[0..1];
-	} elsif (/^(Install|Purge|Remove|Upgrade):/) {
-		($Action, $Packages) = (m{(^$&)(.*)})[0..1];
-
-		# We're finished gathering data, so populate hash, now.
-		$History{"${Date}_$Time"} = {
-			'Date' => $Date,
-			'Time' => $Time,
-			'Command' => $Command,
-			'ReqByUser' => $ReqByUser,
-			'ReqByUID' => $ReqByUID =~ tr/()//dr,
-			'Action' => $Action =~ tr/://dr,
-			'Packages' => $Packages
+			# We're finished gathering data, so populate hash, now.
+			$History{"${Date}_$Time"} = {
+				'Date' => $Date,
+				'Time' => $Time,
+				'Command' => $Command,
+				'ReqByUser' => $ReqByUser,
+				'ReqByUID' => $ReqByUID =~ tr/()//dr,
+				'Action' => $Action =~ tr/://dr,
+				'Packages' => $Packages
+			}
 		}
 	}
-}
 
-close($FH);
+	close($FH);
+}
 
 #----------------------------------Gather Array of Currently Installed Packages
 
 # I could get something like this done via the APT perl module, but that's yet
 # another dependency, so I thought I'd just go the pure-Perl route.
 
-open($FH, '<', $StatusFile);
+-f $StatusFile or die("File '$StatusFile' not found");
+-r $StatusFile or die("File '$StatusFile' unreadable");
 
 my (@InstalledPKGs, $InstalledPKG, $InstalledArch, $PKGStatus);
-while (<$FH>) {
-	chomp();
+if (open(my $FH, '<', $StatusFile)) {
+	while (<$FH>) {
+		chomp();
 
-	if (/^Package:/) {
-		$InstalledPKG = (split(' '))[1]
-	} elsif (/^Status:/) {
-		$PKGStatus = $_ =~ s/^Status: //r
-	} elsif (/^Architecture:/) {
-		$InstalledArch = (split(' '))[1];
-		$InstalledPKG = "$InstalledPKG:$InstalledArch";
+		if (/^Package:/) {
+			$InstalledPKG = (split(' '))[1]
+		} elsif (/^Status:/) {
+			$PKGStatus = $_ =~ s/^Status: //r
+		} elsif (/^Architecture:/) {
+			$InstalledArch = (split(' '))[1];
+			$InstalledPKG = "$InstalledPKG:$InstalledArch";
 
-		if ($PKGStatus eq 'install ok installed') {
-			push(@InstalledPKGs, $InstalledPKG)
+			if ($PKGStatus eq 'install ok installed') {
+				push(@InstalledPKGs, $InstalledPKG)
+			}
 		}
 	}
-}
 
-close($FH);
+	close($FH);
+}
 
 #-------------------------------------------------------------Use Gathered Data
 
@@ -222,10 +225,18 @@ unless ($NoColor eq 'True') {
 	$C_Reset = color('reset')
 }
 
+my @SortedKeys;
 if ($DoReverse eq 'True') {
-	@SortedKeys = sort({$a cmp $b} keys(%History));
+	@SortedKeys = sort({$a cmp $b} keys(%History))
 } else {
-	@SortedKeys = sort({$b cmp $a} keys(%History));
+	@SortedKeys = sort({$b cmp $a} keys(%History))
+}
+
+# This is normal, when the logs rotate, but the user might think something was
+# wrong; came across this myself and was really confused!
+if (scalar(@SortedKeys) == 0) {
+	printf "No APT log entries found -- nothing to do.\n";
+	exit(0)
 }
 
 $Text::Wrap::columns = (GetTerminalSize())[0];
@@ -266,7 +277,7 @@ foreach my $Key (@SortedKeys) {
 			# If package is not currently installed, change its color to red.
 			unless ($NoColor eq 'True' or $NoColorStatus eq 'True') {
 				unless (grep({$_ eq $PKG} @InstalledPKGs)) {
-					$Name = "$C_Name$Name$C_Reset";
+					$Name = "$C_Name$Name$C_Reset"
 				}
 			}
 
@@ -295,7 +306,7 @@ foreach my $Key (@SortedKeys) {
 		);
 
 		# Restore it to a standard newline, for the rest of apt-history.
-		$Text::Wrap::separator = "\n";
+		$Text::Wrap::separator = "\n"
 	}
 
 	unless (length($History{$Key}{'ReqByUser'}) == 0) {
@@ -303,17 +314,17 @@ foreach my $Key (@SortedKeys) {
 			"%sUser '%s' (%d) %s the following:\n", $Pad,
 			$History{$Key}{'ReqByUser'},
 			$History{$Key}{'ReqByUID'},
-			$ActionString,
-		);
+			$ActionString
+		)
 	} else {
 		printf("%sSystem %s the following:\n", $Pad, $ActionString);
 	}
 
 	print("\n");
 	if ($PKGStyle eq 'OneLine') {
-		print("$Pad$_\n") foreach (@Packages);
+		print("$Pad$_\n") foreach (@Packages)
 	} elsif ($PKGStyle eq 'Wrapped') {
-		print(wrap("$Pad", "$Pad", join(' ', @Packages)) . "\n");
+		print(wrap("$Pad", "$Pad", join(' ', @Packages)) . "\n")
 	}
 
 	print("\n")
