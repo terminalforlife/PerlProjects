@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Thu 26 Nov 05:28:23 GMT 2020
+# Last Change       - Thu 26 Nov 06:18:24 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,27 +12,19 @@
 
 _aptundoinstall(){
 	GetArgs(){
-		local CurLine Word
+		local Line Field
 
-		while read -a CurLine; do
-			if ! [[ "$OptsLine" == 'true' && "$Old" =~ ^[A-Z]+:$ ]]; then
-				case "${CurLine[0]}" in
-					OPTS:)
-						Word="${CurLine[1]//|/ } " ;;
-					-*)
-						Word="${CurLine[0]//|/ } " ;;
-				esac
+		while read -a Line; do
+			[ "${Line[0]:0:1}" == '-' ] || continue
 
-				if [ "$Word" == '--output-only:F ' ]; then
-					printf '%s ' --output-only:{col,list,desc}
-				else
-					printf '%s ' "$Word"
+			for Field in "${Line[@]}"; {
+				if [ "$Field" == '-' ]; then
+					break
+				elif [[ $Field == -* ]]; then
+					Field=${Field//\[*\]/}
+					printf '%s ' "${Field//,/}"
 				fi
-
-				local Old=${CurLine[0]/OPTS:}
-			else
-				break
-			fi
+			}
 		done <<< "$(apt-undo-install -h)"
 	}
 
