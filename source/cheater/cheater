@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Tue 24 Nov 03:17:29 GMT 2020
+# Last Change       - Sat 28 Nov 15:07:16 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,7 +23,10 @@
 #
 # Bugs:
 #
-# N/A
+#TODO: Cannot find any sheet existing sheets on Linux Mint 18.3 with Cinnamon.
+#
+#      "Failed to access sheet 'CMD' data via GitHub..." Where CMD is the sheet
+#      it can't find.
 #
 # Dependencies:
 #
@@ -39,7 +42,7 @@ use Term::ANSIColor 'color';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-24';
+my $CurVer = '2020-11-28';
 my $Progrm = 'cheater';
 
 sub Usage {

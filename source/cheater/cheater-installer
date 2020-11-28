@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater-installer
 # Started On        - Tue 24 Nov 03:32:18 GMT 2020
-# Last Change       - Tue 24 Nov 03:51:14 GMT 2020
+# Last Change       - Sat 28 Nov 15:08:25 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -159,8 +159,8 @@ ErrCount=0
 for File in\
 \
 	'completions:/usr/share/bash-completion/completions/cheater'\
-	'cheater.1.gz:/usr/share/man/man1/cheater.1.gz'\
-	'cheater:/usr/bin/cheater'
+	'cheater.1.gz:/usr/share/man/man1/cheater.1.gz' 'cheater:/usr/bin/cheater'\
+	'excluded_lines:/usr/share/cheater/excluded_lines'
 do
 	printf "* Installing '%s' ... " "${File%%:*}"
 	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then
