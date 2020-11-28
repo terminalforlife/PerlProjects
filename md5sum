@@ -9,7 +9,7 @@ de04b97d4e4353028bc3d93a90136146  source/apt-undo-install/completions
 7651f90055567f1be5dd79493828560c  source/cheater/cheater.1.gz
 e33a70874cd4148a35ae0cd153aa0e45  source/cheater/cheater-installer
 16700b9c716cea6803927985f8c23f35  source/cheater/completions
-6f49c19a7fc7af204bb05b7051ef877b  source/cheater/excluded_lines
+d6ad310d2a1a72a542da98b85bbd06e0  source/cheater/excluded_lines
 51a0970e20f6d9f04185f869ff273a23  source/clean-locales
 f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
 eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
