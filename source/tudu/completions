@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/tudu
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/tudu/completions
+# Started On        - Mon 29 Jan 18:47:58 GMT 2018
+# Last Change       - Tue  1 Dec 21:25:10 GMT 2020
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This is the bash completion script for tudu.
+#------------------------------------------------------------------------------
+
+_tudu(){
+	GetArgs(){
+		local CurLine Word
+
+		while read -a Line; do
+			[ "${Line[0]:0:1}" == '-' ] || continue
+
+			for Field in "${Line[@]}"; {
+				if [ "$Field" == '-' ]; then
+					break
+				elif [[ $Field == -* ]]; then
+					Field=${Field//\[*\]/}
+					printf '%s ' "${Field//,/}"
+				fi
+			}
+		done <<< "$(tudu -h)"
+	}
+
+	COMPREPLY=($(compgen -W "$(GetArgs)" -- "$2"))
+}
+
+complete -F _tudu -o default tudu
