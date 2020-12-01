@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/tudu
 # Started On        - Sat 14 Dec 19:42:12 GMT 2019
-# Last Change       - Tue  1 Dec 21:26:28 GMT 2020
+# Last Change       - Tue  1 Dec 21:27:20 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -47,23 +47,6 @@ sub Usage{
 		  -i, --ignore-case        - Case-insensitive search for REGEX.
 
 		  The use of '--' is supported in $ProgrmFancy.
-
-		  When specifying an alternative PATH, it's possible and
-		  intended that the user could provide a file, instead of a
-		  directory.
-
-		  Where REGEX is a REGEX string to filter todo entries.
-
-		  All binary files will be ignored, as will those for which
-		  needed permissions are lacking.
-
-		  CONFIG:     A user configuration file ('~/.config/$Progrm/config')
-		              will be generated when $ProgrmFancy is executed without such a
-		              file existing.
-
-		              The default 'Target' is the current working directory, -
-		              and the default TODO string is '#TODO:', where '#'
-		              indicates a comment.
 	} =~ tr/\t//dr)
 }
 

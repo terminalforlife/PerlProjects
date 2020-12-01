@@ -42,7 +42,7 @@ b4782788e81da6df5ec2865786582b90  source/ptz
 0ea33f4478c6ac2109026e2052274a25  source/suptime
 a1189fb418940b12f2e40de604217917  source/TFL.pm
 761205eeb31bbbd221366f160255ad6f  source/tudu/completions
-5e19ec7558ee87d918d3834168f68f68  source/tudu/tudu
+215f2e410ea98dc037796d34874956cc  source/tudu/tudu
 717d7356eae7a5a97068bd3e40354411  source/tudu/tudu.1.gz
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
 626bc810702296ef62e2a2afbdb72373  source/ubuchk/config
