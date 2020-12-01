@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/tudu
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/tudu
 # Started On        - Sat 14 Dec 19:42:12 GMT 2019
-# Last Change       - Tue  1 Dec 21:27:20 GMT 2020
+# Last Change       - Tue  1 Dec 21:32:23 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Features:
 #
 # N/A
@@ -20,7 +20,7 @@
 #   libfile-listing-perl (>= 6.04-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   perl (>= 5.22.1-9)
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
 use strict;
 use warnings;
@@ -35,7 +35,7 @@ my $Progrm = 'tudu';
 my $ProgrmFancy = 'TuDu';
 my $CurVer = "2020-12-01";
 
-sub Usage{
+sub Usage {
 	print(qq{Usage: $Progrm [OPTS] [REGEX]
 
 		  -h, --help               - Display this help information.
@@ -73,16 +73,16 @@ my @ValidKeys = (
 	'Color_TotalNum'
 );
 
-while(defined($ARGV[0])){
-	if($ARGV[0] =~ /^--$/){
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ /^--$/) {
 		last # <-- End of option processing.
-	}elsif($ARGV[0] =~ '^(--help|-h|-\?)$'){
+	} elsif ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(1); exit 0
-	}elsif($ARGV[0] =~ '^(--version|-v)$'){
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit 0
-	}elsif($ARGV[0] =~ '^(--ignore-case|-i)$'){
+	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
 		$DoCase = 'i'
-	}elsif($ARGV[0] =~ '^(--alt-path|-P)$'){
+	} elsif ($ARGV[0] =~ '^(--alt-path|-P)$') {
 		shift(@ARGV);
 
 		die("Option '--alt-path|-P' requires a PATH")
@@ -90,29 +90,29 @@ while(defined($ARGV[0])){
 
 		$Target = $ARGV[0];
 		$SolidTarget = 'true'
-	}elsif($ARGV[0] =~ '^(--config|-c)$'){
+	} elsif ($ARGV[0] =~ '^(--config|-c)$') {
 		shift(@ARGV);
 
 		die("Option '--config|-c' requires a PATH")
 			unless length($ARGV[0]) > 0;
 
 		$ConfigFile = $ARGV[0]
-	}elsif($ARGV[0] =~ '^(--force-reset|-F)$'){
+	} elsif($ARGV[0] =~ '^(--force-reset|-F)$') {
 		$ForceReset = 'true'
-	}elsif($ARGV[0] eq '--parsable'){
+	} elsif ($ARGV[0] eq '--parsable') {
 		$Parsable = 'true'
-	}elsif($ARGV[0] =~ '^-'){
+	} elsif ($ARGV[0] =~ '^-') {
 		die("Incorrect option(s)")
-	}else{
+	} else {
 		last
 	}
 
 	shift(@ARGV)
 }
 
-if (scalar(@ARGV) > 1){
+if (scalar(@ARGV) > 1) {
 	die("Too many arguments")
-}elsif ($DoCase eq 'i' and scalar(@ARGV) == 0){
+} elsif ($DoCase eq 'i' and scalar(@ARGV) == 0) {
 	die("Option '--ignore-case|-i' used, but no REGEX provided")
 }
 
@@ -121,11 +121,11 @@ my $RegexStr = $ARGV[0];
 
 my $TermCols = @{[GetTerminalSize()]}[0];
 
-unlink($ConfigFile) if $ForceReset eq 'true';
+$ForceReset eq 'true' and unlink($ConfigFile);
 
 # Read the `config` file, if found, then populate the config hash.
-if (-f -r -T $ConfigFile){
-	sub Boolean{
+if (-f -r -T $ConfigFile) {
+	sub Boolean {
 		die("Invalid boolean '$_[0]' detected")
 			unless $_[0] eq 'true' or $_[0] eq 'false'
 	}
@@ -134,55 +134,55 @@ if (-f -r -T $ConfigFile){
 	my @Data = <$FH>;
 	close($FH);
 
-	foreach (@Data){
+	foreach (@Data) {
 		next if length($_) <= 1 or $_ =~ '^#';
 		chomp(my ($Key, $Value) = split('=', $_));
 
 		# Iterate over ckeys to check they're valid.
 		my $IsFound = 'true' if grep($Key, @ValidKeys);
 
-		if ($IsFound eq 'true'){
-			if ($Key eq 'Pretty'){
+		if ($IsFound eq 'true') {
+			if ($Key eq 'Pretty') {
 				Boolean($Value);
 				$Pretty = $Value
-			}elsif ($Key eq 'Target'){
+			} elsif ($Key eq 'Target') {
 				$Target = $Value unless $SolidTarget eq 'true'
-			}elsif ($Key eq 'TodoStr'){
+			} elsif ($Key eq 'TodoStr') {
 				$TodoStr = $Value
-			}elsif ($Key eq 'RegexStr'){
+			} elsif ($Key eq 'RegexStr') {
 				$RegexStr = $Value unless length($Value) == 0
-			}elsif ($Key eq 'DoZPNums'){
+			} elsif ($Key eq 'DoZPNums') {
 				Boolean($Value);
 				$DoZPNums = $Value
-			}elsif ($Key eq 'ShowTTL'){
+			} elsif ($Key eq 'ShowTTL') {
 				Boolean($Value);
 				$ShowTTL = $Value
-			}elsif ($Key eq 'FullPath'){
+			} elsif ($Key eq 'FullPath') {
 				Boolean($Value);
 				$FullPath = $Value
-			}elsif ($Key eq 'Parsable'){
+			} elsif ($Key eq 'Parsable') {
 				next if $Parsable eq 'true';
 
 				Boolean($Value);
 				$Parsable = $Value
-			}elsif ($Key =~ '^Char_.*'){
+			} elsif ($Key =~ '^Char_.*') {
 				next if $Pretty eq 'false' and $Key ne 'Char_Ofl';
 
 				die("Key '$Key' equals too long a value")
 					if length($Value) > 1;
 
 				$CharHash{$Key} = $Value
-			}elsif ($Key =~ '^Color_.*'){
+			} elsif ($Key =~ '^Color_.*') {
 				$ColorHash{$Key} = $Value =~ tr/['"]//dr
-			}else{
+			} else {
 				die("Invalid color '$Value' detected")
 					unless colorvalid($Value);
 			}
-		}else{
+		} else {
 			die("Invalid key '$Key' detected")
 		}
 	}
-}else{
+} else {
 	die("User configuration file could not be generated")
 		unless -w -x ($ConfigFile =~ m{(.*)(?:/.*)})[0];
 
@@ -252,12 +252,12 @@ my $EntryTTL = 0;
 # Read file ($_[0]) then output pretty and column-mindful list of todo entries.
 # For now, we're dealing with one-liners only. Eventually, I'd like to see
 # multi-line todo entries, but that will require some faffing about.
-sub GetTodo{
+sub GetTodo {
 	open(my $FH, '<', $_[0]);
 	my $FileShown = $_[0] =~ s/$ENV{HOME}/\~/dr;
 
 	my (@TodoList, $Valid);
-	while (<$FH>){
+	while (<$FH>) {
 		undef($Valid);
 		chomp($_);
 
@@ -267,36 +267,36 @@ sub GetTodo{
 		# Check each field in line for the todo string.
 		$Valid = 'true' if grep(/^$TodoStr$/, split(' ', $_));
 
-		if ($Valid eq 'true'){
+		if ($Valid eq 'true') {
 			my $Todo = $_ =~ s/^.*$TodoStr //dr;
 			my $TodoLen = length($Todo);
 
 			$EntryTTL++;
 
 			# If entry is too long, snip it with the overflow character.
-			if ($Parsable ne 'true' and $TodoLen > $TermCols - 10){
+			if ($Parsable ne 'true' and $TodoLen > $TermCols - 10) {
 				$Todo = substr($Todo, 0, $TermCols - ($TodoLen + 12)) .
 					color($ColorHash{Color_EOL}) . $CharHash{Char_Ofl} .
 					color('reset')
 			}
 
 			# Look for user-provided REGEX in line, if one is given.
-			if (length($RegexStr) > 0){
-				if ($DoCase eq 'i'){
+			if (length($RegexStr) > 0) {
+				if ($DoCase eq 'i') {
 					next unless grep(m/$RegexStr/i, $Todo)
-				}else{
+				} else {
 					next unless grep(m/$RegexStr/, $Todo)
 				}
 			}
 
-			if ($Parsable ne 'true'){
+			if ($Parsable ne 'true') {
 				# Maximum line supported is 9,999,999. If an override feature is
 				# requested, I'll probably get to adding that. If you have one file
 				# of anything like that number, you probably should split it up.
 				my $FNums;
-				if ($DoZPNums eq 'true'){
+				if ($DoZPNums eq 'true') {
 					$FNums = ' %0.7d '
-				}else{
+				} else {
 					$FNums = ' %7d '
 				}
 
@@ -314,7 +314,7 @@ sub GetTodo{
 						$., $CharHash{Char_Mid}, $Todo
 					)
 				)
-			}else{
+			} else {
 				push(@TodoList, sprintf("%s~~~%d~~~%s", $FileShown, $., $Todo))
 			}
 		}
@@ -325,7 +325,7 @@ sub GetTodo{
 	# Don't show anything if no todos were found.
 	return(1) unless scalar(@TodoList) > 0;
 
-	if ($Parsable ne 'true'){
+	if ($Parsable ne 'true') {
 		# To ensure the filenames don't flow over the coloumn limit.
 		my $DirName = ($FileShown =~ m{(.*)(?:/.*)})[0] =~ s/.*\//...\//dr . '/';
 		$FileShown = $DirName . ($FileShown =~ m{(?:.*/)(.*)})[0]
@@ -343,24 +343,24 @@ sub GetTodo{
 
 		printf(color($ColorHash{Color_EndChar}) . "%10s\n" .
 			color('reset'), $CharHash{Char_End})
-	}else{
+	} else {
 		printf("%s\n", $_) foreach @TodoList;
 	}
 }
 
-if (-d $Target){
+if (-d $Target) {
 	die('Directory inaccessible') unless -r -x $Target;
 
 	our @FileArr;
 
-	sub Conditions{
+	sub Conditions {
 		my $Name = $File::Find::name;
 
 		# Must be a readable non-binary file.
 		return unless -f -r -T $Name;
 
 		my @SplitName = split('/', $Name);
-		foreach (@SplitName){
+		foreach (@SplitName) {
 			return if $_ eq '.git'
 		}
 
@@ -371,20 +371,20 @@ if (-d $Target){
 	find(\&Conditions, $Target);
 
 	foreach (@FileArr){GetTodo($_)}
-}elsif (-f $Target){
+} elsif (-f $Target) {
 	die('File unreadable') unless -r $Target;
 	die('File is binary') if -r -B $Target;
 
 	GetTodo($Target)
-}else{
+} else {
 	die('Non-existent or invalid target specified')
 }
 
-if ($EntryTTL == 0){
+if ($EntryTTL == 0) {
 	printf("Wonderful -- you have exactly nothing to do here.\n");
 
 	exit(0)
-}else{
+} else {
 	my $FormatStr = '%d';
 	$FormatStr = '?/%d' if length($RegexStr) > 0;
 
