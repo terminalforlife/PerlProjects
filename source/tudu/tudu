@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/tudu
 # Started On        - Sat 14 Dec 19:42:12 GMT 2019
-# Last Change       - Mon  2 Nov 02:42:28 GMT 2020
+# Last Change       - Tue  1 Dec 20:43:01 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #----------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ no warnings 'uninitialized', 'File::Find';
 
 my $Progrm = 'tudu';
 my $ProgrmFancy = 'TuDu';
-my $CurVer = "2020-11-02";
+my $CurVer = "2020-12-01";
 
 sub Usage{
 	print(qq{Usage: $Progrm [OPTS] [REGEX]
@@ -42,7 +42,7 @@ sub Usage{
 		  -v, --version            - Output the version datestamp.
 		  --config PATH            - Override default file with PATH.
 		  --force-reset            - Force regeneration of user's config.
-		  --parseable              - Parseable output, similar to raw.
+		  --parsable               - Parseable output, similar to raw.
 		  -P, --alt-path PATH      - Override value in config with PATH.
 		  -i, --ignore-case        - Case-insensitive search for REGEX.
 
@@ -116,7 +116,7 @@ while(defined($ARGV[0])){
 		$ConfigFile = $ARGV[0]
 	}elsif($ARGV[0] =~ '^(--force-reset|-F)$'){
 		$ForceReset = 'true'
-	}elsif($ARGV[0] eq '--parseable'){
+	}elsif($ARGV[0] eq '--parsable'){
 		$Parseable = 'true'
 	}elsif($ARGV[0] =~ '^-'){
 		die("Incorrect option(s)")
