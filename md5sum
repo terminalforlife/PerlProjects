@@ -41,7 +41,8 @@ b4782788e81da6df5ec2865786582b90  source/ptz
 917689528cac6fc124a66f2fa1d2765a  source/somacli
 0ea33f4478c6ac2109026e2052274a25  source/suptime
 a1189fb418940b12f2e40de604217917  source/TFL.pm
-d0ebc9ee1f03162e45d576d4a7f99b03  source/tudu
+0993f7054c20c8cb94627529a1ab09fe  source/tudu/tudu
+717d7356eae7a5a97068bd3e40354411  source/tudu/tudu.1.gz
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
 626bc810702296ef62e2a2afbdb72373  source/ubuchk/config
 fe3fb6182bb2c3e7c17698223bc1ae79  source/ubuchk/database
