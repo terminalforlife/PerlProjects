@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  7 Dec 22:37:46 GMT 2020
+# Last Change       - Mon  7 Dec 22:51:51 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -282,7 +282,12 @@ unless ($ForceRun eq 'true'){
 		while (<$FH>){
 			chomp();
 			next if /^(#|$)/;
+
 			next unless $_ eq 'ID=ubuntu';
+
+			# As of 2020-12-07, through numerous testing in and supportive code
+			# for Pop! OS 20.04, I'm happy that UbuChk works just fine in it.
+			next unless $_ eq 'ID=pop';
 
 			$Found = 'true';
 
