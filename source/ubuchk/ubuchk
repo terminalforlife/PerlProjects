@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  7 Dec 22:31:39 GMT 2020
+# Last Change       - Mon  7 Dec 22:37:46 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -416,7 +416,7 @@ sub Alert{ # Usage: [ALERT_ID] [STRING]
 
 		printf(
 			$ColorHash{'Color_AlertRecommend'} . ' ' x 8 .
-			"%s\n" . color('reset'), $_[2]
+			"%s\n" . color('reset'), $_[2] . color('reset')
 		) if $Recommend eq 'true';
 
 		if ($AutoQuery eq 'true'){
