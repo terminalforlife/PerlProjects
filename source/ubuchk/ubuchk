@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 28 Nov 16:59:14 GMT 2020
+# Last Change       - Mon  7 Dec 22:31:39 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-28';
+my $CurVer = '2020-12-07';
 my $Progrm = 'ubuchk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
@@ -1255,6 +1255,9 @@ if ($DiskSpace eq 'true'){
 			if ($Arr[0] =~ '^/dev/(sd|hd|fd)[[:alpha:]]+[0-9]+$'){
 				# Avoids `not a directory` error, for EFI setups.
 				next if $Arr[1] eq '/boot/efi';
+
+				# Avoids other `not a directory` error instances.
+				next unless -d $Arr[0];
 
 				Info("Looking at '$Arr[0]' partition.");
 
