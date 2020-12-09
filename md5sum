@@ -1,5 +1,5 @@
 deb8ed0cc264e9272879a499042ff7aa  source/apt-download-deps
-ebb5db0a669a4ae20adef5f8507669aa  source/apt-history/apt-history
+35d63338dc709c7d02d2f76c0e579106  source/apt-history/apt-history
 84517f5164a56f239f00d8e31746d1b0  source/apt-history/apt-history.1.gz
 475d7322d95e7ecb02a172b131ff8650  source/apt-history/completions
 49761c2278882b32288b1417f8e97464  source/apt-undo-install/apt-undo-install

@@ -239,7 +239,7 @@ if (scalar(@SortedKeys) == 0) {
 	exit(0) # <-- Cleaner; no need to keep going if we're here.
 }
 
-$Text::Wrap::columns = (GetTerminalSize())[0];
+$Text::Wrap::columns = (GetTerminalSize())[0] - 1;
 
 my $Count = 0;
 foreach my $Key (@SortedKeys) {
