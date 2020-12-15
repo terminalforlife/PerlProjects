@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon  7 Dec 22:51:51 GMT 2020
+# Last Change       - Tue 15 Dec 22:39:25 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -107,7 +107,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-12-07';
+my $CurVer = '2020-12-15';
 my $Progrm = 'ubuchk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
@@ -143,6 +143,10 @@ my (
 	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor, %ColorHash,
 	$ANSIColors, $Char_Margin, %Syms, $ShowTTL, $HushIgnored
 );
+
+# These distributions are deemed supported and these strings are the value to
+# the 'ID' key in the '/etc/os-release' file.
+my @SupportedLSBs = ('ubuntu', 'pop');
 
 my $MainDir = "$ENV{HOME}/.config/$Progrm";
 my $ConfigFile = "$MainDir/config";
@@ -279,19 +283,11 @@ unless ($ForceRun eq 'true'){
 		open(my $FH, '<', $OSRelFile);
 
 		my $Found;
-		while (<$FH>){
-			chomp();
-			next if /^(#|$)/;
-
-			next unless $_ eq 'ID=ubuntu';
-
-			# As of 2020-12-07, through numerous testing in and supportive code
-			# for Pop! OS 20.04, I'm happy that UbuChk works just fine in it.
-			next unless $_ eq 'ID=pop';
-
-			$Found = 'true';
-
-			last
+		while (my $Line = <$FH>){
+			chomp(my ($Key, $Value) = split('=', $Line));
+			if ($Key eq 'ID' and grep({$_ eq 'ubuntu'} @SupportedLSBs)){
+				$Found = 'true'
+			}
 		}
 
 		close($FH);
