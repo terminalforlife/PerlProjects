@@ -46,7 +46,7 @@ a1189fb418940b12f2e40de604217917  source/TFL.pm
 717d7356eae7a5a97068bd3e40354411  source/tudu/tudu.1.gz
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
 626bc810702296ef62e2a2afbdb72373  source/ubuchk/config
-fe3fb6182bb2c3e7c17698223bc1ae79  source/ubuchk/database
+4fba265f511d16fc81284aa7b2a7a9f3  source/ubuchk/database
 9e2fd4f8ac9c38ecbe5c526c51f4c46d  source/ubuchk/database-rk
 a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 389749cf5834712b861bf8dfc4453f96  source/ubuchk/postrm
@@ -54,7 +54,7 @@ a499d84d807d3249a7bbde6c73d1e751  source/ubuchk/postinst
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
 642b9f0f1e4f019005e0b4aaeffc90c2  source/ubuchk/screenshots/Screenshot_2020-03-10_00:59:02.jpg
 3fdc0e461dcaab6076e40fe99f1cc17b  source/ubuchk/ubuchk
-786964a6133c8236dc19cea1333bc6ac  source/ubuchk/ubuchk.8.gz
+6382cd160ed25f973a87f5b0b6df292b  source/ubuchk/ubuchk.8.gz
 b16bee3fa489621cb3ef9a2649ee7880  source/ubuchk/ubuchk-db
 9affc715b086a034e33c8078817fd9cd  source/ubuchk/ubuchk-installer
 57e846a35b84c2a8ad483b2b486d4529  source/vignify

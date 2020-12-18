@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Mon  2 Nov 00:26:31 GMT 2020
+# Last Change       - Fri 18 Dec 16:06:05 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -65,6 +65,26 @@ If a `$PATH` executable is owned by a standard user or in such a group, chances 
 By default, in most Debian- and Ubuntu-based distributions of Linux, when a package is simply removed (even with `[--]autoremove`) global configuration and other associated files remain. This is observed when running `dpkg -l` in a terminal and looking for packages with a status of `rc`.
 .
 There may be situations in which you wish to keep the old configurations left by once-removed packages, such as if you plan to eventually re-install the package.
+.
+Purging a package can be done with the following:
+.
+  # apt-get purge PACKAGE
+.
+Or:
+.
+  # apt-get remove --purge PACKAGE
+.
+However you gain them, root privileges are usually required to deal with packages in Debian- and Ubuntu-based distributions of Linux, so either switch to the root user with su(1) prior to executing the above command, or use sudo(8).
+.
+If you have PurgeRC installed, you can simply run:
+.
+  # purgerc
+.
+To systematically purge all packages removed but not yet purged. You can find this small tool in the Extra repository of GitHub user 'terminalforlife'.
+.
+  https://github.com/terminalforlife/Extra
+.
+PurgeRC was written by the same person who wrote UbuChk.
 :6131,6132,6133,6134,6135,6136,6137,6138
 Refer to the man pages apt.conf(5), apt_preferences(5), and apt(8) for further information on setting special configuration keys for APT.
 :6998,6997,6996,6995,6994,6993
