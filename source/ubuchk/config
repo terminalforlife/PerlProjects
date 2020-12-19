@@ -1,5 +1,5 @@
 #cito M:644 O:0 G:0 T:/usr/share/ubuchk/config
-# User configuration file for UbuChk (>= 2020-11-01)
+# User configuration file for UbuChk (>= 2020-12-19)
 # Refer to ubuchk(8) to learn about these settings.
 
 # Core Settings
@@ -132,3 +132,4 @@ CMOS=false
 FailedLogins=true
 LightDM=true
 ProcVuln=true
+SymsFileMode=true

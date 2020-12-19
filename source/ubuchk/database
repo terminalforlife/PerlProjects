@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Fri 18 Dec 16:06:05 GMT 2020
+# Last Change       - Sat 19 Dec 00:18:55 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -303,3 +303,13 @@ https://lwn.net/Articles/660331
 In 2017, Gus Khawaja of Plural Sight (https://www.pluralsight.com) recommends setting this kernel parameter to `0`, disabling the ability to forward IP addresses, and increasing security as a result.
 .
 You may find this parameter is already disabled by default on your Linux installation, but if you're reading this, chances are you've discovered it's enabled. If you're sure you have no need to forward IP addresses, go ahead and disable this parameter.
+:8128
+Setting this file's mode to '400' can be done by using the chmod(1) command to that effect in `/etc/rc.local`, or similar file, to ensure it works at boot-time.
+.
+You can find mention of this, through:
+.
+  https://lwn.net/Articles/415609/
+.
+"Making /proc/kallsyms readable only for root makes it harder for attackers to write generic kernel exploits by removing one source of knowledge where things are in the kernel." -- Marcus Meissner
+.
+This might already be handled for you, but just in-case, UbuChk will check.
