@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 19 Dec 01:15:43 GMT 2020
+# Last Change       - Sat 19 Dec 01:34:39 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -61,7 +61,6 @@
 #
 # Bugs:
 #
-#TODO: Entering `ubuchk ---list-keys` throws out an error for `-key|-k` OPT.
 #TODO: Key overriding using OPT is ignored if key not found in config.
 #
 #      Simply assigning a default set of values (default config) would fix
