@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Sat 19 Dec 00:18:55 GMT 2020
+# Last Change       - Sat 19 Dec 01:16:15 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -313,3 +313,5 @@ You can find mention of this, through:
 "Making /proc/kallsyms readable only for root makes it harder for attackers to write generic kernel exploits by removing one source of knowledge where things are in the kernel." -- Marcus Meissner
 .
 This might already be handled for you, but just in-case, UbuChk will check.
+:2623
+Undocumented.

@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 19 Dec 00:12:45 GMT 2020
+# Last Change       - Sat 19 Dec 01:15:43 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,11 +12,6 @@
 # Features:
 #
 #TODO: Check for module `pam_namespace` for user's own `/tmp` and `/var/tmp`.
-#TODO: Use: '/sys/devices/system/cpu/cpu[0-3]/cpufreq/scaling_governor'
-#
-#      Check for 'performance' unless on a laptop, in which case look for
-#      'powersave'.
-#
 #TODO: Add file permissions and ownership section (not just directories).
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `AllowUsers` check to `SSHServer` key.
@@ -135,10 +130,17 @@ my (
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
 	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor, %ColorHash,
-	$ANSIColors, $Char_Margin, %Syms, $ShowTTL, $HushIgnored, $SymsFileMode
+	$ANSIColors, $Char_Margin, %Syms, $ShowTTL, $HushIgnored, $SymsFileMode,
+	$CPUGovernor
 );
 
 my $SymsFile = '/proc/kallsyms';
+
+# Let me know if I missed any.
+my @ValidGovs = (
+	'performance', 'schedutil', 'powersave',
+	'conservative', 'userspace', 'ondemand'
+);
 
 # These distributions are deemed supported and these strings are the value to
 # the 'ID' key in the '/etc/os-release' file.
@@ -747,6 +749,12 @@ if (-f -r -T $ConfigFile){
 		}elsif ($Key eq 'SymsFileMode'){
 			Boolean($Value);
 			$SymsFileMode = $Value
+		}elsif ($Key eq 'CPUGovernor'){
+			if (length($CPUGovernor) > 0 and not grep($Value, @ValidGovs)){
+				die("CPU governor '$CPUGovernor' not recognised")
+			}
+
+			$CPUGovernor = $Value
 		}else{
 			warn("Key '$Key' unknown");
 
@@ -2190,7 +2198,7 @@ if ($SymsFileMode eq 'true'){
 		my $Mode = (stat($SymsFile))[2];
 		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
-		if ($Mode eq 400){
+		if ($Mode == 400){
 			Info("Mode '400' set for '$SymsFile'.")
 		}else{
 			Alert(
@@ -2204,6 +2212,47 @@ if ($SymsFileMode eq 'true'){
 	}
 }else{
 	Info("Ignoring mode of '$SymsFile' file.") unless $HushIgnored eq 'true'
+}
+
+#----------------------------------------------Check CPU Governor Is As Desired
+
+if (length($CPUGovernor) > 0){
+	my $GovDir = '/sys/devices/system/cpu/cpufreq';
+
+	my (%Governors, $FoundFile);
+	foreach my $Dir (glob("$GovDir/*")) {
+		-d $Dir or next;
+
+		foreach my $File ("$Dir/scaling_governor") {
+			$FoundFile = 'true';
+
+			open(my $FH, '<', $File);
+
+			chomp(my $Data = <$FH>);
+			my $Core = ($Dir =~ m{.*/policy([0-9]+)})[0] + 1;
+			$Governors{$Core} = $Data;
+
+			close($FH)
+		}
+	}
+
+	if ($FoundFile eq 'true'){
+		foreach (sort({$a > $b} keys(%Governors))) {
+			Info("CPU Core #$_ using '$Governors{$_}' governor.");
+
+			unless ($Governors{$_} eq $CPUGovernor) {
+				Alert(
+					2623,
+					"CPU Core #$_ using '$Governors{$_}' governor.",
+					"Configured to prefer '$CPUGovernor'."
+				)
+			}
+		}
+	}else{
+		Info("Missing prerequisites -- skipping 'CPUGovernor' key.")
+	}
+}else{
+	Info("Ignoring CPU governors.") unless $HushIgnored eq 'true'
 }
 
 #------------------------------------------------------------------------Finish

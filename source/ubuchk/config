@@ -129,6 +129,7 @@ UFW=true
 
 # Miscellaneous
 CMOS=false
+CPUGovernor=
 FailedLogins=true
 LightDM=true
 ProcVuln=true
