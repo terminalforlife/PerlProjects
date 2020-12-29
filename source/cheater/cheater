@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Tue 29 Dec 01:29:24 GMT 2020
+# Last Change       - Tue 29 Dec 01:36:05 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -37,7 +37,7 @@
 use strict;
 use warnings;
 use autodie;
-use LWP::UserAgent;
+use LWP::Simple;
 use Term::ANSIColor 'color';
 
 no warnings 'uninitialized';
@@ -132,15 +132,6 @@ if (length($Highlight) > 0 and $NoColors eq 'True') {
 	die('Highlighting unavailable, because colors are disabled')
 }
 
-#-----------------------------------------------------Initialize LWP::UserAgent
-
-my $UA = LWP::UserAgent->new(
-	'agent' => 'Mozilla/5.0',
-	'max_redirects' => 1,
-	'protocols_allowed' => ['http', 'https'],
-	'timeout' => 10
-);
-
 #----------------------------------------------Populate List of Lines to Ignore
 
 my @Excludes;
@@ -170,13 +161,13 @@ foreach my $CurSheet (@ARGV) {
 	if ($CurSheet =~ '/') {
 		# Using one of the '_*' subdirectories.
 		my ($Left, $Right) = split('/', $CurSheet);
-		$Response = $UA->get("$RawURL/_$Left/$Right")
+		$Response = get("$RawURL/_$Left/$Right")
 	} else {
-		$Response = $UA->get("$RawURL/$CurSheet")
+		$Response = get("$RawURL/$CurSheet")
 	}
 
-	if ($Response->is_success()) {
-		foreach my $Line (split("\n", $Response->decoded_content())) {
+	if (length($Response) > 0) {
+		foreach my $Line (split("\n", $Response)) {
 			# This is of no consequence to us, as we're working differently.
 			# This is a special line talked about between Chubin and
 			# contributors, such as myself, which would contain parameters much
