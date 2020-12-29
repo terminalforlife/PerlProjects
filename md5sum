@@ -5,7 +5,7 @@ deb8ed0cc264e9272879a499042ff7aa  source/apt-download-deps
 49761c2278882b32288b1417f8e97464  source/apt-undo-install/apt-undo-install
 de04b97d4e4353028bc3d93a90136146  source/apt-undo-install/completions
 0818fb2fb4348d6a0fe1931d5498f6df  source/battery-monitor
-3e778df8b8b437aec75c81ecd540db8c  source/cheater/cheater
+75d74a41d3874bdc7010b023cc354f8d  source/cheater/cheater
 7651f90055567f1be5dd79493828560c  source/cheater/cheater.1.gz
 e33a70874cd4148a35ae0cd153aa0e45  source/cheater/cheater-installer
 16700b9c716cea6803927985f8c23f35  source/cheater/completions

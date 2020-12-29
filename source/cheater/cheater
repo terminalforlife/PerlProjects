@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Sat 28 Nov 15:07:16 GMT 2020
+# Last Change       - Tue 29 Dec 01:29:24 GMT 2020
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ use Term::ANSIColor 'color';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-28';
+my $CurVer = '2020-12-29';
 my $Progrm = 'cheater';
 
 sub Usage {
@@ -141,32 +141,6 @@ my $UA = LWP::UserAgent->new(
 	'timeout' => 10
 );
 
-#-------------------------Generate List of Available Files, Then Check $ARGV[0]
-
-my $Response = $UA->get($DirURL);
-if ($Response->is_success()) {
-	foreach (split("\n", $Response->decoded_content())) {
-		if ($_ =~ 'href="/chubin/cheat.sheets/blob/master/sheets/') {
-			chomp(my $Link = s/.*">(.*)<\/a.*/$1/r);
-			push(@AvailFiles, $Link)
-		}
-	}
-} else {
-	die('Failed to discover available sheets')
-}
-
-undef($Response);
-
-my $ErrCount;
-foreach my $CurArg (@ARGV) {
-	unless (grep({$_ eq $CurArg} @AvailFiles)) {
-		warn("Sheet '$CurArg' not found");
-		$ErrCount++
-	}
-}
-
-$ErrCount == 0 or exit(1);
-
 #----------------------------------------------Populate List of Lines to Ignore
 
 my @Excludes;
@@ -191,7 +165,16 @@ if (-f $ExcludedFile) {
 my ($ComStrip, @FinalLines);
 foreach my $CurSheet (@ARGV) {
 	my $HeaderSeen = 'False';
-	my $Response = $UA->get("$RawURL/$CurSheet");
+
+	my $Response;
+	if ($CurSheet =~ '/') {
+		# Using one of the '_*' subdirectories.
+		my ($Left, $Right) = split('/', $CurSheet);
+		$Response = $UA->get("$RawURL/_$Left/$Right")
+	} else {
+		$Response = $UA->get("$RawURL/$CurSheet")
+	}
+
 	if ($Response->is_success()) {
 		foreach my $Line (split("\n", $Response->decoded_content())) {
 			# This is of no consequence to us, as we're working differently.
