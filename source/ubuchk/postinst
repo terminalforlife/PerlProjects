@@ -3,29 +3,21 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/postinst
 # Started On        - Mon  2 Mar 16:05:09 GMT 2020
-# Last Change       - Tue 10 Mar 00:18:33 GMT 2020
+# Last Change       - Fri  1 Jan 19:15:05 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# Creates a symbolic link for Bash completion support, and adjusts various
-# default UbuChk settings based on what's detected as being appropriate.
-#
-# This is mainly, but not solely, for use with UbuChk Debian packages.
+# Creates a symbolic link for Bash completion support. This is mainly, but not
+# solely, for use with UbuChk Debian packages.
 #------------------------------------------------------------------------------
 
 CompFile='/usr/share/bash-completion/completions/ubuchk'
-ConfigFile="/usr/share/${CompFile##*/}/config"
 
-if [ -f "$CompFile" ]; then
+if [ -f "$CompFile" -a "${CompFile%/*}" ]; then
 	if ! [ -w "${CompFile%/*}" ]; then
 		printf "ERROR: Root access required.\n" 1>&2
-		exit 0
 	else
 		if ! [ -L "${CompFile}-db" ]; then
-			if ! command -v ln 1> /dev/null 2>&1; then
-				printf "ERROR: Command 'ln' not found.\n" 1>&2
-			fi
-
 			if ! ln -s "$CompFile" "${CompFile}-db"; then
 				printf 'ERROR: Failed to create symbolic link.\n' 1>&2
 			else
@@ -37,52 +29,4 @@ if [ -f "$CompFile" ]; then
 	fi
 else
 	printf 'ERROR: Bash completion file '${CompFile##*/}' not found.\n' 1>&2
-fi
-
-if command -v laptop-detect 1> /dev/null 2>&1; then
-	if command -v sed 1> /dev/null 2>&1; then
-		laptop-detect 1> /dev/null 2>&1; Exit=$?
-		if [ $Exit -eq 0 ]; then
-			sed -ir 's/^Laptop=.*/Laptop=true/' "$ConfigFile"
-			printf "Default 'Laptop' key set to 'true'.\n"
-		elif [ $Exit -eq 1 ]; then
-			sed -ir 's/^Laptop=.*/Laptop=false/' "$ConfigFile"
-			printf "Default 'Laptop' key set to 'false'.\n"
-		else
-			printf "Skipping default 'Laptop' key autoset.\n"
-		fi
-	else
-		printf "Skipping default 'Laptop' key autoset.\n"
-	fi
-else
-	printf "Skipping default 'Laptop' key autoset.\n"
-fi
-
-if command -v dpkg 1> /dev/null 2>&1 && command -v grep 1> /dev/null 2>&1; then
-	if dpkg --get-selections  | grep -q '^openssh-client[[:space:]]\+install$'; then
-		sed -ir 's/^SSHClient=.*/SSHClient=true/' "$ConfigFile"
-		printf "Default 'SSHClient' key set to 'true'.\n"
-	else
-		sed -ir 's/^SSHClient=.*/SSHClient=false/' "$ConfigFile"
-		printf "Default 'SSHClient' key set to 'false'.\n"
-	fi
-
-	if dpkg --get-selections  | grep -q '^openssh-server[[:space:]]\+install$'; then
-		sed -ir 's/^SSHServer=.*/SSHServer=true/' "$ConfigFile"
-		printf "Default 'SSHServer' key set to 'true'.\n"
-	else
-		sed -ir 's/^SSHServer=.*/SSHServer=false/' "$ConfigFile"
-		printf "Default 'SSHServer' key set to 'false'.\n"
-	fi
-else
-	printf "Skipping default 'SSHClient' key autoset.\n"
-	printf "Skipping default 'SSHServer' key autoset.\n"
-fi
-
-if command -v systemd 1> /dev/null 2>&1; then
-	sed -ir 's/^SystemD=.*/SystemD=true/' "$ConfigFile"
-	printf "Default 'SystemD' key set to 'true'.\n"
-else
-	sed -ir 's/^SystemD=.*/SystemD=false/' "$ConfigFile"
-	printf "Default 'SystemD' key set to 'false'.\n"
 fi
