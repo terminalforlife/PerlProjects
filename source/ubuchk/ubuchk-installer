@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Tue 24 Nov 03:53:47 GMT 2020
+# Last Change       - Fri  1 Jan 19:08:24 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -96,7 +96,7 @@ printf 'Fetching files from GitHub:\n'
 ErrCount=0
 for File in\
 \
-	'completions' 'config' 'database' 'database-rk' 'ubuchk'\
+	'completions' 'database' 'database-rk' 'ubuchk'\
 	'ubuchk-db' 'ubuchk.8.gz'
 do
 	printf "* Downloading '%s' ... " "$File"
@@ -144,8 +144,7 @@ ErrCount=0
 for File in\
 \
 	'ubuchk:755' 'ubuchk-db:755' 'completions:644'\
-	'ubuchk.8.gz:644' 'config:644' 'database:644'\
-	'database-rk:644'
+	'ubuchk.8.gz:644' 'database:644' 'database-rk:644'
 do
 	chmod ${File##*:} "$TmpDir/${File%:*}" 2>> "$LogFile" ||
 		ErrCount=$((ErrCount + 1))
@@ -164,7 +163,6 @@ ErrCount=0
 for File in\
 \
 	'completions:/usr/share/bash-completion/completions/ubuchk'\
-	'config:/usr/share/ubuchk/config'\
 	'database:/usr/share/ubuchk/database'\
 	'database-rk:/usr/share/ubuchk/database-rk'\
 	'ubuchk-db:/usr/bin/ubuchk-db'\
