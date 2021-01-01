@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 19 Dec 01:34:39 GMT 2020
+# Last Change       - Fri  1 Jan 18:44:48 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -95,8 +95,9 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-12-19';
+my $CurVer = '2021-01-01';
 my $Progrm = 'ubuchk';
+my $ProgrmFancy = 'UbuChk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
@@ -470,16 +471,12 @@ sub ParseDpkgStatus{ # Usage: [STATUS_STRING]
 #-----------------------List Keys and Gather Total Number of Alerts in Database
 
 if ($ListKeys eq 'true'){
-	open(my $FH, '<', $DefaultConfigFile);
-
 	my @Keys;
-	while (<$FH>){
+	while (<DATA>){
 		next if /^(#|$)/;
 		my @Line = split('=');
 		push(@Keys, $Line[0])
 	}
-
-	close($FH);
 
 	my $Old;
 	foreach (sort(@Keys)){
@@ -503,6 +500,13 @@ if ($ListKeys eq 'true'){
 }
 
 #-------------------------------------Configuration File Parsing and Generation
+
+# Look for old file no longer used as of UbuChk 2021-01-01 version. Ideally, -
+# this would be taken care of by the installer, but just in-case, check. Might
+# avoid any confusion by the user, plus it's just cleaner.
+if ($Verbose eq 'true' and -f $DefaultConfigFile) {
+	print("NOTE: Found '$DefaultConfigFile' -- see: man $Progrm\n");
+}
 
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
 
@@ -770,25 +774,19 @@ if (-f -r -T $ConfigFile){
 		die("Key conflict with 'BatCrit' and 'BatLow'")
 	}
 }else{
-	if (-f $DefaultConfigFile){
-		FileChk($DefaultConfigFile);
+	# Store contents into buffer, sans initial and now-unneeded Cito line.
+	my @Buffer = <DATA>;
+	my @Corrected = @Buffer[1..@Buffer];
 
-		# Store contents into buffer, sans initial and now-unneeded Cito line.
-		open(my $FH, '<', $DefaultConfigFile);
-		my @Buffer = <$FH>;
-		my @Corrected = @Buffer[1..@Buffer];
-		close($FH);
+	# Write to new user's-own config file.
+	open(my $FH, '>', $ConfigFile);
+	print($FH "# User configuration file for $ProgrmFancy (>= $CurVer)\n");
+	print($FH "# Refer to $Progrm(8) to learn about these settings.\n\n");
+	print($FH @Corrected);
+	close($FH);
 
-		# Write to new user's-own config file.
-		open($FH, '>', $ConfigFile);
-		print($FH @Corrected);
-		close($FH);
-
-		printf("File '~/.config/$Progrm/config' generated");
-		exit(0)
-	}else{
-		die("File '/usr/share/$Progrm/config' not found")
-	}
+	printf("File '~/.config/$Progrm/config' generated");
+	exit(0)
 }
 
 if (@SkipIDs > 0){
@@ -2266,3 +2264,140 @@ if ($ShowTTL eq 'true'){
 	Info("Omitting display of total number of alerts.")
 		unless $HushIgnored eq 'true'
 }
+
+#-------------------Default Configuration (Formerly '/usr/share/ubuchk/config')
+
+__DATA__
+
+# Core Settings
+ANSIColors=true
+AutoQuery=false
+QueryIndent=6
+Recommend=true
+ShowTTL=true
+SkipIDs=
+Verbose=false
+
+# Characters
+Char_Margin=+
+
+# ANSI Colors
+Color_AlertBracket=red
+Color_AlertID=bright_red
+Color_AlertTTL=bright_white
+Color_AlertTTLText=white
+Color_AlertText=bright_white
+Color_AlertRecommend=bright_green
+Color_QueryText=white
+Color_QueryMargin=bright_black
+
+# Disk Usage
+AptCache=true
+AptCacheMBLimit=100
+DSLimit=90
+DiskSpace=true
+HomeCache=true
+HomeCacheMBLimit=100
+Thumbnails=true
+ThumbsMBLimit=40
+
+# Packaging Configurations
+DpkgConf=true
+HardAPT=true
+PurgeChk=true
+SkipAPT=APT::Install-Recommends
+SkipDpkgOpts=
+
+# Potentially Unwanted Packages
+UnwantedPKGs=atftpd
+UnwantedPKGs=kerneloops
+UnwantedPKGs=kerneloops-applet
+UnwantedPKGs=kerneloops-daemon
+UnwantedPKGs=nis
+UnwantedPKGs=popularity-contest
+UnwantedPKGs=rsh-client
+UnwantedPKGs=rsh-redone-client
+UnwantedPKGs=rsh-redone-server
+UnwantedPKGs=rsh-server
+UnwantedPKGs=telnet
+UnwantedPKGs=telnet-ssl
+UnwantedPKGs=telnetd
+UnwantedPKGs=telnetd-ssl
+UnwantedPKGs=tftpd
+UnwantedPKGs=tftpd-hpa
+UnwantedPKGs=time
+UnwantedPKGs=virtualbox-guest-additions-iso
+UnwantedPKGs=virtualbox-guest-dkms
+UnwantedPKGs=virtualbox-guest-dkms-hwe
+UnwantedPKGs=virtualbox-guest-source
+UnwantedPKGs=virtualbox-guest-source-hwe
+UnwantedPKGs=virtualbox-guest-utils
+UnwantedPKGs=virtualbox-guest-utils-hwe
+UnwantedPKGs=virtualbox-guest-x11
+UnwantedPKGs=virtualbox-guest-x11-hwe
+UnwantedPKGs=whoopsie
+#UnwantedPKGs=whoopsie-preferences
+UnwantedPKGs=xinetd
+UnwantedPKGs=xul-ext-ubufox
+UnwantedPKGs=yp-tools
+
+# Kernel
+CustomKMs=
+KernMods=true
+KernParams=true
+SkipKMs=joydev
+SkipKP=fs.protected_hardlinks
+SkipKP=fs.protected_symlinks
+
+# Mode, Owner, and Group
+DirPerms=true
+PathPerms=true
+
+# SSH
+SSHClient=true
+SSHDConfig=/etc/ssh/sshd_config
+SSHServer=true
+
+# SystemD
+SkipSysD=
+SystemD=true
+
+# Portable Machine
+BatCrit=10
+BatLow=20
+Laptop=true
+
+# Mount Options
+MountHome=true
+SkipMountOpts=
+
+# Sensors
+CPUTemp=true
+CoreTempCrit=70
+TempScale=C
+
+# RootKits, Worms, etc
+RootKits=true
+IgnoreFile=
+
+# RAM & Swap
+MBMaxRAM=2048
+MBMaxSwap=512
+RAM=false
+Swaps=false
+
+# `/etc/passwd`
+ChkPasswd=true
+ID0NonRoots=true
+
+# Units/Services
+AppArmor=true
+UFW=true
+
+# Miscellaneous
+CMOS=false
+CPUGovernor=
+FailedLogins=true
+LightDM=true
+ProcVuln=true
+SymsFileMode=true
