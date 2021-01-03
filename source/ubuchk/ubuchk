@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri  1 Jan 18:44:48 GMT 2021
+# Last Change       - Sun  3 Jan 04:57:14 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-01-01';
+my $CurVer = '2021-01-03';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
@@ -785,7 +785,7 @@ if (-f -r -T $ConfigFile){
 	print($FH @Corrected);
 	close($FH);
 
-	printf("File '~/.config/$Progrm/config' generated");
+	print("File '~/.config/$Progrm/config' generated\n");
 	exit(0)
 }
 
