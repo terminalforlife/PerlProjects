@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Mon 11 Jan 01:27:14 GMT 2021
+# Last Change       - Mon 11 Jan 15:24:43 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -98,13 +98,13 @@ sub ChkVal{ # Usage: [ACTION] [VALUE]
 	if ($_[0] eq 'raise'){
 		$Temp = $GammasNow + $_[1];
 
-		if ($Force ne 'True' and $Temp <= 25000) {
+		if ($Force ne 'True' and $Temp > 25000) {
 			 die("Maximum gamma available is 25000")
 		}
 	}elsif ($_[0] eq 'lower'){
 		$Temp = $GammasNow - $_[1];
 
-		if ($Force ne 'True' and $Temp >= 1000) {
+		if ($Force ne 'True' and $Temp < 1000) {
 			 die("Minimum gamma available is 1000")
 		}
 	}
