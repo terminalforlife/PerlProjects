@@ -1,4 +1,4 @@
-deb8ed0cc264e9272879a499042ff7aa  source/apt-download-deps
+deb8ed0cc264e9272879a499042ff7aa  source/apt-download-deps/apt-download-deps
 35d63338dc709c7d02d2f76c0e579106  source/apt-history/apt-history
 84517f5164a56f239f00d8e31746d1b0  source/apt-history/apt-history.1.gz
 475d7322d95e7ecb02a172b131ff8650  source/apt-history/completions
