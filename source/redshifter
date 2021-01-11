@@ -88,18 +88,22 @@ sub GetSetValue {
 }
 
 sub ChkVal{ # Usage: [ACTION] [VALUE]
-	$_[1] =~ '^[0-9]+$' or die("Action '$_[0]' needs an integer");
+        $_[1] =~ '^[0-9]+$' or die("Action '$_[0]' needs an integer");
 
-	if ($_[0] eq 'raise'){
-		$Temp = $GammasNow + $_[1];
-
-		$Temp <= 25000 or die("Maximum gamma available is 25000");
-	}elsif ($_[0] eq 'lower'){
-		$Temp = $GammasNow - $_[1];
-
-		$Temp >= 1000 or die("Minimum gamma available is 1000");
+        if ($_[0] eq 'raise'){
+                $Temp = $GammasNow + $_[1];
+                if ($Temp > 25000){
+                        $Temp = 25000;
+                        print("Maximum gamma available is 25000\n");
+                }
+        }elsif ($_[0] eq 'lower'){
+                $Temp = $GammasNow - $_[1];
+                if ($Temp < 1000){
+                        $Temp = 1000;
+                        print("Minimum gamma available is 1000\n");
+                	}
+		}
 	}
-}
 
 # Just in-case the user doesn't yet have a `.config` directory.
 -d $ConfigDir or mkdir($ConfigDir);
