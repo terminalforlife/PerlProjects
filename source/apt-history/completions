@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Thu 26 Nov 05:55:47 GMT 2020
+# Last Change       - Mon 11 Jan 16:39:30 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -28,7 +28,16 @@ _apthistory(){
 		done <<< "$(apt-history -h)"
 	}
 
-	COMPREPLY=($(compgen -W "$(GetArgs)" -- "$2"))
+	if [ $3 == '-p' ] || [ $3 == '--package' ]; then
+		local Packages=`_xfunc dpkg _comp_dpkg_installed_packages`
+		COMPREPLY=(`compgen -W "$Packages" -- "$2"`)
+	elif [ $3 == '-A' ] || [ $3 == '--action' ]; then
+		COMPREPLY=(`compgen -W 'Install Purge Remove Upgrade' -- "$2"`)
+	elif [ $3 == '-D' ] || [ $3 == '--display' ]; then
+		COMPREPLY=(`compgen -W 'OneLine Wrapped' -- "$2"`)
+	else
+		COMPREPLY=(`compgen -W "$(GetArgs)" -- "$2"`)
+	fi
 }
 
-complete -F _apthistory -o default apt-history
+complete -F _apthistory apt-history
