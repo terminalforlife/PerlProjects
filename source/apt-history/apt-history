@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Thu 26 Nov 18:03:56 GMT 2020
+# Last Change       - Mon 11 Jan 16:43:14 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-26';
+my $CurVer = '2021-01-11';
 my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
 
 sub Usage {
@@ -289,7 +289,7 @@ foreach my $Key (@SortedKeys) {
 
 	if (length($FilterPKG) > 0) {
 		# Need to strip ANSI escape sequences otherwise grep() is borked.
-		grep({colorstrip($_) eq $FilterPKG} @Packages) or next
+		grep({colorstrip($_) =~ /^$FilterPKG:.*$/} @Packages) or next
 	}
 
 	#---------------------------------------------------------Begin Main Output

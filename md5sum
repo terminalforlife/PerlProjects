@@ -1,7 +1,7 @@
 aa1327cf305840be4eb6b3b98699554c  source/apt-download-deps/apt-download-deps
 d1e53be64ab2549d633b23efee05730b  source/apt-download-deps/completions
-35d63338dc709c7d02d2f76c0e579106  source/apt-history/apt-history
-84517f5164a56f239f00d8e31746d1b0  source/apt-history/apt-history.1.gz
+87b63b01153e745d1dc25a5f439d73ab  source/apt-history/apt-history
+82e0edaf67158d6f1ebaeed4c6b5c2e5  source/apt-history/apt-history.1.gz
 c20008b59828f2fb1ac4dec8fbd06e9e  source/apt-history/completions
 49761c2278882b32288b1417f8e97464  source/apt-undo-install/apt-undo-install
 de04b97d4e4353028bc3d93a90136146  source/apt-undo-install/completions
