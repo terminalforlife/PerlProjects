@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Mon 11 Jan 15:24:43 GMT 2021
+# Last Change       - Mon 11 Jan 15:33:26 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ sub GetSetValue {
 }
 
 sub ChkVal{ # Usage: [ACTION] [VALUE]
-	$_[1] =~ '^[0-9]+$' or die("Action '$_[0]' needs an integer");
+	$_[1] =~ '^[-0-9]+$' or die("Action '$_[0]' needs an integer");
 
 	if ($_[0] eq 'raise'){
 		$Temp = $GammasNow + $_[1];
