@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Mon 11 Jan 15:33:26 GMT 2021
+# Last Change       - Mon 11 Jan 15:47:51 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -34,6 +34,8 @@ sub Usage{
 		  raise [N]                - Raise the current gamma by N.
 		  reset                    - Reset to the default of 6500.
 		  set [N]                  - Manually set the gamma to N.
+
+		  Valid temperatures are between 1000K (warm) and 25000K (cool).
 	} =~ tr/\t//dr)
 }
 
@@ -93,7 +95,14 @@ sub GetSetValue {
 }
 
 sub ChkVal{ # Usage: [ACTION] [VALUE]
-	$_[1] =~ '^[-0-9]+$' or die("Action '$_[0]' needs an integer");
+	my $Minus;
+	if ($Force eq 'True') {
+		$Minus = '^[-0-9]+$'
+	} else {
+		$Minus = '^[0-9]+$'
+	}
+
+	$_[1] =~ $Minus or die("Action '$_[0]' needs an integer");
 
 	if ($_[0] eq 'raise'){
 		$Temp = $GammasNow + $_[1];
