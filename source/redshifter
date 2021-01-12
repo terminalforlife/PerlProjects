@@ -3,14 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Tue 12 Jan 01:03:37 GMT 2021
+# Last Change       - Tue 12 Jan 01:20:58 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Dependencies:
 #
 #   perl (>= 5.22.1-9)
-#   redshift (>= 1.11-1ubuntu1)
+#   redshift (>= 1.11)
 #------------------------------------------------------------------------------
 
 use strict;
