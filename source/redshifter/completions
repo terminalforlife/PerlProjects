@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+#cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/redshifter
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/redshifter/completions
+# Started On        - Tue 12 Jan 22:56:08 GMT 2021
+# Last Change       - Tue 12 Jan 23:00:53 GMT 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This is the bash completion script for `redshifter`.
+#------------------------------------------------------------------------------
+
+_redshifter(){
+	while read; do
+		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+			Option=${REPLY%% - *}
+
+			case $Option in
+				*=*) Option="${REPLY%%=*}=" ;;
+			esac
+
+			for Arg in ${Option//,/}; {
+				Args+="${Arg##[^-]*} "
+			}
+		fi
+	done <<< "$(redshifter -h)"
+
+	if [[ $2 == -* ]]; then
+		COMPREPLY=(`compgen -W "$Args" -- "$2"`)
+	else
+		COMPREPLY=(`compgen -W 'lower raise reset set show' -- "$2"`)
+	fi
+
+	unset Option Arg Args
+}
+
+complete -F _redshifter redshifter
