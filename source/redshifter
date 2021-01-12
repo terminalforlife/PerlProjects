@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Tue 12 Jan 01:20:58 GMT 2021
+# Last Change       - Tue 12 Jan 22:44:46 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -29,11 +29,11 @@ sub Usage{
 		  -v, --version            - Output the version datestamp.
 		  -f, --file PATH          - Use PATH instead of the default.
 
-		  temp	                   - Print the current temperature.
 		  lower [N]                - Lower the current gamma by N.
 		  raise [N]                - Raise the current gamma by N.
 		  reset                    - Reset to the default of 6500.
 		  set [N]                  - Manually set the gamma to N.
+		  show                     - Print the current temperature.
 
 		  Valid temperatures are between 1000K (warm) and 25000K (cool).
 	} =~ tr/\t//dr)
@@ -144,8 +144,8 @@ while (defined($ARGV[0])){
 		GetSetValue('>', $Temp);
 
 		system("redshift -o -O ${Temp}K 1> /dev/null")
-	} elsif ($ARGV[0] eq 'temp') {
-                print("$GammasNow\n");
+	} elsif ($ARGV[0] eq 'show') {
+		print("$GammasNow\n")
 	} else {
 		die("Incorrect action(s) specified")
 	}
