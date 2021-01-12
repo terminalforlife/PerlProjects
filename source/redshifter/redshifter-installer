@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter/redshifter-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Tue 12 Jan 23:39:44 GMT 2021
+# Last Change       - Tue 12 Jan 23:42:34 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -130,7 +130,7 @@ fi
 
 printf '* Assigning modes ... '
 ErrCount=0
-for File in 'redshifter:755' 'completions:644'; do
+for File in 'redshifter:755' 'redshifter.1.gz:644' 'completions:644'; do
 	chmod ${File##*:} "$TmpDir/${File%:*}" 2>> "$LogFile" ||
 		ErrCount=$((ErrCount + 1))
 done
