@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Thu 26 Nov 06:18:24 GMT 2020
+# Last Change       - Tue 12 Jan 00:31:54 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -28,7 +28,11 @@ _aptundoinstall(){
 		done <<< "$(apt-undo-install -h)"
 	}
 
-	COMPREPLY=($(compgen -W "$(GetArgs)" -- "$2"))
+	if [ "$3" == '-l' ] || [ "$3" == '--logfile' ]; then
+		COMPREPLY=(`compgen -o default -- "$2"`)
+	else
+		COMPREPLY=(`compgen -W "$(GetArgs)" -- "$2"`)
+	fi
 }
 
-complete -F _aptundoinstall -o default apt-undo-install
+complete -F _aptundoinstall apt-undo-install
