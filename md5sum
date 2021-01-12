@@ -41,7 +41,7 @@ b4782788e81da6df5ec2865786582b90  source/ptz
 849406d2b0fe268e5d3490ad9fc05528  source/redshifter/completions
 94c28532a7804262d80b2ad2cf900a55  source/redshifter/redshifter
 3b1d3339b6e94c8c70f65a62df47e7b6  source/redshifter/redshifter.1.gz
-0a2a5901766e1cddcc49c6da63e35922  source/redshifter/redshifter-installer
+add8f75079bdfcfcc4fc2fe4bfc6bc70  source/redshifter/redshifter-installer
 917689528cac6fc124a66f2fa1d2765a  source/somacli
 0ea33f4478c6ac2109026e2052274a25  source/suptime
 a1189fb418940b12f2e40de604217917  source/TFL.pm
