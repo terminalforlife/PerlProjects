@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Mon 11 Jan 15:47:51 GMT 2021
+# Last Change       - Tue 12 Jan 01:03:37 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2021-01-11";
+my $CurVer = "2021-01-12";
 my $Progrm = 'redshifter';
 
 sub Usage{
@@ -27,7 +27,6 @@ sub Usage{
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  -F, --force              - Allow out-of-range values.
 		  -f, --file PATH          - Use PATH instead of the default.
 
 		  lower [N]                - Lower the current gamma by N.
@@ -45,8 +44,6 @@ my $ConfigDir = ($Buffer =~ m{(.*)?(?:/.*)})[0];
 
 scalar(@ARGV) == 0 and die("Argument(s) required");
 
-my $Force;
-
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(1); exit(0)
@@ -58,8 +55,6 @@ while (defined($ARGV[0])) {
 		-d $ARGV[0] and die("Option '--file|-f' given a directory");
 
 		$Buffer = $ARGV[0]
-	} elsif ($ARGV[0] =~ '^(--force|-F)$') {
-		$Force = 'True'
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Incorrect option(s) specified")
 	} else {
@@ -94,27 +89,20 @@ sub GetSetValue {
 	close($FH)
 }
 
-sub ChkVal{ # Usage: [ACTION] [VALUE]
-	my $Minus;
-	if ($Force eq 'True') {
-		$Minus = '^[-0-9]+$'
-	} else {
-		$Minus = '^[0-9]+$'
-	}
+sub ChkVal { # Usage: [ACTION] [VALUE]
+	$_[1] =~ '^[0-9]+$' or die("Action '$_[0]' needs an integer");
 
-	$_[1] =~ $Minus or die("Action '$_[0]' needs an integer");
-
-	if ($_[0] eq 'raise'){
+	if ($_[0] eq 'raise') {
 		$Temp = $GammasNow + $_[1];
-
-		if ($Force ne 'True' and $Temp > 25000) {
-			 die("Maximum gamma available is 25000")
+		if ($Temp > 25000) {
+			$Temp = 25000;
+			warn('Maximum gamma available is 25000')
 		}
-	}elsif ($_[0] eq 'lower'){
+	} elsif ($_[0] eq 'lower') {
 		$Temp = $GammasNow - $_[1];
-
-		if ($Force ne 'True' and $Temp < 1000) {
-			 die("Minimum gamma available is 1000")
+		if ($Temp < 1000) {
+			$Temp = 1000;
+			warn('Minimum gamma available is 1000')
 		}
 	}
 }
@@ -122,7 +110,7 @@ sub ChkVal{ # Usage: [ACTION] [VALUE]
 # Just in-case the user doesn't yet have a `.config` directory.
 -d $ConfigDir or mkdir($ConfigDir);
 
-if (-f $Buffer){
+if (-f $Buffer) {
 	GetSetValue('<')
 }else{
 	GetSetValue('>', 6500)
@@ -130,32 +118,32 @@ if (-f $Buffer){
 
 # Parse ACTIONS.
 while (defined($ARGV[0])){
-	if ($ARGV[0] eq 'set'){
+	if ($ARGV[0] eq 'set') {
 		shift();
 
 		ChkVal('set', $ARGV[0]);
 		GetSetValue('>', $ARGV[0]);
 
 		system("redshift -o -O $ARGV[0]K 1> /dev/null")
-	}elsif ($ARGV[0] eq 'reset'){
+	} elsif ($ARGV[0] eq 'reset') {
 		GetSetValue('>', '6500');
 
 		system('redshift -o -O 6500K 1> /dev/null')
-	}elsif ($ARGV[0] eq 'raise'){
+	} elsif ($ARGV[0] eq 'raise') {
 		shift();
 
 		ChkVal('raise', $ARGV[0]);
 		GetSetValue('>', $Temp);
 
 		system("redshift -o -O ${Temp}K 1> /dev/null")
-	}elsif ($ARGV[0] eq 'lower'){
+	} elsif ($ARGV[0] eq 'lower') {
 		shift();
 
 		ChkVal('lower', $ARGV[0]);
 		GetSetValue('>', $Temp);
 
 		system("redshift -o -O ${Temp}K 1> /dev/null")
-	}else{
+	} else {
 		die("Incorrect action(s) specified")
 	}
 
