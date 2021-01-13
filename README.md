@@ -3,9 +3,7 @@
 
 # What's Available Here?
 
-What follows is a list of programs* for which the source code is stored here, as of 2020-02-10:
-
-  * [apt-download-deps](source/apt-download-deps) - Download all dependencies for one or more Debian packages.
+  * [apt-download-deps](source/apt-download-deps) - Download dependencies for one or more Debian packages.
   * [apt-history](source/apt-history) - View, filter, and pretty-print APT's log.
   * [apt-undo-install](source/apt-undo-install) - A Perl solution to undo recent APT installations.
   * [cheater](source/cheater) - Command-line alternative to the 'cheat.sh' web interface.
@@ -15,12 +13,10 @@ What follows is a list of programs* for which the source code is stored here, as
   * [gitsap](source/gitsap) - Display an elegant overview of your git repositories.
   * [lsbins](source/lsbins) - A descriptive, searchable overview of PATH executables.
   * [previewer](source/previewer) - Perl program to pretty-print Linux Mint package reviews.
-  * [redshifter](source/redshifter) - Quality-of-life Perl wrapper for redshift.
+  * [redshifter](source/redshifter) - Redshift wrapper offering extra functionality
   * [tudu](source/tudu) - Configurable developer tool to overview projects' todos.
   * [ubuchk](source/ubuchk) - Send your Ubuntu system to the doctor for a check-up.
   * [wcdl](source/wcdl) - Extensive Perl downloader for Wallpaperscraft.
-
-_\* I define a 'program' as not just being some 'quick and dirty' script I knock out then forget about. To me, a 'program' is something I truely care about presenting to people; something I endeavor to be carefully-written and usually maintained, while being mindful of the user's experience. My definition of a program is flexible, but one thing stands out: I give a damn about you and your experience!_
 
 # Bug/Issue Reporting
 
