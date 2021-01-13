@@ -3,14 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Tue 12 Jan 22:44:46 GMT 2021
+# Last Change       - Wed 13 Jan 00:01:06 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Dependencies:
 #
 #   perl (>= 5.22.1-9)
-#   redshift (>= 1.11)
+#   redshift (>= 1.10-5)
 #------------------------------------------------------------------------------
 
 use strict;
@@ -19,7 +19,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2021-01-12";
+my $CurVer = "2021-01-13";
 my $Progrm = 'redshifter';
 
 sub Usage{
