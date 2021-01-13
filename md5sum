@@ -53,7 +53,7 @@ a1189fb418940b12f2e40de604217917  source/TFL.pm
 62076ad475034a17ae2c0ae03a75dba5  source/tudu/tudu
 717d7356eae7a5a97068bd3e40354411  source/tudu/tudu.1.gz
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
-4171d9a3919bcc0947484871f3bd0e30  source/ubuchk/database
+0d1751968291b90208393d70ceb34b2a  source/ubuchk/database
 9e2fd4f8ac9c38ecbe5c526c51f4c46d  source/ubuchk/database-rk
 d9064858bbcf32635cb8a60157cbb001  source/ubuchk/postinst
 389749cf5834712b861bf8dfc4453f96  source/ubuchk/postrm

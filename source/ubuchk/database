@@ -180,7 +180,7 @@ Refer to the default: `/etc/sysctl.conf`
 :1356
 By default, the execution bit (permission) is allowed to be set on files in order to execute them with a method such as `./file`, but this could pose a security risk, as anything could then be executed with whichever permissions the current user has, which is especially dangerous when you consider what could be downloaded without your knowledge.
 .
-However, setting this option can also cause irritating issues by program like Valve's Steam (popular gaming client) which requires execution privileges on one or more files installed in the user's HOME.
+However, setting this option can also cause irritating issues by program like Valve's Steam (popular gaming client) which requires execution privileges on one or more files installed in the user's HOME. If you're a Mozilla Firefox user, you'll also very likely run into issues when trying to access content like Netflix.
 .
 While setting this mount option will add an additional layer of security, there is still only so much damage that can be done without root privileges, which the user typically doesn't have without first entering his or her own password, or root's itself.
 .
