@@ -69,6 +69,16 @@ If that fails, you probably don't have curl(1), so try wget(1):
 
 If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
 
+# Removing APT History
+
+If you've used a Debian package to install APT History, refer to your package manager. However, if you've used the installer, then you can run the following to delete the files it creates:
+
+```
+sudo rm /usr/share/bash-completion/completions/apt-history /usr/share/man/man1/apt-history.1.gz /usr/bin/apt-history
+```
+
+If you don't have sudo(8), you'll have to acquire root privileges by other means.
+
 # Dependencies
 
 * libterm-readkey-perl (>= 2.33-1build1)
