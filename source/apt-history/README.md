@@ -47,3 +47,36 @@ Usage: apt-history [OPTS]
 ```
 
 APT History also supports useful BASH completion and comes with a man page.
+
+# Installation Instructions
+
+Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/ source/cito), but it'll be a pain if you wish to include the man page and BASH completion support.
+
+  * Install via [APT History's DEB package](https://github.com/terminalforlife/DEB-Packages/tree/master/apt-history) for Debian- and Ubuntu-based systems.
+  * Install via APT History's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/apt-history/apt-history-installer).
+
+For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
+
+```sh
+(cd /tmp; curl -so apt-history-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/apt-history/apt-history-installer' && sudo \sh apt-history-installer; rm apt-history-installer)
+```
+
+If that fails, you probably don't have curl(1), so try wget(1):
+
+```sh
+(cd /tmp; wget -qO apt-history-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/apt-history/apt-history-installer' && sudo \sh apt-history-installer; rm apt-history-installer)
+```
+
+If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+
+# Dependencies
+
+* libterm-readkey-perl (>= 2.33-1build1)
+* libtext-wrapi18n-perl (>= 0.06-7.1)
+* perl (>= 5.22.1-9)
+
+If you're on an Ubuntu or similar system, you can use `sudo apt-get install -f` to get all of the remaining missing dependencies sorted, but **only** IF and AFTER you install the Debian package.
+
+# Want to Take Part?
+
+Whether you wish to contribute code or report bugs and other issues, your support here would be appreciated.
