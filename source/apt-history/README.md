@@ -10,6 +10,6 @@ With useful filtering features and charming, yet simple and configurable output,
 
 There may well be more, but for those, you can head over to the YouTube channel, [Learn Linux](https://www.youtube.com/c/learnlinux).
 
-![Screenshot_1](source/apt-history/screenshots/Screenshot_2021-01-13_15:19:27.jpg)
-![Screenshot_2](source/apt-history/screenshots/Screenshot_2021-01-13_15:20:23.jpg)
-![Screenshot_3](source/apt-history/screenshots/Screenshot_2021-01-13_15:21:14.jpg)
+![Screenshot_1](screenshots/Screenshot_2021-01-13_15:19:27.jpg)
+![Screenshot_2](screenshots/Screenshot_2021-01-13_15:20:23.jpg)
+![Screenshot_3](screenshots/Screenshot_2021-01-13_15:21:14.jpg)
