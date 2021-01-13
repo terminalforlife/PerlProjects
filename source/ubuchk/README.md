@@ -50,6 +50,16 @@ If that fails, you probably don't have curl(1), so try wget(1):
 
 If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
 
+# Removing UbuChk
+
+If you've used a Debian package to install UbuChk, refer to your package manager. However, if you've used the installer, then you can run the following to delete the files it creates:
+
+```
+sudo rm /usr/share/bash-completion/completions/ubuchk{,-db} /usr/share/man/man8/ubuchk.8.gz /usr/bin/ubuchk{,-db}; sudo rm -r /usr/share/ubuchk
+```
+
+If you don't have sudo(8), you'll have to acquire root privileges by other means.
+
 # Dependencies
 
 For those of you returning, note that as of version 2020-11-01, UbuChk no longer requires [libtfl-perl](https://github.com/terminalforlife/PerlProjects/blob/master/source/TFL.pm).
