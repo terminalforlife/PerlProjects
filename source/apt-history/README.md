@@ -50,7 +50,7 @@ APT History also supports useful BASH completion and comes with a man page.
 
 # Installation Instructions
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/ source/cito), but it'll be a pain if you wish to include the man page and BASH completion support.
+Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito), but it'll be a pain if you wish to include the man page and BASH completion support.
 
   * Install via [APT History's DEB package](https://github.com/terminalforlife/DEB-Packages/tree/master/apt-history) for Debian- and Ubuntu-based systems.
   * Install via APT History's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/apt-history/apt-history-installer).
