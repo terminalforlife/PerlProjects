@@ -2,7 +2,11 @@ aa1327cf305840be4eb6b3b98699554c  source/apt-download-deps/apt-download-deps
 d1e53be64ab2549d633b23efee05730b  source/apt-download-deps/completions
 87b63b01153e745d1dc25a5f439d73ab  source/apt-history/apt-history
 82e0edaf67158d6f1ebaeed4c6b5c2e5  source/apt-history/apt-history.1.gz
+72eb782ae65dd267a68eac1160686b9e  source/apt-history/apt-history-installer
 c20008b59828f2fb1ac4dec8fbd06e9e  source/apt-history/completions
+f2f341ad9935878438e9ae8be53fb78e  source/apt-history/screenshots/Screenshot_2021-01-13_15:19:27.jpg
+ce3efde7b3d57c79d1625a7b2875d0db  source/apt-history/screenshots/Screenshot_2021-01-13_15:20:23.jpg
+38560545b0cd6a2c4d56fabdb090bad0  source/apt-history/screenshots/Screenshot_2021-01-13_15:21:14.jpg
 49761c2278882b32288b1417f8e97464  source/apt-undo-install/apt-undo-install
 a36712af1ee19c5682275e6884c49a88  source/apt-undo-install/completions
 0818fb2fb4348d6a0fe1931d5498f6df  source/battery-monitor
