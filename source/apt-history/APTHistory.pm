@@ -3,14 +3,14 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history/APTHistory.pm
 # Started On        - Mon 18 Jan 02:48:06 GMT 2021
-# Last Change       - Mon 18 Jan 02:59:47 GMT 2021
+# Last Change       - Mon 18 Jan 03:22:39 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 
 package APTHistory;
 
-use v5.26;
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
