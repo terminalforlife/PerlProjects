@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/notify-upgrade
 # Started On        - Wed 15 Jan 00:45:46 GMT 2020
-# Last Change       - Thu 26 Nov 05:02:25 GMT 2020
+# Last Change       - Mon 18 Jan 22:58:52 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,7 +23,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-26";
+my $CurVer = '2021-01-18';
 my $Progrm = 'notify-upgrade';
 
 sub Usage {
@@ -52,17 +52,19 @@ while (defined($ARGV[0])) {
 
 my (%Stats, $Total);
 
+# Works with Ubuntu 18.04. The output from apt-get(8) changed slightly since
+# 16.04 so this probably won't work in anything older than 18.04.
 foreach (`apt-get -s dist-upgrade`) {
-	next unless /^[0-9]+ upgraded,/;
+	next unless /^[0-9]+ to upgrade,/;
 
 	my @Arr = split(' ', $_);
 
 	%Stats = (
 		'Category' => {
 			'Upgrade' => $Arr[0],
-			'Install' => $Arr[2],
-			'Remove' => $Arr[5],
-			'Skip' => $Arr[9]
+			'Install' => $Arr[3],
+			'Remove' => $Arr[7],
+			'Skip' => $Arr[11]
 		},
 
 		'Total' => $Total
@@ -79,6 +81,6 @@ if ($Total > 0) {
 
 	my $Message = "Detected $Total available package change(s).";
 	my $Noti = Gtk2::Notify->new("Notify Upgrade $Message");
-	$Noti->set_urgency('critical');
+	$Noti->set_urgency('normal');
 	$Noti->show()
 }
