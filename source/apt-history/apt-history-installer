@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history/apt-history-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Tue 12 Jan 23:42:34 GMT 2021
+# Last Change       - Mon 18 Jan 03:12:40 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ trap SigHandler EXIT INT QUIT ABRT TERM
 
 printf 'Fetching files from GitHub:\n'
 ErrCount=0
-for File in 'completions' 'apt-history' 'apt-history.1.gz'; do
+for File in 'completions' 'apt-history' 'APTHistory.pm' 'apt-history.1.gz'; do
 	printf "* Downloading '%s' ... " "$File"
 	if $DLCMD "$TmpDir/$File" "$URL/$File" 2>> "$LogFile"; then
 		printf '\033[32m[OK]\033[0m\n'
@@ -128,7 +128,10 @@ fi
 
 printf '* Assigning modes ... '
 ErrCount=0
-for File in 'apt-history:755' 'apt-history.1.gz:644' 'completions:644'; do
+for File in\
+	'apt-history:755' 'apt-history.1.gz:644'\
+	'APTHistory.pm:644' 'completions:644'
+do
 	chmod ${File##*:} "$TmpDir/${File%:*}" 2>> "$LogFile" ||
 		ErrCount=$((ErrCount + 1))
 done
@@ -143,9 +146,10 @@ printf 'Moving files into place:\n'
 ErrCount=0
 for File in\
 \
-	'completions:/usr/share/bash-completion/completions/apt-history'\
+	'APTHistory.pm:/usr/share/perl5/APTHistory.pm'\
 	'apt-history.1.gz:/usr/share/man/man1/apt-history.1.gz'\
-	'apt-history:/usr/bin/apt-history'
+	'apt-history:/usr/bin/apt-history'\
+	'completions:/usr/share/bash-completion/completions/apt-history'
 do
 	printf "* Installing '%s' ... " "${File%%:*}"
 	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then
