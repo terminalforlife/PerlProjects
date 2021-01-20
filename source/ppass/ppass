@@ -1,0 +1,72 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/ppass
+#------------------------------------------------------------------------------
+# Project Name      - /home/ichy/Desktop/test.pl
+# Started On        - Wed 20 Jan 13:48:15 GMT 2021
+# Last Change       - Wed 20 Jan 14:07:04 GMT 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# You must have access to the 'urandom' device in order to use PPass. Ensure
+# your kernel provides this feature if you have problems.
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2021-01-20';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [INT]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+
+		  Where INT is the length of the password consisting of any valid
+		  printable* character to generate from the 'urandom' device.
+	} =~ tr/\t//dr)
+}
+
+my $MaxLen = 10;
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--length|-l)$') {
+		shift(); $MaxLen = $ARGV[0]
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect option(s) specified")
+	} else {
+		last
+	}
+
+	shift()
+}
+
+length($ARGV[0]) > 0 and $MaxLen = $ARGV[0];
+
+my $Result;
+if (open(my $FH, '< /dev/urandom')) {
+	while (read($FH, my $Raw, 1, 0)) {
+		my $Filtered = $Raw =~ s/[^[:print:]]//gdr;
+
+		next if $Filtered eq ' ';
+
+		$Result = "$Result$Filtered";
+		last if length($Result) == $MaxLen
+	}
+
+	close($FH)
+}
+
+print("$Result\n")
