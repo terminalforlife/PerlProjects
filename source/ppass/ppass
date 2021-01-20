@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ppass/ppass
 # Started On        - Wed 20 Jan 13:48:15 GMT 2021
-# Last Change       - Wed 20 Jan 14:11:48 GMT 2021
+# Last Change       - Wed 20 Jan 14:12:41 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ sub Usage {
 		  -v, --version            - Output the version datestamp.
 
 		  Where INT is the length of the password consisting of any valid
-		  printable* character to generate from the 'urandom' device. The
+		  printable character to generate from the 'urandom' device. The
 		  default password length is 10.
 	} =~ tr/\t//dr)
 }
