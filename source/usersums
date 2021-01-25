@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/usersums
 # Started On        - Mon 25 Jan 21:02:07 GMT 2021
-# Last Change       - Mon 25 Jan 21:57:26 GMT 2021
+# Last Change       - Mon 25 Jan 22:28:14 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,9 @@
 # A nice demonstration of using map(), md5_hex(), and find(). The use of a
 # while loop and reading input from the user via STDIN is also demonstrated.
 #
-# NTOE: Symlinks are not followed.
+# This will take a LONG time depending on the data to be processed.
+#
+# NOTE: Symlinks are not followed.
 #------------------------------------------------------------------------------
 
 require Digest::MD5;
@@ -47,14 +49,30 @@ my %FindOpts = (
 
 find(\%FindOpts, $Target);
 
-open(my $FH, '>', $Output) or die();
+open(my $SaveHandle, '>', $Output) or die();
 
 while (1) {
 	print("Overwrite existing '$Output' file? [Y/N] ");
-	my $Input = <STDIN>;
+
+	chomp(my $Input = <STDIN>);
+
 	if ($Input =~ '^([Yy]|[Yy][Ee][Ss])$') {
-		map(printf($FH "%s  %s\n", md5_hex($_), $_), @Files);
-		close($FH);
+		my $MD5 = Digest::MD5->new();
+
+		my $Hash;
+		foreach (@Files) {
+			if (open(my $HashHandle, '<', $_)) {
+				$MD5->addfile($HashHandle);
+				$Hash = $MD5->hexdigest();
+				close($HashHandle)
+			} else {
+				warn("Cannot open '$_' for reading")
+			}
+
+			printf($SaveHandle "%s  %s\n", $Hash, $_);
+		}
+
+		close($SaveHandle);
 		last()
 	} elsif ($Input =~ '^([Nn]|[Nn][Oo])$') {
 		print("Nothing to do -- quitting.\n");
