@@ -1,0 +1,65 @@
+#!/usr/bin/env perl
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/usersums
+# Started On        - Mon 25 Jan 21:02:07 GMT 2021
+# Last Change       - Mon 25 Jan 21:50:31 GMT 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Save a recursive list of all files and their MD5 hashes in HOME. The MD5 file
+# format is the same as the standard md5sum(1) uses. The file is saved to HOME
+# as '.md5sums', unless otherwise specified.
+#
+# A nice demonstration of using map(), md5_hex(), and find(). The use of a
+# while loop and reading input from the user via STDIN is also demonstrated.
+#
+# NTOE: Symlinks are not followed.
+#------------------------------------------------------------------------------
+
+require Digest::MD5;
+require File::Find;
+
+use v5.26;
+use strict;
+use warnings;
+use autodie;
+use File::Find 'find';
+use Digest::MD5 'md5_hex';
+
+no warnings 'uninitialized', 'File::Find';
+
+my $Target = $ENV{'HOME'};
+my $Output = "$Target/.md5sums";
+
+my @Files;
+sub DoFind {
+	my $Path = $File::Find::name;
+	return() if $Path eq $Output;
+	-f $Path and push(@Files, $Path)
+}
+
+my %FindOpts = (
+	'wanted' => \&DoFind,
+	'no_chdir' => 1,
+	'follow' => 0
+);
+
+find(\%FindOpts, $Target);
+
+open(my $FH, '>', $Output) or die();
+
+while (1) {
+	print("Overwrite existing '$Target' file? [Y/N] ");
+	my $Input = <STDIN>;
+	if ($Input =~ '^([Yy]|[Yy][Ee][Ss])$') {
+		map(printf($FH "%s  %s\n", md5_hex($_), $_), @Files);
+		close($FH);
+		last()
+	} elsif ($Input =~ '^([Nn]|[Nn][Oo])$') {
+		print("Nothing to do -- quitting.\n");
+		last()
+	} else {
+		print(STDERR "ERROR: Invalid response.\n")
+	}
+}
