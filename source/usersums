@@ -3,16 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/usersums
 # Started On        - Mon 25 Jan 21:02:07 GMT 2021
-# Last Change       - Mon 25 Jan 22:28:14 GMT 2021
+# Last Change       - Mon 25 Jan 22:29:47 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Save a recursive list of all files and their MD5 hashes in HOME. The MD5 file
 # format is the same as the standard md5sum(1) uses. The file is saved to HOME
 # as '.md5sums', unless otherwise specified.
-#
-# A nice demonstration of using map(), md5_hex(), and find(). The use of a
-# while loop and reading input from the user via STDIN is also demonstrated.
 #
 # This will take a LONG time depending on the data to be processed.
 #
