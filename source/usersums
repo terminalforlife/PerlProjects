@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/usersums
 # Started On        - Mon 25 Jan 21:02:07 GMT 2021
-# Last Change       - Mon 25 Jan 21:50:31 GMT 2021
+# Last Change       - Mon 25 Jan 21:57:26 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ find(\%FindOpts, $Target);
 open(my $FH, '>', $Output) or die();
 
 while (1) {
-	print("Overwrite existing '$Target' file? [Y/N] ");
+	print("Overwrite existing '$Output' file? [Y/N] ");
 	my $Input = <STDIN>;
 	if ($Input =~ '^([Yy]|[Yy][Ee][Ss])$') {
 		map(printf($FH "%s  %s\n", md5_hex($_), $_), @Files);
