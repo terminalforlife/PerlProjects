@@ -3,13 +3,17 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun  3 Jan 04:57:14 GMT 2021
+# Last Change       - Thu 28 Jan 13:32:48 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # An ever-growing Perl rewrite and vast overhaul of `ubuntu-syschk`.
 #
 # Features:
+#
+#TODO: Check for Firefox parameters, whether to optimize or make more secure.
+#
+#      https://forums.linuxmint.com/viewtopic.php?p=1962270#p1962270
 #
 #TODO: Check for module `pam_namespace` for user's own `/tmp` and `/var/tmp`.
 #TODO: Add file permissions and ownership section (not just directories).
@@ -95,7 +99,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-01-03';
+my $CurVer = '2021-01-28';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
