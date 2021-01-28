@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019
-# Last Change       - Mon  2 Nov 02:23:51 GMT 2020
+# Last Change       - Mon 25 Jan 22:36:38 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,13 +20,14 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-02";
+my $CurVer = '2021-01-25';
 my $Progrm = 'lsbins';
 
 sub Usage {
