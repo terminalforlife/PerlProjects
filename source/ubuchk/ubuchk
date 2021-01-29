@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri 29 Jan 01:30:18 GMT 2021
+# Last Change       - Fri 29 Jan 03:05:53 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #TODO: Check for Firefox parameters, whether to optimize or make more secure.
 #
 #      https://forums.linuxmint.com/viewtopic.php?p=1962270#p1962270
+#      https://forums.linuxmint.com/viewtopic.php?p=1962675#p1962675
 #
 #TODO: Check for module `pam_namespace` for user's own `/tmp` and `/var/tmp`.
 #TODO: Add file permissions and ownership section (not just directories).
@@ -844,6 +845,7 @@ if ($KernParams eq 'true'){
 		'8852:1:/proc/sys/net/ipv4/conf/all/log_martians',
 		'8963:0:/proc/sys/net/ipv6/conf/all/accept_source_route',
 		'9191:0:/proc/sys/net/ipv4/conf/all/send_redirects',
+		'9211:2:/proc/sys/kernel/randomize_va_space',
 		'9222:1:/proc/sys/net/ipv4/tcp_syncookies',
 		'9623:1:/proc/sys/kernel/dmesg_restrict',
 		'9992:0:/proc/sys/net/ipv4/ip_forward',

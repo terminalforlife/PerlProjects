@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Sat 19 Dec 01:16:15 GMT 2020
+# Last Change       - Fri 29 Jan 03:06:57 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -315,3 +315,11 @@ You can find mention of this, through:
 This might already be handled for you, but just in-case, UbuChk will check.
 :2623
 Undocumented.
+:9211
+At some point, a security feature was added to the Linux kernel called Address Space Layout Randomization (ASLR); the kernel parameter in question allows us to configure it.
+.
+Here's what Michael Boelen from 'linux-audit.com' has to say about this kernel parameter:
+.
+"Normally you might expect a value of 0 (disabled), or 1 (enabled). In the case of the randomize_va_space setting, this is true as well. When setting the value to 1, address space is randomized. This includes the positions of the stack itself, virtual dynamic shared object (VDSO) page, and shared memory regions. Setting the option to value 2 will be similar to 1, and add data segments as well. For most systems, this setting is the default and the most secure setting."
+.
+So, with this in mind, you're probably better off setting this value to 2, or at least 1, if for some reason 2 isn't an option.
