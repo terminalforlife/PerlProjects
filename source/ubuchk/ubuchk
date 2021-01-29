@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri 29 Jan 03:05:53 GMT 2021
+# Last Change       - Fri 29 Jan 03:17:18 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,7 +21,6 @@
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `AllowUsers` check to `SSHServer` key.
 #TODO: Add `kernel.exec-shield` parameter; recommend value of `1`.
-#TODO: Add `kernel.randomize_va_space` parameter; recommend value of `1`.
 #TODO: Add a voltage check for the CMOS battery.
 #TODO: Add check for CPU governor when using a laptop and regular PC.
 #TODO: Add check for X amount of space taken up in Trash.
