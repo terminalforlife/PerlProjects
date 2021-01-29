@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri 29 Jan 03:17:18 GMT 2021
+# Last Change       - Fri 29 Jan 16:40:43 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,6 +15,10 @@
 #
 #      https://forums.linuxmint.com/viewtopic.php?p=1962270#p1962270
 #      https://forums.linuxmint.com/viewtopic.php?p=1962675#p1962675
+#
+#TODO: Search for files without a user and/or group assigned to them.
+#
+#      For example, in Shell: find / -xdev \( -nouser -o -nogroup \)
 #
 #TODO: Check for module `pam_namespace` for user's own `/tmp` and `/var/tmp`.
 #TODO: Add file permissions and ownership section (not just directories).
@@ -61,7 +65,7 @@
 # 27374, 29364, 30999, 31336, 31337, 37998, 45454, 47017, 47889, 60001
 #
 # Those ports can be found via the REGEX '[0-9:]443', with `netstat -tunla` or
-# `ss ss -tunla`), and for which are also searched in chkrootkit(1).
+# `ss -tunla`), and for which are also searched in chkrootkit(1).
 #
 # Bugs:
 #
