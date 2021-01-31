@@ -74,7 +74,7 @@ If you use `ubuntu-db`, or install via the UbuChk Debian package, you'll also ne
 
   * coreutils (>= 8.25-2)
   * libtflbp-sh (>= 2019-12-10)
-  * wget (>= 1.17.1-1) | curl (>= 7.47.0-1) | [cito](https://github.com/terminalforlife/Extra/blob/master/source/cito) (>= 2020-02-29)
+  * wget (>= 1.17.1-1) | curl (>= 7.47.0-1)
 
 If you're on an Ubuntu or similar system, you can use `sudo apt-get install -f` to get all of the remaining missing dependencies sorted, but **only** IF and AFTER you install the Debian package.
 
