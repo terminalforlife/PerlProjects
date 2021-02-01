@@ -1,13 +1,14 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/ldmod
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/ldmod (List & Describe Modules)
+# Project Name      - PerlProjects/source/ldmod
 # Started On        - Sat 11 Jan 14:33:58 GMT 2020
-# Last Change       - Wed 18 Nov 19:33:40 GMT 2020
+# Last Change       - Mon  1 Feb 01:42:56 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Perl rewrite of and expansion on an old TFL shell function called `lsmodd()`.
+# LDMOD stands for 'List and Describe Modules'.
 #
 # Dependencies:
 #
@@ -21,7 +22,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-18";
+my $CurVer = '2020-11-18';
 my $Progrm = 'ldmod';
 
 sub Usage {
