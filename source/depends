@@ -3,10 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/depends
 # Started On        - Sat 31 Oct 20:40:11 GMT 2020
-# Last Change       - Sat 31 Oct 21:08:49 GMT 2020
+# Last Change       - Mon  1 Feb 01:47:54 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
+# A Perl take on usages like `type -P DEP`, `which DEP`, and `command -v DEP`.
+# This isn't all that useful, but it's educational, I suppose.
+#
 # Dependencies:
 #
 #   perl (>= 5.22.1-9)
