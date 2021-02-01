@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/previewer
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/previewer
+# Project Name      - PerlProjects/source/previewer/previewer
 # Started On        - Mon 22 Apr 01:30:36 BST 2019
-# Last Change       - Thu 19 Nov 03:40:57 GMT 2020
+# Last Change       - Mon  1 Feb 01:37:25 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,6 +23,10 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+require LWP::UserAgent;
+require Term::ReadKey;
+
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
@@ -30,7 +34,7 @@ use Text::Wrap;
 use LWP::UserAgent;
 use Term::ReadKey 'GetTerminalSize';
 
-my $CurVer = "2020-11-19";
+my $CurVer = '2021-02-01';
 my $Progrm = 'previewer';
 
 sub Usage {
