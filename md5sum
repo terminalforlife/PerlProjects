@@ -54,7 +54,7 @@ a1189fb418940b12f2e40de604217917  source/TFL.pm
 62076ad475034a17ae2c0ae03a75dba5  source/tudu/tudu
 717d7356eae7a5a97068bd3e40354411  source/tudu/tudu.1.gz
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
-1c47a90d970c33e5cad99c805f3e8ae0  source/ubuchk/database
+1aa92e89e2ed62faf59cbc0ad32e48a0  source/ubuchk/database
 9e2fd4f8ac9c38ecbe5c526c51f4c46d  source/ubuchk/database-rk
 b568d97b00ad1a2e61d543d54e7e174a  source/ubuchk/dev/general.sh
 d9064858bbcf32635cb8a60157cbb001  source/ubuchk/postinst

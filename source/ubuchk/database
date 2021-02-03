@@ -48,7 +48,7 @@ Refer to the default: `/etc/sysctl.conf`
 :9623
 Restrict what users can garner from the kernel log. Due to the very sensitive and critical nature of the kernel, not to mention everything to which it has full access, it's almost always better to limit what users can glean from it.
 :8560
-Mentioned over at the kernel hardening security section of Arch Wikki:
+Mentioned over at the kernel hardening security section of Arch Wiki:
 .
 "Setting kernel.kptr_restrict to 1 will hide kernel symbol addresses in /proc/kallsyms from regular users without CAP_SYSLOG, making it more difficult for kernel exploits to resolve addresses/symbols dynamically. This will not help that much on a pre-compiled Arch Linux kernel, since a determined attacker could just download the kernel package and get the symbols manually from there, but if you are compiling your own kernel, this can help mitigating local root exploits. This will break some perf commands when used by non-root users (but many perf features require root access anyway).
 .
@@ -100,7 +100,7 @@ The Uncomplicated FireWall, the front-end to `iptables` is disabled and/or inact
 .
 This poster says it aptly:
 .
-"Out of the box, Ubuntu ships with no TCP or UDP ports open, hence the belief that there's no reason to run Uncomplicated Firewall (ufw) by default. I agree, though, that having ufw disabled is a strange decision. My reasoning being that inexperienced users are feasibly going to install things like Samba, Apache and such like as they experiment with the system put before them. If they don't understand the implications of this, they will expose themselves to malicious bevaviour on the internet.
+"Out of the box, Ubuntu ships with no TCP or UDP ports open, hence the belief that there's no reason to run Uncomplicated Firewall (ufw) by default. I agree, though, that having ufw disabled is a strange decision. My reasoning being that inexperienced users are feasibly going to install things like Samba, Apache and such like as they experiment with the system put before them. If they don't understand the implications of this, they will expose themselves to malicious behaviour on the internet.
 .
 Example - I've got my laptop configured with Samba which is fine in my home network protected with WPA2. But if I take my laptop to a Starbucks, I might not think anything of it, but that laptop is now advertising my shares to all and sundry. With a firewall, I can restrict my samba ports to only my home server or peer devices. No need to worry as much now about who might be trying to connect to my laptop. Same goes for VNC, SSH, or a huge number of other useful services my laptop might be running, or trying to connect to.
 .
@@ -124,7 +124,7 @@ If you're a gamer, this might be useful, but for the rest of us, you needn't hav
 :8471
 If you use a mouse via PS/2 ports, then you'll need this module, but in these modern times, the likelihood is probably not too high.
 :8189
-You've specified your own module(s) of which to check the existance and live status.
+You've specified your own module(s) of which to check the existence and live status.
 :0913
 To disable the ability to restart the machine with just Ctrl + Alt + Del, akin to the old behavior within Windows, either run `sysctl -w kernel.ctrl-alt-del=1` or add `kernel.ctrl-alt-del=1` to `/etc/sysctl.conf`.
 .
