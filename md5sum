@@ -23,7 +23,7 @@ d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
 e8bfdf7328c9423159ceefd04ccdc7e6  source/cpufreq
 413d1b2d125690f874875cb0c40562e6  source/dayborn
 fb808eb898527bbbe7807df8801483da  source/depends
-9281b61f9bde73116963a13b887df074  source/fix-ff-gtk
+b0898d1e5ebbecf03e231e0f189a2b88  source/fix-ff-gtk
 10dd72459ee323f033c738e4ff9f80e6  source/get-fma
 2a0b6291f278c32e97cc5eede188f218  source/getip
 e6858c18ef7499b24b2fb17e08f52b4f  source/gitbrov
@@ -56,6 +56,7 @@ a1189fb418940b12f2e40de604217917  source/TFL.pm
 78cf4740b94fd88bb6afca8aa34f1b10  source/ubuchk/completions
 1c47a90d970c33e5cad99c805f3e8ae0  source/ubuchk/database
 9e2fd4f8ac9c38ecbe5c526c51f4c46d  source/ubuchk/database-rk
+b568d97b00ad1a2e61d543d54e7e174a  source/ubuchk/dev/general.sh
 d9064858bbcf32635cb8a60157cbb001  source/ubuchk/postinst
 389749cf5834712b861bf8dfc4453f96  source/ubuchk/postrm
 93c4eeec84cfdc6d9917ea84edf1d082  source/ubuchk/screenshots/Screenshot_2020-03-10_00:37:13.jpg
