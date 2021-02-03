@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/fix-ff-gtk (Fix Firefox GTK)
 # Started On        - Fri 10 Jan 19:32:40 GMT 2020
-# Last Change       - Thu 26 Nov 04:47:37 GMT 2020
+# Last Change       - Mon  1 Feb 01:55:09 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,11 +12,12 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
 
-my $CurVer = "2020-11-26";
+my $CurVer = '2021-02-01';
 my $Progrm = 'fix-ff-gtk';
 
 my $File = '/usr/bin/firefox';
@@ -61,38 +62,32 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-sub YNInput {
-	print("$_[0] [Y/N] ");
-	my $Reply = <STDIN>;
-
-	if ($Reply =~ '^([Nn]|[Nn][Oo])$') {
-		return(0)
-	} elsif (length($Reply) == 0 or $Reply !~ '^([Yy]|[Yy][Ee][Ss])$') {
-		return(2)
-	} else {
-		return(1)
-	}
-}
-
 $< == 0 or die('Root access is required');
 
-YNInput("Make permanent changes to '$File'?") or exit(1);
+print("Make permanent changes to '$File'? [Y/N] ");
+my $Reply = <STDIN>;
 
--f $File or die("File '$File' not found.");
+if ($Reply =~ '^([Yy]|[Yy][Ee][Ss])$') {
+	-f $File or die("File '$File' not found.");
 
-if (open(my $FH, '+<', $File)) {
-	my @Data = <$FH>;
+	if (open(my $FH, '+<', $File)) {
+		my @Data = <$FH>;
 
-	truncate($FH, 0);
-	seek($FH, 0, 0);
+		truncate($FH, 0);
+		seek($FH, 0, 0);
 
-	foreach (@Data) {
-		if (/^[[:space:]]+exec \$MOZ_LIBDIR\/\$MOZ_APP_NAME "\$@"$/) {
-			print($FH $_ =~ s/^([[:space:]]+)(.*)$/$1 GTK_Theme='$Theme' $2/r)
-		} else {
-			print($FH $_)
+		foreach (@Data) {
+			if (/^[[:space:]]+exec \$MOZ_LIBDIR\/\$MOZ_APP_NAME "\$@"$/) {
+				print($FH $_ =~ s/^([[:space:]]+)(.*)$/$1 GTK_Theme='$Theme' $2/r)
+			} else {
+				print($FH $_)
+			}
 		}
-	}
 
-	close($FH);
+		close($FH);
+	}
+} elsif ($Reply =~ '^([Nn]|[Nn][Oo])$') {
+	exit(2)
+} else {
+	exit(1)
 }
