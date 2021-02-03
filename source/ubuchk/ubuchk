@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Fri 29 Jan 16:40:43 GMT 2021
+# Last Change       - Wed  3 Feb 14:24:15 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -98,10 +98,10 @@
 
 require Filesys::DiskSpace;
 require Number::Bytes::Human;
-require POSIX;
 require Term::ANSIColor;
 require Term::ReadKey;
 require Text::Wrap;
+require POSIX;
 
 use v5.22.1;
 use strict;
@@ -111,7 +111,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-01-29';
+my $CurVer = '2021-02-03';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
@@ -130,6 +130,7 @@ sub Usage{
 		  --skip=N[,N ...]         - Skip one or more N alerts, by ID.
 		  -Q, --query N            - Read about alert ID number N.
 		  -V, --verbose            - Execute checks verbosely.
+		  -c, --config [FILE]      - Use alternative configuration file.
 		  -k, --key K=V            - Override key K with value V.
 	} =~ tr/\t//dr)
 }
@@ -177,14 +178,15 @@ while (defined($ARGV[0])){
 		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ /^(--version|-v)$/){
 		print("$CurVer\n"); exit(0)
-	}elsif($ARGV[0] =~ /^(--config|-c)$/){
-		unless (length($ARGV[1]) > 0){
-			die("Option '$ARGV[0]' requires a PATH")
-		}elsif (not -f -r $ARGV[1]){
-			die("Alternative configuration file missing or inaccessible")
-		}
+	}elsif($ARGV[0] =~ /--config|-c/){
+		length($ARGV[1]) > 0 or die("Option '$ARGV[0]' requires a file");
 
 		shift();
+
+		my $DirName = ($ARGV[0] =~ m{(.*[^/])?(?:/.*)})[0];
+		if (! -d $DirName) {
+			die("Directory '$DirName' not found.")
+		}
 
 		$ConfigFile = $ARGV[0]
 	}elsif($ARGV[0] =~ /^(--force-reset|-F)$/){
@@ -801,7 +803,7 @@ if (-f -r -T $ConfigFile){
 	print($FH @Corrected);
 	close($FH);
 
-	print("File '~/.config/$Progrm/config' generated\n");
+	print("Configuration file generated -- please reload $ProgrmFancy.\n");
 	exit(0)
 }
 
