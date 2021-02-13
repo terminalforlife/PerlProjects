@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  3 Feb 14:24:15 GMT 2021
+# Last Change       - Sat 13 Feb 00:01:16 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-02-03';
+my $CurVer = '2021-02-13';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
@@ -200,7 +200,7 @@ while (defined($ARGV[0])){
 
 		shift();
 
-		$ARGV[0] =~ '^[0-9]{4}$' or die("Invalid alert ID");
+		$ARGV[0] =~ '^[[:digit:]]{4}$' or die("Invalid alert ID");
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
@@ -210,7 +210,7 @@ while (defined($ARGV[0])){
 		@SkipIDs > 0 or die("Option '--skip=' requires at least one alert ID");
 
 		foreach (@SkipIDs){
-			/^[0-9]{4}$/ or die("Invalid alert ID")
+			/^[[:digit:]]{4}$/ or die("Invalid alert ID")
 		}
 	}elsif($ARGV[0] =~ /^(--verbose|-V)$/){
 		$Verbose = 'true'
@@ -371,7 +371,7 @@ sub QueryAlert{
 	foreach (@DBData){
 		chomp();
 
-		if (/^:[0-9,]+$/){
+		if (/^:[[:digit:],]+$/){
 			last if $Found eq 'true';
 
 			my @CurIDs = split(',', substr($_, 1));
@@ -550,7 +550,7 @@ if (-f -r -T $ConfigFile){
 
 			next if $ANSIColors eq 'false';
 
-			$ColorHash{$Key} = color($Value =~ tr/['"]//dr)
+			$ColorHash{$Key} = color($Value =~ tr/'"//dr)
 		}elsif ($Key eq 'ANSIColors'){
 			Boolean($Value);
 			$ANSIColors = $Value
@@ -560,7 +560,7 @@ if (-f -r -T $ConfigFile){
 			}elsif (length($Value) == 0){
 				next
 			}else{
-				$Syms{$Key} = $Value =~ tr/['"]//dr
+				$Syms{$Key} = $Value =~ tr/'"//dr
 			}
 		}elsif ($Key eq 'KernParams'){
 			Boolean($Value);
@@ -618,7 +618,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$AutoQuery = $Value
 		}elsif ($Key eq 'QueryIndent'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				# Default value and its bounds are mentioned in the config.
 				$Value > 0 and $Value <= 9 or die("Key '$Key' out of bounds");
 
@@ -627,7 +627,7 @@ if (-f -r -T $ConfigFile){
 				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'DSLimit'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				# Default value and its bounds are mentioned in the config.
 				unless ($Value >= 10 and $Value <= 100) {
 					die("Key '$Key' out of bounds")
@@ -646,7 +646,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$Laptop = $Value
 		}elsif ($Key eq 'BatCrit'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				unless ($Value > 0 and $Value <= 99) {
 					die("Key '$Key' out of bounds")
 				}
@@ -656,7 +656,7 @@ if (-f -r -T $ConfigFile){
 				die("Key '$Key' requires an integer");
 			}
 		}elsif ($Key eq 'BatLow'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				unless ($Value > 0 and $Value <= 99) {
 					die("Key '$Key' out of bounds")
 				}
@@ -677,7 +677,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$CPUTemp = $Value
 		}elsif ($Key eq 'CoreTempCrit'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				$CoreTempCrit = $Value
 			}else{
 				die("Key '$Key' requires an integer");
@@ -692,7 +692,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$AptCache = $Value
 		}elsif ($Key eq 'AptCacheMBLimit'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				$AptCacheMBLimit = $Value
 			}else{
 				die("Key '$Key' requires an integer in MB");
@@ -709,7 +709,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$HomeCache = $Value
 		}elsif ($Key eq 'HomeCacheMBLimit'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				$HomeCacheMBLimit = $Value
 			}else{
 				die("Key '$Key' requires an integer");
@@ -718,7 +718,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$Thumbnails = $Value
 		}elsif ($Key eq 'ThumbsMBLimit'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				$ThumbsMBLimit = $Value
 			}else{
 				die("Key '$Key' requires an integer");
@@ -735,7 +735,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$Swaps = $Value
 		}elsif ($Key eq 'MBMaxSwap'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				$MBMaxSwap = $Value
 			}else{
 				die("Key '$Key' requires an integer");
@@ -744,7 +744,7 @@ if (-f -r -T $ConfigFile){
 			Boolean($Value);
 			$RAM = $Value
 		}elsif ($Key eq 'MBMaxRAM'){
-			if ($Value =~ /^[0-9]+$/){
+			if ($Value =~ /^[[:digit:]]+$/){
 				$MBMaxRAM = $Value
 			}else{
 				die("Key '$Key' requires an integer");
@@ -809,7 +809,7 @@ if (-f -r -T $ConfigFile){
 
 if (@SkipIDs > 0){
 	foreach (@SkipIDs){
-		/^[0-9]{4}$/ or die("Invalid alert ID")
+		/^[[:digit:]]{4}$/ or die("Invalid alert ID")
 	}
 }
 
@@ -1141,7 +1141,7 @@ if (@UnwantedPKGs > 0){
 			5656,
 			"Package(s) matching '$CurPKG' installed.",
 			"Suggested consideration of uninstallation."
-		) if grep({($_ =~ m/(.*)(?::.*)/)[0] eq $CurPKG} @Installed)
+		) if grep({($_ =~ "(.*)(?::.*)")[0] eq $CurPKG} @Installed)
 	}
 }else{
 	Info("Ignoring any unwanted packages.") unless $HushIgnored eq 'true'
@@ -1276,7 +1276,7 @@ if ($DiskSpace eq 'true'){
 			chomp(my @Arr = split(' '));
 
 			# Using this REGEX over just '^/' avoids statfs errors.
-			if ($Arr[0] =~ '^/dev/(sd|hd|fd)[[:alpha:]]+[0-9]+$'){
+			if ($Arr[0] =~ '^/dev/(sd|hd|fd)[[:alpha:]]+[[:digit:]]+$'){
 				# Avoids `not a directory` error, for EFI setups.
 				next if $Arr[1] eq '/boot/efi';
 
@@ -1391,7 +1391,7 @@ if ($Laptop eq 'true'){
 				chomp(my $BatPerc = <$FH>);
 				close($FH);
 
-				my $Battery = $BatFile =~ s/.*\/BAT([0-9]+)\/capacity$/$1/r;
+				my $Battery = $BatFile =~ s/.*\/BAT([[:digit:]]+)\/capacity$/$1/r;
 
 				my ($KNow, $KMax);
 				if (-f $KNowFile and -f $KMaxFile){
@@ -1566,7 +1566,7 @@ if ($CPUTemp eq 'true'){
 		# Gather a hash of (only) the core temperatures.
 		my (%TempData, $Temp);
 		foreach (glob("$Dir/temp*")){
-			next unless -f and m{/temp[0-9]+_(input|label)$};
+			next unless -f and m{/temp[[:digit:]]+_(input|label)$};
 
 			FileChk($_);
 			open(my $FH, '<', $_);
@@ -1604,7 +1604,7 @@ if ($CPUTemp eq 'true'){
 
 		# Begin checking on each of the core temperatures, per the above hash.
 		foreach (sort(keys(%TempData))){
-			next unless /^Core [0-9]+$/;
+			next unless /^Core [[:digit:]]+$/;
 
 			# Initially, this value is in Celsius (unconfirmed).
 			my $TempInt = CelsFahr(
@@ -2245,7 +2245,7 @@ if (length($CPUGovernor) > 0){
 			open(my $FH, '<', $File);
 
 			chomp(my $Data = <$FH>);
-			my $Core = ($Dir =~ m{.*/policy([0-9]+)})[0] + 1;
+			my $Core = ($Dir =~ m{.*/policy([[:digit:]]+)})[0] + 1;
 			$Governors{$Core} = $Data;
 
 			close($FH)
