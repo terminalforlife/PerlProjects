@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl/wcdl
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Sun  1 Nov 18:43:46 GMT 2020
+# Last Change       - Wed 17 Feb 01:56:34 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,16 +20,27 @@
 #  libimage-magick-perl (>= 8:6.8.9.9-7)
 #  libwww-perl (>= 6.15-1)
 #  libx11-protocol-perl (>= 0.56-7)
-#  perl (>= 5.22.1-9)
+#  perl (>= 5.26.1)
+#  perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
+require File::Basename;
+require File::Path;
+require File::Temp;
+require Image::Magick;
+require LWP::UserAgent;
+require POSIX;
+require Term::ANSIColor;
+require X11::Protocol;
+
+use v5.26.1;
 use strict;
 use warnings;
 use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-01';
+my $CurVer = '2021-02-17';
 my $Progrm = 'wcdl';
 
 sub Usage{
