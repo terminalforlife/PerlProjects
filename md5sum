@@ -37,6 +37,7 @@ d9f1aeb60ea48bc7c9a3852c5f6238e9  source/ldmod
 3ba785def282d6b77545cd0ed47f3516  source/lsbins/completions
 9d36764451394c6523e10461c9520928  source/lsbins/lsbins
 58275c695a176467f781eec2663f0319  source/lsbins/lsbins.1.gz
+be4858b9b879c48bfffbd0e5070ca97a  source/lsbins/lsbins-installer
 248d4cd44229220877c8dec6b0648e6d  source/notify-upgrade
 a2b068767e2c5fe461f29cafa10a27c0  source/ppass
 d20bcd086efca144a16d27f9e394a4f9  source/previewer/completions
