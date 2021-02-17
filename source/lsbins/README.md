@@ -4,26 +4,9 @@ With lsbins(1), you can list out all of the PATH (IE: '/bin' and '/usr/bin') exe
 
 # Installation Instructions
 
-There's not yet an installer script for lsbins(1), but you can run the below commands to install the latest version.
+LSBins is installable with cito(8), or with Debian packages found in the DEB-Packages repository. You can also use the 'lsbins-installer' script to have it done for you. Here's a one-liner to have it all done for you:
 
-```sh
-# Main executable.
-wget -qO /tmp/lsbins 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/lsbins/lsbins'
-sudo chown -v 0:0 /tmp/lsbins; sudo chmod 755 /tmp/lsbins
-sudo mv -v /tmp/lsbins /usr/bin/lsbins
-
-# BASH Completion support.
-wget -qO /tmp/completions 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/lsbins/completions'
-sudo chown -v 0:0 /tmp/completions; sudo chmod 644 /tmp/completions
-sudo mv -v /tmp/completions /usr/share/bash-completion/completions/lsbins
-
-# The man(1) page.
-wget -qO /tmp/lsbins.1.gz 'https://github.com/terminalforlife/PerlProjects/blob/master/source/lsbins/lsbins.1.gz?raw=true'
-sudo chown -v 0:0 /tmp/lsbins.1.gz; sudo chmod 644 /tmp/lsbins.1.gz
-sudo mv -v /tmp/lsbins.1.gz /usr/share/man/man1/lsbins.1.gz
-```
-
-Uninstallable with:
+If you installed lsbins(1) with the provided installer script or cito(8), uninstallation can be done with the below one-liner.
 
 ```sh
 sudo rm -v /usr/share/man/man1/lsbins.1.gz /usr/share/bash-completion/completions/lsbins /usr/bin/lsbins
