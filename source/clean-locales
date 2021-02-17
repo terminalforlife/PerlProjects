@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/clean-locales
 # Started On        - Thu  9 May 21:32:57 BST 2019
-# Last Change       - Sun  8 Nov 01:19:16 GMT 2020
+# Last Change       - Wed 17 Feb 01:58:21 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,15 +17,19 @@
 #
 # Dependencies:
 #
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.26.1)
+#   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
+require File::Path;
+
+use v5.26.1;
 use strict;
 use warnings;
 use autodie;
 use File::Path 'remove_tree';
 
-my $CurVer = "2020-11-08";
+my $CurVer = "2021-02-17";
 my $Progrm = 'clean-locales';
 
 my $LocDir = '/usr/share/locale';

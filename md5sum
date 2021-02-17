@@ -16,7 +16,7 @@ c9f53024ec33d7ef7e54d207ad082251  source/cheater/cheater
 e33a70874cd4148a35ae0cd153aa0e45  source/cheater/cheater-installer
 16700b9c716cea6803927985f8c23f35  source/cheater/completions
 d6ad310d2a1a72a542da98b85bbd06e0  source/cheater/excluded_lines
-51a0970e20f6d9f04185f869ff273a23  source/clean-locales
+cb84ca113984e7e09012caeba90ced5f  source/clean-locales
 f7f5064516476b5ac4c9a1ca21a858f7  source/completions/getip
 eb9d7d642d8058980e4d3a58a1116d91  source/completions/gitsap
 d1c7329e66fe0806e4917a3a6d85c7fe  source/completions/tudu
@@ -69,5 +69,5 @@ fbe4f3782e7fb5431e2269947b3ad0fd  source/ubuchk/ubuchk-installer
 109cf478f1c19a8bd95841a7fe26fa29  source/usersums
 57e846a35b84c2a8ad483b2b486d4529  source/vignify
 8f5d04bed61c9379bb1a7d214b6ac3c7  source/wcdl/completions
-bfb6a6035969cc3edff00016b908582e  source/wcdl/wcdl
+8f42cebe4c95c34ac4137c5f969a75bc  source/wcdl/wcdl
 8e33c44f328a043491a27eb6ceb246cc  source/wcdl/wcdl.1.gz
