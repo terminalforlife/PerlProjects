@@ -4,7 +4,7 @@ Command-line alternative to the _cheat.sh_ web interface. Cheater offers simpler
 
 # Installation Instructions
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via Cheater's [installation script](https://github.com/terminalforlife/Extra/blob/master/source/cheater/cheater-installer).
+Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via Cheater's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/cheater/cheater-installer).
 
 For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
 
