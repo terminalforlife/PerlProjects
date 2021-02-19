@@ -3,10 +3,18 @@
 #--------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/getip
 # Started On        - Wed  8 May 14:35:49 BST 2019
-# Last Change       - Mon 16 Nov 16:39:41 GMT 2020
+# Last Change       - Fri 19 Feb 01:15:48 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #--------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
 # Dependencies:
 #
 #   libnet-address-ip-local-perl (>= 0.1.2-3)
@@ -14,13 +22,17 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+require HTTP::Tiny;
+require Net::Address::IP::Local;
+
+use 5.22.1;
 use strict;
 use warnings;
 use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-16";
+my $CurVer = '2021-02-19';
 my $Progrm = 'getip';
 
 sub Usage {
@@ -29,8 +41,8 @@ sub Usage {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  -I, --ip-only            - Show only the IP address.
-		  -e, --external           - Omit the internal IP address.
-		  -i, --internal           - Omit the external IP address.
+		  -e, --external           - Omit internal IP address.
+		  -i, --internal           - Omit external IP address.
 	} =~ tr/\t//dr)
 }
 
@@ -70,6 +82,7 @@ if ($Internal eq 'true') {
 		die('Invalid internal IP address detected')
 	}
 }
+
 if ($External eq 'true') {
 	use HTTP::Tiny;
 
