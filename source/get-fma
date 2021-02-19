@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/get-fma
 # Started On        - Fri 26 Apr 16:13:18 BST 2019
-# Last Change       - Sun  8 Nov 00:15:47 GMT 2020
+# Last Change       - Fri 19 Feb 01:23:06 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,19 +22,22 @@
 #   perl (>= 5.22.1-9)
 #----------------------------------------------------------------------------------
 
+require File::Temp;
+require LWP::UserAgent;
+require List::MoreUtils;
+
+use 5.22.1;
 use strict;
 use warnings;
 use autodie;
-use LWP::UserAgent;
 use File::Temp 'tempfile';
+use LWP::UserAgent;
 use List::MoreUtils 'uniq';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-08";
+my $CurVer = '2021-02-19';
 my $Progrm = 'get-fma';
-
-my $Domain = 'https://freemusicarchive.org';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS] [GENRE] [PAGE]
@@ -52,6 +55,7 @@ sub Usage {
 my $Destination = './';
 my $NameFormat = 'title';
 my $OutputOnly = 'false';
+my $Domain = 'https://freemusicarchive.org';
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
