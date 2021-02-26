@@ -1,0 +1,114 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/tfldeb
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/tfldeb
+# Started On        - Fri 26 Feb 14:02:30 GMT 2021
+# Last Change       - Fri 26 Feb 19:51:43 GMT 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Build Debian package from files in this project (up one level). This is only
+# for TFL projects, but you're more than welcome to use it on your own projects
+# which are similarly organized.
+#
+# If you want to include a TFL project in your Debian- or Ubuntu-based
+# distribution of Linux, be sure to make use of this tool.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use v5.22.1;
+use strict;
+use warnings;
+use autodie;
+
+#no warnings 'uninitialized';
+
+my $CurVer = '2021-02-26';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+	} =~ tr/\t//dr)
+}
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} else {
+		die("Incorrect option(s) specified")
+	}
+
+	shift()
+}
+
+$< == 0 or die("Root access is required");
+
+#--------------------------------------------------------------Main Subroutines
+
+# Usage: CopyFile(<InFile>, <OutFile>)
+sub CopyFile($;$) {
+	if (open(my $FH, '<', $_[0])) {
+		my @Buffer = <$FH>;
+		close($FH);
+
+		if (open(my $FH, '>', $_[1])) {
+			print($FH @Buffer);
+			close($FH)
+		}
+	}
+}
+
+# Usage: ReadFile(<File>)
+sub ReadFile($) {
+	if (open(my $FH, '<', $_[0])) {
+		my @Buffer = <$FH>;
+		close($FH);
+
+		return(@Buffer)
+	}
+}
+
+#-------------------------------------------------------Some Preliminary Checks
+
+# Dependency 'dpkg-deb' in PATH.
+my $Found = 0;
+foreach my $Dir (split(':', $ENV{PATH})) {
+	-d $Dir or next;
+
+	foreach my $File (glob("$Dir/*")) {
+		(-f $File and -x $File) or next;
+
+		my $Base = ($File =~ m{(?:.*/)([^/].*)})[0];
+		if ($Base eq 'dpkg-deb') {
+			$Found = 1;
+			last
+		}
+	}
+
+	last if $Found
+}
+
+$Found or die("Dependency 'dpkg-deb' not met");
+
+#----------------------------------------Read Settings From 'project.info' File
+
+my %Project = (
+	'name' => 'cito'
+);
+
