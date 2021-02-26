@@ -3,20 +3,20 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/tfldeb
 # Started On        - Fri 26 Feb 14:02:30 GMT 2021
-# Last Change       - Fri 26 Feb 19:51:43 GMT 2021
+# Last Change       - Fri 26 Feb 21:06:30 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# Build Debian package from files in this project (up one level). This is only
-# for TFL projects, but you're more than welcome to use it on your own projects
-# which are similarly organized.
+# Build Debian package for a TFL project, using a 'project.info' file. This is
+# only for TFL projects, but you're more than welcome to use it on your own
+# projects which are similarly organized.
 #
 # If you want to include a TFL project in your Debian- or Ubuntu-based
 # distribution of Linux, be sure to make use of this tool.
 #
 # Features:
 #
-# N/A
+#TODO: ReturnArray() only works if each index is a single-quoted string.
 #
 # Bugs:
 #
@@ -27,12 +27,14 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+chdir('/home/ichy/GitHub/terminalforlife/Personal/Extra/source/cito');
+
 use v5.22.1;
 use strict;
 use warnings;
 use autodie;
 
-#no warnings 'uninitialized';
+no warnings 'uninitialized';
 
 my $CurVer = '2021-02-26';
 my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
@@ -44,6 +46,13 @@ sub Usage {
 		  -v, --version            - Output the version datestamp.
 	} =~ tr/\t//dr)
 }
+
+my $InfoFile = './project.info';
+
+my @ValidKeys = (
+	'ProjectName',
+	'Executables'
+);
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
@@ -57,31 +66,72 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-$< == 0 or die("Root access is required");
+#$< == 0 or die("Root access is required");
 
 #--------------------------------------------------------------Main Subroutines
 
-# Usage: CopyFile(<InFile>, <OutFile>)
-sub CopyFile($;$) {
-	if (open(my $FH, '<', $_[0])) {
-		my @Buffer = <$FH>;
-		close($FH);
-
-		if (open(my $FH, '>', $_[1])) {
-			print($FH @Buffer);
-			close($FH)
-		}
-	}
-}
-
 # Usage: ReadFile(<File>)
 sub ReadFile($) {
+	die("File '$_[0]' not found") unless -f $_[0];
 	if (open(my $FH, '<', $_[0])) {
 		my @Buffer = <$FH>;
 		close($FH);
 
 		return(@Buffer)
 	}
+}
+
+# Usage: CopyFile(<InFile>, <OutFile>)
+sub CopyFile($;$) {
+	my @Data = ReadFile($_[0]);
+	if (open(my $FH, '>', $_[1])) {
+		print($FH @Data);
+		close($FH)
+	}
+}
+
+# Usage: Boolean(<Key>, <String>)
+sub Boolean($;$) {
+	if ($_[1] !~ m/^(true|false)$/i) {
+		die("Key '$_[0]' not a valid boolean")
+	}
+}
+
+# Usage: ReturnArray(<Key>, <InfoArray>)
+sub ReturnArray($;$) {
+	my @Array;
+
+	if ($_[1] =~ '^\[.*\]$') {
+		$_[1] = $_[1] =~ s/(^\[|\]$)//gr;
+		$_[1] =~ $& and die("Invalid value for key '$_[0]'");
+
+		my @Values = split("',", $_[1]);
+		foreach my $Value (@Values) {
+			$Value = $Value =~ s/(^\s?'|'\s?$)//gr;
+			push(@Array, $Value)
+		}
+	}
+
+	return(\@Array)
+}
+
+# Usage: SplitPath(<Path>)
+# Only returns directories which don't exist.
+sub SplitPath($) {
+	my ($Current, @Dirs);
+	my $DirName = ($_[0] =~ m{(.*[^/])(?:/.*)})[0];
+	foreach my $Dir (split('/', $DirName)) {
+		if (length($Current) == 0) {
+			$Current = $Dir
+		} else {
+			$Current = $Current . '/' . $Dir
+		}
+
+		-d '/' . $Current and next;
+		push(@Dirs, '/' . $Current)
+	}
+
+	print("$_\n") foreach @Dirs
 }
 
 #-------------------------------------------------------Some Preliminary Checks
@@ -108,7 +158,26 @@ $Found or die("Dependency 'dpkg-deb' not met");
 
 #----------------------------------------Read Settings From 'project.info' File
 
-my %Project = (
-	'name' => 'cito'
-);
+my %Project;
+my @Data = ReadFile($InfoFile);
+foreach my $Line (@Data) {
+	$Line =~ '^(#|$)' and next;
+	chomp($Line);
+
+	my ($Key, $Value) = split('=', $Line);
+	unless (grep({$_ eq $Key} @ValidKeys)) {
+		die("Invalid key '$Key' detected")
+	} elsif (length($Value) == 0) {
+		die("Empty value for key '$Key'")
+	}
+
+	if ($Key eq 'ProjectName') {
+		$Project{'ProjectName'} = $Value
+	} elsif ($Key eq 'Executables') {
+		$Project{'Executables'} = ReturnArray($Key, $Value)
+	}
+}
+
+#------------------------------------------------------------------------------
+
 
