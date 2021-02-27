@@ -1,0 +1,177 @@
+#!/usr/bin/env perl
+
+#------------------------------------------------------------------------------
+# Project Name      -
+# Started On        - Sat 27 Feb 17:43:17 GMT 2021
+# Last Change       - Sat 27 Feb 23:28:07 GMT 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Simple daemon which ensures no more than 7 recent files are remembered in
+# Linux Mint (Cinnamon) via the 'recently-used.xbel' file.
+#
+# This Perl tool was created as a fast workaround for this issue:
+#
+#   https://forums.linuxmint.com/viewtopic.php?f=47&t=343239
+#
+# Thanks to Welcome for inspiring me to write this.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   libwww-form-urlencoded-perl (>= 0.24-1)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+require WWW::Form::UrlEncoded;
+
+use v5.22.1;
+use strict;
+use warnings;
+use autodie;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2021-02-27';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -l, --list               - List all recently-used files.
+		  -n, --number [INT]       - Keep INT number of bookmarks.
+	} =~ tr/\t//dr)
+}
+
+my $File = "$ENV{HOME}/.local/share/recently-used.xbel";
+
+my $Last = 7;
+my $List = 0;
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--list|-l)$') {
+		$List = 1
+	} elsif ($ARGV[0] =~ '^(--file|-f)$') {
+		if (length($ARGV[1]) == 0) {
+			die("OPT '$ARGV[0]' requires an argument")
+		} elsif (not -f $ARGV[1]) {
+			die("File '$ARGV[1]' not found")
+		} else {
+			$File = $ARGV[1];
+			shift()
+		}
+	} elsif ($ARGV[0] =~ '^(--number|-n)$') {
+		if (length($ARGV[1]) == 0) {
+			die("OPT '$ARGV[0]' requires an argument")
+		} elsif ($ARGV[1] !~ '^[[:digit:]]+$') {
+			die("Invalid number of bookmarks")
+		} else {
+			$Last = $ARGV[1];
+			shift()
+		}
+	} else {
+		die("Incorrect option(s) specified")
+	}
+
+	shift()
+}
+
+-f $File or die("File '$File' missing");
+-r $File or die("File '$File' unreadable");
+-w $File or die("File '$File' unwritable");
+
+#----------------------------------------------------------------Parse XML File
+
+my @WantedLines;
+my (@Files, %Bookmarks, @CurrentBM);
+my $REGEX = '^[\t\s]*<bookmark href="(.*)"\sadded="(.*)"\smodified=';
+if (open(my $FH, '<', $File)) {
+	# Confirm it's an XML file.
+	if (<$FH> !~ m/^<\?xml /i) {
+		die("File '$File' invalid");
+	}
+
+	seek($FH, 0, 0);
+	my @Buffer = <$FH>;
+
+	my $Added;
+	my $Found = 0;
+	my $LineCount = 0;
+	foreach my $Line (@Buffer) {
+		$LineCount++;
+
+		if ($Line =~ m/$REGEX/) {
+			# We're now within a bookmark tag.
+			push(@CurrentBM, $Line);
+			push(@Files, $1);
+			$Added = $2;
+
+			$Found = 1
+		} elsif ($Found) {
+			# Handle the lines within the current bookmark tags.
+			if ($Line =~ '^[\t\s]*</bookmark>$') {
+				push(@CurrentBM, $Line);
+				$Bookmarks{$Added} = join('', @CurrentBM);
+				undef(@CurrentBM);
+
+				$Found = 0
+			} else {
+				# These are in-between the opening and closing bookmark tags.
+				push(@CurrentBM, $Line)
+			}
+		} else {
+			# Manually pushing the final line later on.
+			unless ($LineCount == scalar(@Buffer)) {
+				push(@WantedLines, $Line)
+			}
+		}
+	}
+
+	close($FH)
+}
+
+#---------------------------------------------------List & Parse Bookmark Files
+
+if ($List) {
+	use WWW::Form::UrlEncoded 'parse_urlencoded';
+
+	foreach (@Files) {
+		# Decode the URL-encoded (IE: '%20' is ' ') strings.
+		my $File = join("\n", parse_urlencoded($_));
+		print($File =~ s/^file:\/\///r)
+	}
+
+	exit(0)
+}
+
+#----------------------------------------Sort Bookmarks & Use Desired Bookmarks
+
+my $Count = 0;
+foreach (sort({$b cmp $a} keys(%Bookmarks))) {
+	if (++$Count == $Last + 1) {
+		last
+	} elsif ($Count <= $Last) {
+		# These are the lines for each bookmark we want, in order.
+		push(@WantedLines, $Bookmarks{$_});
+	}
+}
+
+push(@WantedLines, "</xbel>\n");
+
+#------------------------------------------------------------------Save Changes
+
+open(my $FH, '>', $File);
+print($FH $_) foreach @WantedLines
