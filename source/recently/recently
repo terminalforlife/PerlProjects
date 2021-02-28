@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      -
 # Started On        - Sat 27 Feb 17:43:17 GMT 2021
-# Last Change       - Sun 28 Feb 00:18:04 GMT 2021
+# Last Change       - Sun 28 Feb 00:22:23 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -158,10 +158,15 @@ if (open(my $FH, '<', $File)) {
 if ($List) {
 	use WWW::Form::UrlEncoded 'parse_urlencoded';
 
-	foreach (@Files) {
-		# Decode the URL-encoded (IE: '%20' is ' ') strings.
-		my $File = join("\n", parse_urlencoded($_));
-		print($File =~ s/^file:\/\///r)
+	if (scalar(@Files) > 0) {
+		foreach (@Files) {
+			# Decode the URL-encoded (IE: '%20' is ' ') strings.
+			my $File = join("", parse_urlencoded($_));
+			print($File =~ s/^file:\/\///r . "\n")
+		}
+	} else {
+		print("No bookmarks found.\n");
+		exit(2)
 	}
 
 	exit(0)
