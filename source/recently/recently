@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      -
 # Started On        - Sat 27 Feb 17:43:17 GMT 2021
-# Last Change       - Sat 27 Feb 23:53:36 GMT 2021
+# Last Change       - Sun 28 Feb 00:11:04 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -19,7 +19,6 @@
 #TODO: Trap signals.
 #TODO: Quit main loop when file checks fail.
 #TODO: Handle re-execution, when daemonized.
-#TODO: Back up the original file in same directory.
 #
 # Bugs:
 #
@@ -40,7 +39,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-02-27';
+my $CurVer = '2021-02-28';
 my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
 
 sub Usage {
@@ -48,6 +47,7 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  -B, --no-backup          - Don't create backup before writing.
 		  -f, --file [FILE]        - Use FILE instead of the default.
 		  -l, --list               - List all recently-used files.
 		  -n, --number [INT]       - Keep INT number of bookmarks.
@@ -55,11 +55,12 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
-my $File = "$ENV{HOME}/.local/share/recently-used.xbel";
-
-my $Write = 0;
+my $BackUp = 1;
 my $Last = 10;
 my $List = 0;
+my $Write = 0;
+
+my $File = "$ENV{HOME}/.local/share/recently-used.xbel";
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
@@ -88,6 +89,8 @@ while (defined($ARGV[0])) {
 			$Last = $ARGV[1];
 			shift()
 		}
+	} elsif ($ARGV[0] =~ '^(--no-backup|-B)$') {
+		$BackUp = 0
 	} else {
 		die("Incorrect option(s) specified")
 	}
@@ -101,17 +104,16 @@ while (defined($ARGV[0])) {
 
 #----------------------------------------------------------------Parse XML File
 
-my @WantedLines;
-my (@Files, %Bookmarks, @CurrentBM);
+my (@Files, %Bookmarks, @CurrentBM, @WantedLines, @Buffer);
 my $REGEX = '^[\t\s]*<bookmark href="(.*)"\sadded="(.*)"\smodified=';
 if (open(my $FH, '<', $File)) {
-	# Confirm it's an XML file.
-	if (<$FH> !~ m/^<\?xml /i) {
+	# Confirm it's a UTF-8, version 1 XML file.
+	if (<$FH> !~ m/^<\?xml version="1\.0" encoding="UTF-8"\?>/i) {
 		die("File '$File' invalid");
 	}
 
 	seek($FH, 0, 0);
-	my @Buffer = <$FH>;
+	@Buffer = <$FH>;
 
 	my $Added;
 	my $Found = 0;
@@ -182,6 +184,12 @@ push(@WantedLines, "</xbel>\n");
 if (not $Write) {
 	map(print($_), @WantedLines)
 } else {
+	if ($BackUp) {
+		open(my $FH, '>', "$File.bak");
+		print($FH @Buffer);
+		close($FH);
+	}
+
 	open(my $FH, '>', $File);
 	map(print($FH $_), @WantedLines);
 	close($FH)
