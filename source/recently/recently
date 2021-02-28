@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-
+#cito M:755 O:0 G:0 T:/usr/bin/recently
 #------------------------------------------------------------------------------
-# Project Name      -
+# Project Name      - PerlProjects/source/recently/recently
 # Started On        - Sat 27 Feb 17:43:17 GMT 2021
-# Last Change       - Sun 28 Feb 00:22:23 GMT 2021
+# Last Change       - Sun 28 Feb 00:25:49 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -186,7 +186,7 @@ foreach (sort({$b cmp $a} keys(%Bookmarks))) {
 
 push(@WantedLines, "</xbel>\n");
 
-#------------------------------------------------------------------Save Changes
+#--------------------------------------------------------Save or Output Changes
 
 if (not $Write) {
 	map(print($_), @WantedLines)
