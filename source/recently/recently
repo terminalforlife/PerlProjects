@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/recently/recently
 # Started On        - Sat 27 Feb 17:43:17 GMT 2021
-# Last Change       - Sun 28 Feb 00:32:36 GMT 2021
+# Last Change       - Sun 28 Feb 14:37:09 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,11 +11,12 @@
 #
 #   https://forums.linuxmint.com/viewtopic.php?f=47&t=343239
 #
-# Thanks to LMSF user 'Welcome' for inspiring me to write this.
+# Thanks to LMSF user 'Welcome' for inspiring me to write this, and making
+# suggestions which ultimately led to its improvements.
 #
 # Features:
 #
-#TODO: Daemonize.
+#TODO: Daemonize, executing when file change detected.
 #TODO: Trap signals.
 #TODO: Quit main loop when file checks fail.
 #TODO: Handle re-execution, when daemonized.
@@ -40,7 +41,8 @@ use autodie;
 no warnings 'uninitialized';
 
 my $CurVer = '2021-02-28';
-my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+my $Progrm = 'recently';
+my $ProgrmFancy = 'Recently';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS]
@@ -49,16 +51,25 @@ sub Usage {
 		  -v, --version            - Output the version datestamp.
 		  -B, --no-backup          - Don't create backup before writing.
 		  -f, --file [FILE]        - Use FILE instead of the default.
-		  -l, --list               - List all recently-used files.
 		  -n, --number [INT]       - Keep INT number of bookmarks.
-		  -r, --raw-uri            - When listing, display the raw URI.
+		  -o, --output             - Just ouput the resulting XML data.
+		  -r, --raw                - When listing, display the raw URI.
 		  -w, --write              - Write bookmark changes to disk.
+
+		  Unless otherwise specified, the following FILE is used:
+
+		    ~/.local/share/recently-used.xbel
+
+		  By default, 10 bookmarks will be kept, and a backup of FILE will be
+		  created. If not writing or sending the changes to STDOUT, all URIs
+		  (IE: 'file://') will be listed, in order of appearance.
 	} =~ tr/\t//dr)
 }
 
 my $BackUp = 1;
 my $Last = 10;
-my $List = 0;
+my $List = 1;
+my $Output = 0;
 my $RawURI = 0;
 my $Write = 0;
 
@@ -69,8 +80,6 @@ while (defined($ARGV[0])) {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	} elsif ($ARGV[0] =~ '^(--list|-l)$') {
-		$List = 1
 	} elsif ($ARGV[0] =~ '^(--write|-w)$') {
 		$Write = 1
 	} elsif ($ARGV[0] =~ '^(--file|-f)$') {
@@ -93,13 +102,21 @@ while (defined($ARGV[0])) {
 		}
 	} elsif ($ARGV[0] =~ '^(--no-backup|-B)$') {
 		$BackUp = 0
-	} elsif ($ARGV[0] =~ '^(--raw-uri|-r)$') {
+	} elsif ($ARGV[0] =~ '^(--raw|-r)$') {
 		$RawURI = 1
+	} elsif ($ARGV[0] =~ '^(--output|-o)$') {
+		$Output = 1
 	} else {
 		die("Incorrect option(s) specified")
 	}
 
 	shift()
+}
+
+if ($Write and $RawURI) {
+	die("Told to write changes and list raw URIs");
+} elsif (not $Write and not $BackUp) {
+	die("Backup disabled, but not writing changes");
 }
 
 -f $File or die("File '$File' missing");
@@ -159,7 +176,7 @@ if (open(my $FH, '<', $File)) {
 
 #---------------------------------------------------List & Parse Bookmark Files
 
-if ($List) {
+if ($List and not ($Write or $Output)) {
 	if (scalar(@Files) > 0) {
 		if ($RawURI) {
 			map(print("$_\n"), @Files)
@@ -168,7 +185,7 @@ if ($List) {
 
 			# Decode the URL-encoded (IE: '%20' is ' ') strings.
 			foreach (@Files) {
-				my $File = join("", parse_urlencoded($_));
+				my $File = join('', parse_urlencoded($_));
 				print($File =~ s/^file:\/\///r . "\n")
 			}
 		}
@@ -177,7 +194,7 @@ if ($List) {
 		exit(2)
 	}
 
-	exit(0)
+	exit(0) unless $Write or $Output
 }
 
 #----------------------------------------Sort Bookmarks & Use Desired Bookmarks
@@ -194,18 +211,20 @@ foreach (sort({$b cmp $a} keys(%Bookmarks))) {
 
 push(@WantedLines, "</xbel>\n");
 
-#--------------------------------------------------------Save or Output Changes
+#----------------------------------------------------Save and/or Output Changes
 
-if (not $Write) {
-	map(print($_), @WantedLines)
-} else {
-	if ($BackUp) {
-		open(my $FH, '>', "$File.bak");
+$Output and map(print($_), @WantedLines);
+exit(0) unless $Write;
+
+if ($BackUp) {
+	if (open(my $FH, '>', "$File.bak")) {
 		print($FH @Buffer);
 		close($FH);
+	} else {
+		die("Failed to create backup of FILE")
 	}
-
-	open(my $FH, '>', $File);
-	map(print($FH $_), @WantedLines);
-	close($FH)
 }
+
+open(my $FH, '>', $File);
+map(print($FH $_), @WantedLines);
+close($FH)
