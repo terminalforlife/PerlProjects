@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/recently/recently
 # Started On        - Sat 27 Feb 17:43:17 GMT 2021
-# Last Change       - Sun 28 Feb 00:25:49 GMT 2021
+# Last Change       - Sun 28 Feb 00:32:36 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -51,6 +51,7 @@ sub Usage {
 		  -f, --file [FILE]        - Use FILE instead of the default.
 		  -l, --list               - List all recently-used files.
 		  -n, --number [INT]       - Keep INT number of bookmarks.
+		  -r, --raw-uri            - When listing, display the raw URI.
 		  -w, --write              - Write bookmark changes to disk.
 	} =~ tr/\t//dr)
 }
@@ -58,6 +59,7 @@ sub Usage {
 my $BackUp = 1;
 my $Last = 10;
 my $List = 0;
+my $RawURI = 0;
 my $Write = 0;
 
 my $File = "$ENV{HOME}/.local/share/recently-used.xbel";
@@ -91,6 +93,8 @@ while (defined($ARGV[0])) {
 		}
 	} elsif ($ARGV[0] =~ '^(--no-backup|-B)$') {
 		$BackUp = 0
+	} elsif ($ARGV[0] =~ '^(--raw-uri|-r)$') {
+		$RawURI = 1
 	} else {
 		die("Incorrect option(s) specified")
 	}
@@ -156,13 +160,17 @@ if (open(my $FH, '<', $File)) {
 #---------------------------------------------------List & Parse Bookmark Files
 
 if ($List) {
-	use WWW::Form::UrlEncoded 'parse_urlencoded';
-
 	if (scalar(@Files) > 0) {
-		foreach (@Files) {
+		if ($RawURI) {
+			map(print("$_\n"), @Files)
+		} else {
+			use WWW::Form::UrlEncoded 'parse_urlencoded';
+
 			# Decode the URL-encoded (IE: '%20' is ' ') strings.
-			my $File = join("", parse_urlencoded($_));
-			print($File =~ s/^file:\/\///r . "\n")
+			foreach (@Files) {
+				my $File = join("", parse_urlencoded($_));
+				print($File =~ s/^file:\/\///r . "\n")
+			}
 		}
 	} else {
 		print("No bookmarks found.\n");
