@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/recently/recently
 # Started On        - Sat 27 Feb 17:43:17 GMT 2021
-# Last Change       - Sun 28 Feb 14:37:09 GMT 2021
+# Last Change       - Mon  1 Mar 18:00:00 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,6 +16,7 @@
 #
 # Features:
 #
+#TODO: Have number OPT affect `$List` functionality, too.
 #TODO: Daemonize, executing when file change detected.
 #TODO: Trap signals.
 #TODO: Quit main loop when file checks fail.
@@ -40,7 +41,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-02-28';
+my $CurVer = '2021-03-01';
 my $Progrm = 'recently';
 my $ProgrmFancy = 'Recently';
 
@@ -75,12 +76,15 @@ my $Write = 0;
 
 my $File = "$ENV{HOME}/.local/share/recently-used.xbel";
 
+my ($WriteFlag, $NumberFlag, $NoBackUpFlag, $RawURIFlag);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
 	} elsif ($ARGV[0] =~ '^(--write|-w)$') {
+		$WriteFlag = $ARGV[0];
+
 		$Write = 1
 	} elsif ($ARGV[0] =~ '^(--file|-f)$') {
 		if (length($ARGV[1]) == 0) {
@@ -92,6 +96,8 @@ while (defined($ARGV[0])) {
 			shift()
 		}
 	} elsif ($ARGV[0] =~ '^(--number|-n)$') {
+		$NumberFlag = $ARGV[0];
+
 		if (length($ARGV[1]) == 0) {
 			die("OPT '$ARGV[0]' requires an argument")
 		} elsif ($ARGV[1] !~ '^[[:digit:]]+$') {
@@ -101,8 +107,12 @@ while (defined($ARGV[0])) {
 			shift()
 		}
 	} elsif ($ARGV[0] =~ '^(--no-backup|-B)$') {
+		$NoBackUpFlag = $ARGV[0];
+
 		$BackUp = 0
 	} elsif ($ARGV[0] =~ '^(--raw|-r)$') {
+		$RawURIFlag = $ARGV[0];
+
 		$RawURI = 1
 	} elsif ($ARGV[0] =~ '^(--output|-o)$') {
 		$Output = 1
@@ -114,10 +124,15 @@ while (defined($ARGV[0])) {
 }
 
 if ($Write and $RawURI) {
-	die("Told to write changes and list raw URIs");
+	die("Incompatible OPTs '$WriteFlag' and '$RawURIFlag'");
 } elsif (not $Write and not $BackUp) {
-	die("Backup disabled, but not writing changes");
+	die("Using '$NoBackUpFlag' without writing changes");
+} elsif ($NumberFlag and (not $Write and not $Output)) {
+	die("Unpaired '$NumberFlag' OPT");
 }
+
+# Clean-up on aisle three.
+map(undef($_), ($NumberFlag, $NoBackUpFlag, $RawURIFlag, $WriteFlag));
 
 -f $File or die("File '$File' missing");
 -r $File or die("File '$File' unreadable");
