@@ -2,7 +2,7 @@ aa1327cf305840be4eb6b3b98699554c  source/apt-download-deps/apt-download-deps
 d1e53be64ab2549d633b23efee05730b  source/apt-download-deps/completions
 e1753f43b12e22d936d10dfcdb520375  source/apt-history/apt-history
 82e0edaf67158d6f1ebaeed4c6b5c2e5  source/apt-history/apt-history.1.gz
-2c2716ed1a801acc49e007031f922ff5  source/apt-history/apt-history-installer
+79a8eccc207f25a75ca16973e5b06540  source/apt-history/apt-history-installer
 98ed826736428956623e4219c86f694f  source/apt-history/APTHistory.pm
 c20008b59828f2fb1ac4dec8fbd06e9e  source/apt-history/completions
 f2f341ad9935878438e9ae8be53fb78e  source/apt-history/screenshots/Screenshot_2021-01-13_15:19:27.jpg
