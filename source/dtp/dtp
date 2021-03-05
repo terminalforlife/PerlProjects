@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Fri  5 Mar 21:48:05 GMT 2021
+# Last Change       - Fri  5 Mar 21:49:14 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 #
 # Bugs:
 #
-#TODO: Filtering by block device name isn't working at all.
+# N/A
 #
 # Dependencies:
 #
@@ -186,7 +186,7 @@ sub Display($;$;$) {
 }
 
 foreach my $Key (sort({$a cmp $b} @Keys)) {
-	($#Targets > 0 and not grep({$_ eq $Key} @Targets)) and next;
+	($#Targets > -1 and not grep({$_ eq $Key} @Targets)) and next;
 
 	my $Temp = substr($Drives{$Key}->[3], 0, 2);
 	if ($ShowColor) {
