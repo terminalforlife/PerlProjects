@@ -1,0 +1,203 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/dtp
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/dtp/dtp
+# Started On        - Fri  5 Mar 19:54:53 GMT 2021
+# Last Change       - Fri  5 Mar 21:42:38 GMT 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Portable, lightweight storage device HDD/SSD temperature viewer for devices
+# which have mounted filesystems. This small utility makes use of the new
+# 'drivetemp' feature of the modern kernel, via SYSFS, accessible with the
+# 'hwmon' class.
+#
+# Features:
+#
+#TODO: Have the index key be something else, so non-mounted drives are listed.
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1)
+#------------------------------------------------------------------------------
+
+use v5.22.1;
+use strict;
+use warnings;
+use autodie;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2021-03-05';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [DEV]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -C, --no-color           - Disable ANSI color escape sequences.
+		  -H, --no-header          - Omit table header from output.
+	} =~ tr/\t//dr)
+}
+
+my $HWMon = '/sys/class/hwmon';
+my $ShowHeader = 1;
+my $ShowColor = 1;
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--no-header|-H)$') {
+		$ShowHeader = 0
+	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+		$ShowColor = 0
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect option(s) specified")
+	} else {
+		last
+	}
+
+	shift()
+}
+
+my @Targets;
+my $TargetErr = 0;
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^/dev/(sd|fd|hd)[[:alpha:]]+$') {
+		push(@Targets, $ARGV[0])
+	} else {
+		warn("$!");
+		$TargetErr++
+	}
+
+	shift()
+}
+
+exit(1) if $TargetErr > 0;
+
+# Usage: ReadFile(<FILE>)
+sub ReadFile($) {
+	if (open(my $FH, '<', $_[0])) {
+		chomp(my $Buffer = join("\n", <$FH>));
+		close($FH);
+
+		return($Buffer =~ s/[[:space:]]+$//r)
+	} else {
+		die("$!")
+	}
+}
+
+# Usage: Width(<STRING>, <MAX_WIDTH>)
+sub Width($;$) {
+	my $Width = length($_[0]);
+	if ($Width > $_[1]) {
+		return($Width)
+	} else {
+		return($_[1])
+	}
+}
+
+my %Colors;
+if ($ShowColor) {
+	%Colors = (
+		'red'    => "\e[91m",
+		'green'  => "\e[92m",
+		'yellow' => "\e[93m",
+		'blue'   => "\e[94m",
+		'purple' => "\e[95m",
+		'cyan'   => "\e[96m",
+		'grey'  => "\e[2;37m",
+		'reset'  => "\e[0m"
+	)
+}
+
+my (%Drives, @Keys);
+my $MaxWidthRev = length('REV');
+my $MaxWidthModel = length('MODEL');
+my $MaxWidthBlock = length('NAME');
+my $MaxWidthVendor = length('VENDOR');
+foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
+	-d -r -x $Dir or next;
+
+	my ($Model, $Temp, $Vendor, $Rev, $Block) = ('') x 5;
+	foreach my $File (glob("$Dir/*")) {
+		-f -r $File or next;
+
+		if ($File =~ '/name$') {
+			if (ReadFile($File) eq 'drivetemp') {
+				foreach my $DevFile (glob("$Dir/device/*")) {
+					-f -r $DevFile or next;
+
+					if ($DevFile =~ '/model$') {
+						$Model = ReadFile($DevFile);
+						$MaxWidthModel = Width($Model, $MaxWidthModel)
+					} elsif ($DevFile =~ '/vendor$') {
+						$Vendor = ReadFile($DevFile);
+						$MaxWidthVendor = Width($Vendor, $MaxWidthVendor)
+					} elsif ($DevFile =~ '/rev$') {
+						$Rev = ReadFile($DevFile);
+						$MaxWidthRev = Width($Rev, $MaxWidthRev)
+					}
+				}
+
+				if (-d -r -x "$Dir/device/block") {
+					$Block = (glob("$Dir/device/block/*"))[0];
+					if (-d $Block) {
+						$Block = '/dev/' . ($Block =~ m{(?:.*/)([^/].*)})[0];
+						$MaxWidthBlock = Width($Block, $MaxWidthBlock)
+					} else {
+						$Block = ''
+					}
+				}
+			}
+		} elsif ($File =~ '/temp1_input$') {
+			$Temp = ReadFile($File)
+		} elsif (length($Model) and length($Temp)) {
+			$Drives{$Block} = [$Vendor, $Rev, $Model, $Temp]
+		}
+	}
+}
+
+@Keys = keys(%Drives);
+
+if ($ShowHeader and scalar(@Keys)) {
+	printf(
+		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-s\n" . $Colors{'reset'},
+		$MaxWidthBlock, 'NAME', $MaxWidthVendor, 'VENDOR', $MaxWidthModel,
+		'MODEL', $MaxWidthRev, 'REV', 'TEMP'
+	);
+}
+
+# Usage: Display(<KEY>, <TEMP>, <COLOR>)
+sub Display($;$;$) {
+	printf(
+		"%-*s %-*s %-*s %*s $Colors{$_[2]}%d$Colors{'reset'}°C\n",
+		$MaxWidthBlock, $_[0], $MaxWidthVendor, $Drives{$_[0]}->[0],
+		$MaxWidthModel, $Drives{$_[0]}->[2], $MaxWidthRev,
+		$Drives{$_[0]}->[1], $_[1]
+	)
+}
+
+foreach my $Key (sort({$a cmp $b} @Keys)) {
+	($#Targets > 0 and not grep({$_ eq $Key} @Targets)) and next;
+
+	my $Temp = substr($Drives{$Key}->[3], 0, 2);
+	if ($ShowColor) {
+		if ($Temp > 50) {
+			Display($Key, $Temp, 'red')
+		} elsif ($Temp > 30 and $Temp <= 50) {
+			Display($Key, $Temp, 'yellow')
+		} else {
+			Display($Key, $Temp, 'green')
+		}
+	} else {
+		Display($Key, $Temp, undef)
+	}
+}
