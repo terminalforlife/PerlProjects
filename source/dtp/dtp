@@ -172,6 +172,11 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 	}
 }
 
+if (!keys %hash) {
+	print("No drivetemp device found\nPlease check if drivetemp kernel module enabled\n");
+	exit(1);
+}
+
 @Keys = keys(%Drives);
 
 if ($ShowHeader and scalar(@Keys)) {
