@@ -9,7 +9,7 @@
   * [cheater](source/cheater) - Command-line alternative to the 'cheat.sh' web interface.
   * [clean-locales](source/clean-locales) - Remove non-English localizations.
   * [cpufreq](source/cpufreq) - Display the current CPU core frequencies.
-  * [dtp](source/dtp) - View storage device temperatures using SYSFS in modern Linux.
+  * [dtp](source/dtp) - View drive temperatures using SYSFS in modern Linux.
   * [getip](source/getip) - View your internal and/or external IP address.
   * [gitsap](source/gitsap) - Display an elegant overview of your git repositories.
   * [lsbins](source/lsbins) - A descriptive, searchable overview of PATH executables.
