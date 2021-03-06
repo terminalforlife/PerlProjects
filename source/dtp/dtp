@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sat  6 Mar 13:53:19 GMT 2021
+# Last Change       - Sat  6 Mar 14:10:14 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,14 @@
 #
 # Features:
 #
-# N/A
+#TODO: Add support for Fahrenheit -- duh.
+#TODO: Allow user to disable the temperature notiation. (IE: °C)
+#TODO: Use drive's own recommended operating ranges.
+#TODO: Allow use of `-o`|`--output` to adjust the columns.
+#TODO: Use `Err()` instead of `die()`/`warn()`.
+#TODO: Consider allowing user to list drives exceeding a given temperature.
+#TODO: Replace Vendor column with something useful.
+#TODO: Add column for whether it's a rotational drive or not. (IE: SSD/HDD)
 #
 # Bugs:
 #
