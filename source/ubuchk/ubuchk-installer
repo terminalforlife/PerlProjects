@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Tue  2 Mar 17:03:51 GMT 2021
+# Last Change       - Sat  6 Mar 15:05:30 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -184,12 +184,17 @@ done
 
 printf 'Setting up bash(1) completion:\n'
 
-printf "* Creating symlink for 'ubuchk-db' ... "
 BCDir='/usr/share/bash-completion/completions'
-if ln -s "$BCDir/ubuchk" "$BCDir/ubuchk-db" 2>> "$LogFile"; then
-	printf '\033[32m[OK]\033[0m\n'
+if ! [ -L "$BCDir/ubuchk-db" ]; then
+
+	printf "* Creating symlink for 'ubuchk-db' ... "
+	if ln -s "$BCDir/ubuchk" "$BCDir/ubuchk-db" 2>> "$LogFile"; then
+		printf '\033[32m[OK]\033[0m\n'
+	else
+		printf '\033[31m[ERR]\033[0m\n'
+	fi
 else
-	printf '\033[31m[ERR]\033[0m\n'
+	printf "Symlink for 'ubuchk-db' already present\n"
 fi
 
 printf 'Checking executables work:\n'
