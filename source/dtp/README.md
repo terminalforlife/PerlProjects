@@ -1,6 +1,6 @@
 # Introduction
 
-To be written...
+Lightweight and fairly portable tool to display drive temperatures using the _drivetemp_ driver in modern Linux kernels, via the _hwmon_ class in _SYSFS_.
 
 # Installation Instructions
 
