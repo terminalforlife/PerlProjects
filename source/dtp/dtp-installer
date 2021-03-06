@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Sat  6 Mar 03:25:18 GMT 2021
+# Last Change       - Sat  6 Mar 14:12:20 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ trap SigHandler EXIT INT QUIT ABRT TERM
 
 printf 'Fetching files from GitHub:\n'
 ErrCount=0
-for File in 'dtp' 'completions'; do
+for File in 'dtp' 'completions' 'dtp.1.gz'; do
 	printf "* Downloading '%s' ... " "$File"
 	if $DLCMD "$TmpDir/$File" "$URL/$File" 2>> "$LogFile"; then
 		printf '\033[32m[OK]\033[0m\n'
@@ -125,7 +125,7 @@ fi
 
 printf '* Assigning modes ... '
 ErrCount=0
-for File in 'dtp:755' 'completions:644'; do
+for File in 'dtp:755' 'completions:644' 'dtp.1.gz:644'; do
 	chmod ${File##*:} "$TmpDir/${File%:*}" 2>> "$LogFile" ||
 		ErrCount=$((ErrCount + 1))
 done
@@ -140,8 +140,9 @@ printf 'Moving files into place:\n'
 ErrCount=0
 for File in\
 \
-	'dtp:/usr/bin/dtp'\
-	'completions:/usr/share/bash-completion/completions/dtp'
+	'completions:/usr/share/bash-completion/completions/dtp'\
+	'dtp.1.gz:/usr/share/man/man1/dtp.1.gz'\
+	'dtp:/usr/bin/dtp'
 do
 	printf "* Installing '%s' ... " "${File%%:*}"
 	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then
