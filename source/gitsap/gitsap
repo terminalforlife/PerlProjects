@@ -3,16 +3,22 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Sun 14 Feb 15:51:28 GMT 2021
+# Last Change       - Sat  6 Mar 03:54:17 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# This project is based on a script I wrote in shell (Bash) called `gitsa`
+# This project is based on a script I wrote in shell (BASH) called `gitsa`
 # which did the same thing but on a much simpler and slower scale.
 #
 # Features:
 #
-# N/A
+#TODO: Add updates to reflect updates made to Git part of '~/.bashrc' prompt.
+#
+#      Somewhat recently, I vastly improved the Git part of my prompt. I need
+#      to incorporate those changes here in GitSAP.
+#
+#TODO: Optimize code. It's currently pretty old code; probably due an upgrade.
+#TODO: Use `__DATA__` for generating a new configuration file, like in UbuChk.
 #
 # Bugs:
 #
@@ -27,13 +33,20 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+require Cwd;
+require File::Find;
+require Git::Repository;
+require Number::Bytes::Human;
+require Term::ANSIColor;
+
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2021-02-14";
+my $CurVer = '2021-03-06';
 my $Progrm = 'gitsap';
 my $ProgrmFancy = 'GitSAP';
 
