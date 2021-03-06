@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/dtp
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/dtp/completions
+# Started On        - Sat  6 Mar 03:21:01 GMT 2021
+# Last Change       - Sat  6 Mar 03:21:06 GMT 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This is the BASH completion script for `dtp`.
+#------------------------------------------------------------------------------
+
+_dtp(){
+	GetArgs(){
+		local CurLine Word
+
+		while read -a Line; do
+			[ "${Line[0]:0:1}" == '-' ] || continue
+
+			for Field in "${Line[@]}"; {
+				if [ "$Field" == '-' ]; then
+					break
+				elif [[ $Field == -* ]]; then
+					Field=${Field//\[*\]/}
+					printf '%s ' "${Field//,/}"
+				fi
+			}
+		done <<< "$(dtp -h)"
+	}
+
+	COMPREPLY=($(compgen -W "$(GetArgs)" -- "$2"))
+}
+
+complete -F _dtp dtp

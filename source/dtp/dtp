@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Fri  5 Mar 21:49:14 GMT 2021
+# Last Change       - Sat  6 Mar 03:13:53 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,8 +32,8 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-05';
-my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+my $CurVer = '2021-03-06';
+my $Progrm = 'dtp';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS] [DEV]
