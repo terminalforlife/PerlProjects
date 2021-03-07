@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 14:28:29 GMT 2021
+# Last Change       - Sun  7 Mar 15:27:07 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -43,14 +43,15 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  --no-header              - Omit table header from output.
+		  --size=[U]               - Use unit U, instead of bytes.
 		  -C, --no-color           - Disable ANSI color escape sequences.
-		  -H, --no-header          - Omit table header from output.
+		  -H, --si                 - For size, use powers of 1000, not 1024.
 		  -N, --no-notation        - Omit the temperature notation.
 		  -f, --fahrenheit         - Display temperatures in Fahrenheit.
 		  -r, --ranges [L,H]       - Use temperature ranges of L and H.
 	} =~ tr/\t//dr)
 }
-		  #--size=[K|M|G|T]         - Use provided unit instead of bytes.
 
 sub Err($;$) {
 	printf(STDERR "ERROR: %s\n", $_[1]);
@@ -64,6 +65,8 @@ my $Notation = '°C';
 my $ShowHeader = 1;
 my $Fahrenheit = 0;
 my $ShowColor = 1;
+my $Unit = 'B';
+my $Powers = 1024;
 
 my %Colors = (
 		'red'    => "\e[91m",
@@ -87,13 +90,26 @@ while (defined($ARGV[0])) {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	} elsif ($ARGV[0] =~ '^(--no-header|-H)$') {
+	} elsif ($ARGV[0] eq '--no-header') {
 		$ShowHeader = 0
+	} elsif ($ARGV[0] =~ '^--size=') {
+		my ($OPT, $Value) = split('=', $ARGV[0]);
+		unless (length($Value)) {
+			Err(1, "OPT '$OPT=' missing its value.")
+		} elsif ($Value eq 'B' or $Value eq 'b') {
+			Err(1, "Redundant specification of bytes.")
+		} elsif ($Value !~ /^(K|M|G|T|P)$/i) {
+			Err(1, "OPT '$OPT=' given an invalid unit.")
+		} else {
+			$Unit = uc($Value)
+		}
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
 		$ShowColor = 0;
 		undef(%Colors)
 	} elsif ($ARGV[0] =~ '^(--no-notation|-N)$') {
 		$Notation = ''
+	} elsif ($ARGV[0] =~ '^(--si|-H)$') {
+		$Powers = 1000
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
 		($Fahrenheit, $Notation) = (1, '°F')
 	} elsif ($ARGV[0] =~ '^(--ranges|-r)$') {
@@ -124,7 +140,9 @@ while (defined($ARGV[0])) {
 }
 
 if (not $ShowColor and $CustomRanges) {
-	Err(1, "Color support required for custom ranges.")
+	Err(1, 'Color support required for custom ranges.')
+} elsif ($Unit eq 'B' and $Powers == 1000) {
+	Err(1, 'Powers of 1000 redundant if displaying bytes.')
 }
 
 my @Targets;
@@ -225,7 +243,7 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 scalar(@Keys) or Err(1, 'No storage devices found.');
 
 my ($Sectors, $Size);
-my $MaxWidthSize = length('SIZE');
+my $MaxWidthSize = length('SIZE_?');
 foreach my $Key (@Keys) {
 	my $Base = ($Key =~ m{(?:.*/)([^/].*)})[0];
 	my $BlockDir = "$BlockDirs/$Base";
@@ -245,22 +263,39 @@ foreach my $Key (@Keys) {
 	my $SectorFile = "$BlockDir/queue/hw_sector_size";
 	-f -r $SectorFile and $Sectors = ReadFile($SectorFile);
 	-f -r $SizeFile and $Size = ReadFile($SizeFile);
+	my $Bytes = $Size * $Sectors;
 
-	my $Bytes = $Size * $Sectors // '???';
-	my $BytesWidth = length($Bytes);
-	push(@{$Drives{$Key}}, $Bytes);
+	# Use sizes in the specified unit.
+	my $FinalSize = $Bytes;
+	foreach ('B', 'K', 'M', 'G', 'T', 'P') {
+		last if $_ eq $Unit;
 
-	$BytesWidth > $MaxWidthSize and $MaxWidthSize = length($Bytes)
+		$FinalSize = $FinalSize / $Powers
+	}
+
+	# Have to do this here and not via `printf()`, due to possible '???'.
+	$FinalSize = $FinalSize =~ s/(\d+\.\d{2})\d+$/$1/r;
+
+	# When the size of the drive is too small for the unit to cleanly display.
+	$FinalSize !~ '^(\d+|\d+\.\d+)$' and $FinalSize = '0.00';
+
+	push(@{$Drives{$Key}}, $FinalSize || '???');
+
+	my $SizeWidth = length($FinalSize);
+	$SizeWidth > $MaxWidthSize and $MaxWidthSize = $SizeWidth
 }
 
 #----------------------------------------------------Begin Displaying the Table
 
 # Display the header, sized dynamically.
 if ($ShowHeader and scalar(@Keys)) {
+	my $HeaderSize = "SIZE_$Unit";
+	$Unit eq 'B' and $HeaderSize = 'SIZE';
+
 	printf(
 		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-5s %-*s %-s\n" . $Colors{'reset'},
 		$MaxWidthBlock, 'NAME', $MaxWidthState, 'STATE', $MaxWidthModel,
-		'MODEL', $MaxWidthRev, 'REV', 'ROT', $MaxWidthSize, 'SIZE', 'TEMP'
+		'MODEL', $MaxWidthRev, 'REV', 'ROT', $MaxWidthSize, $HeaderSize, 'TEMP'
 	);
 }
 
@@ -268,7 +303,7 @@ sub Display($;$;$) {
 	my ($Key, $Temp, $Color) = @_;
 
 	printf(
-		"%-*s %-*s %-*s %*s %-5s %-*d $Colors{$Color}%d$Colors{'reset'}%s\n",
+		"%-*s %-*s %-*s %*s %-5s %-*s $Colors{$Color}%d$Colors{'reset'}%s\n",
 		$MaxWidthBlock, $Key, $MaxWidthState, $Drives{$Key}->[0],
 		$MaxWidthModel, $Drives{$Key}->[2], $MaxWidthRev,
 		$Drives{$Key}->[1], $Drives{$Key}->[4], $MaxWidthSize,
