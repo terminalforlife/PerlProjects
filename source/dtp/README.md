@@ -25,7 +25,7 @@ If you don't have sudo(8), just omit it from the command(s) above, and run them 
 If you've used the installer, then you can run the following to delete the files it creates:
 
 ```
-sudo rm -v /usr/share/bash-completion/completions/dtp /usr/bin/dtp
+sudo rm -v /usr/share/bash-completion/completions/dtp /usr/share/man/man1/dtp.1.gz /usr/bin/dtp
 ```
 
 If you don't have sudo(8), you'll have to acquire root privileges by other means.
