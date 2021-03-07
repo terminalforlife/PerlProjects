@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 02:31:47 GMT 2021
+# Last Change       - Sun  7 Mar 03:03:44 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,7 +17,6 @@
 #TODO: Use drive's own recommended operating ranges.
 #TODO: Allow use of `-o`|`--output` to adjust the columns.
 #TODO: Consider allowing user to list drives exceeding a given temperature.
-#TODO: Add column for whether it's a rotational drive or not. (IE: SSD/HDD)
 #
 # Bugs:
 #
@@ -56,10 +55,22 @@ sub Err($;$) {
 }
 
 my $HWMon = '/sys/class/hwmon';
+my $BlockDirs = '/sys/block';
 my $Notation = '°C';
 my $ShowHeader = 1;
 my $Fahrenheit = 0;
 my $ShowColor = 1;
+
+my %Colors = (
+		'red'    => "\e[91m",
+		'green'  => "\e[92m",
+		'yellow' => "\e[93m",
+		'blue'   => "\e[94m",
+		'purple' => "\e[95m",
+		'cyan'   => "\e[96m",
+		'grey'  => "\e[2;37m",
+		'reset'  => "\e[0m"
+);
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
@@ -69,7 +80,8 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--no-header|-H)$') {
 		$ShowHeader = 0
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
-		$ShowColor = 0
+		$ShowColor = 0;
+		undef(%Colors)
 	} elsif ($ARGV[0] =~ '^(--no-notation|-N)$') {
 		$Notation = ''
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
@@ -98,6 +110,8 @@ while (defined($ARGV[0])) {
 
 exit(1) if $TargetErr > 0;
 
+#--------------------------------------------------------------Main Subroutines
+
 # Usage: ReadFile(<FILE>)
 sub ReadFile($) {
 	-f $_[0] or Err(1, "File '$_[0]' missing.");
@@ -120,20 +134,9 @@ sub Width($;$) {
 	}
 }
 
-my %Colors;
-if ($ShowColor) {
-	%Colors = (
-		'red'    => "\e[91m",
-		'green'  => "\e[92m",
-		'yellow' => "\e[93m",
-		'blue'   => "\e[94m",
-		'purple' => "\e[95m",
-		'cyan'   => "\e[96m",
-		'grey'  => "\e[2;37m",
-		'reset'  => "\e[0m"
-	)
-}
+#------------------------------------------Populate Hash with Determined Values
 
+# Fetch bulk of column information.
 my (%Drives, @Keys);
 my $MaxWidthRev = length('REV');
 my $MaxWidthModel = length('MODEL');
@@ -151,6 +154,7 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 				foreach my $DevFile (glob("$Dir/device/*")) {
 					-f -r $DevFile or next;
 
+					# Get some column values.
 					if ($DevFile =~ '/model$') {
 						$Model = ReadFile($DevFile);
 						$MaxWidthModel = Width($Model, $MaxWidthModel)
@@ -163,6 +167,7 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 					}
 				}
 
+				# Determine the block device name.
 				if (-d -r -x "$Dir/device/block") {
 					$Block = (glob("$Dir/device/block/*"))[0];
 					if (-d $Block) {
@@ -185,21 +190,39 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 @Keys = keys(%Drives);
 scalar(@Keys) or Err(1, 'No storage devices found.');
 
+# Determine if it's a rotational drive.
+foreach my $Key (@Keys) {
+	my $Base = ($Key =~ m{(?:.*/)([^/].*)})[0];
+	my $BlockDir = "$BlockDirs/$Base";
+
+	if (-d $BlockDir) {
+		my $Rotational = ReadFile("$BlockDir/queue/rotational");
+		$Rotational and $Rotational = 'true' or $Rotational = 'false';
+		push(@{$Drives{$Key}}, $Rotational)
+	} else {
+		# Just in-case, but shouldn't happen.
+		push(@{$Drives{$Key}}, '???')
+	}
+}
+
+#----------------------------------------------------Begin Displaying the Table
+
+# Display the header, sized dynamically.
 if ($ShowHeader and scalar(@Keys)) {
 	printf(
-		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-s\n" . $Colors{'reset'},
+		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-5s %-s\n" . $Colors{'reset'},
 		$MaxWidthBlock, 'NAME', $MaxWidthState, 'STATE', $MaxWidthModel,
-		'MODEL', $MaxWidthRev, 'REV', 'TEMP'
+		'MODEL', $MaxWidthRev, 'REV', 'ROT', 'TEMP'
 	);
 }
 
 # Usage: Display(<KEY>, <TEMP>, <COLOR>)
 sub Display($;$;$) {
 	printf(
-		"%-*s %-*s %-*s %*s $Colors{$_[2]}%d$Colors{'reset'}%s\n",
+		"%-*s %-*s %-*s %*s %-5s $Colors{$_[2]}%d$Colors{'reset'}%s\n",
 		$MaxWidthBlock, $_[0], $MaxWidthState, $Drives{$_[0]}->[0],
 		$MaxWidthModel, $Drives{$_[0]}->[2], $MaxWidthRev,
-		$Drives{$_[0]}->[1], $_[1], $Notation
+		$Drives{$_[0]}->[1], $Drives{$_[0]}->[4], $_[1], $Notation
 	)
 }
 
