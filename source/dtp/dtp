@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 04:04:44 GMT 2021
+# Last Change       - Sun  7 Mar 04:12:48 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -245,8 +245,8 @@ sub Ranges($;$;$;$) {
 
 foreach my $Key (sort({$a cmp $b} @Keys)) {
 	my $Temp = $Drives{$Key}->[3];
+	$Temp = $Temp =~ s/\d{3}$//r;
 	$Fahrenheit and $Temp = int(($Temp * 1.8) + 32);
-	$Temp = $Temp =~ s/^([123456789]\d?)\d+/$1/r;
 
 	if ($ShowColor) {
 		if ($Fahrenheit) {
