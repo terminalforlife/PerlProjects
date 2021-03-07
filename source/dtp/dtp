@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 13:48:28 GMT 2021
+# Last Change       - Sun  7 Mar 14:28:29 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -50,6 +50,7 @@ sub Usage {
 		  -r, --ranges [L,H]       - Use temperature ranges of L and H.
 	} =~ tr/\t//dr)
 }
+		  #--size=[K|M|G|T]         - Use provided unit instead of bytes.
 
 sub Err($;$) {
 	printf(STDERR "ERROR: %s\n", $_[1]);
@@ -143,25 +144,27 @@ exit(1) if $TargetErr > 0;
 
 #--------------------------------------------------------------Main Subroutines
 
-# Usage: ReadFile(<FILE>)
 sub ReadFile($) {
-	-f $_[0] or Err(1, "File '$_[0]' missing.");
-	-r $_[0] or Err(1, "File '$_[0]' unreadable.");
+	my $File = $_[0];
 
-	open(my $FH, '<', $_[0]) or die("$!");
+	-f $File or Err(1, "File '$File' missing.");
+	-r $File or Err(1, "File '$File' unreadable.");
+
+	open(my $FH, '<', $File) or die("$!");
 	chomp(my $Buffer = join("\n", <$FH>));
 	close($FH);
 
 	return($Buffer =~ s/[[:space:]]+$//r)
 }
 
-# Usage: Width(<STRING>, <MAX_WIDTH>)
 sub Width($;$) {
-	my $Width = length($_[0]);
-	if ($Width > $_[1]) {
+	my ($String, $MaxWidth) = @_;
+
+	my $Width = length($String);
+	if ($Width > $MaxWidth) {
 		return($Width)
 	} else {
-		return($_[1])
+		return($MaxWidth)
 	}
 }
 
@@ -221,19 +224,33 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 @Keys = keys(%Drives);
 scalar(@Keys) or Err(1, 'No storage devices found.');
 
-# Determine if it's a rotational drive.
+my ($Sectors, $Size);
+my $MaxWidthSize = length('SIZE');
 foreach my $Key (@Keys) {
 	my $Base = ($Key =~ m{(?:.*/)([^/].*)})[0];
 	my $BlockDir = "$BlockDirs/$Base";
 
-	if (-d $BlockDir) {
+	# Determine if it's a rotational drive.
+	if (-d "$BlockDir/queue") {
 		my $Rotational = ReadFile("$BlockDir/queue/rotational");
 		$Rotational and $Rotational = 'true' or $Rotational = 'false';
-		push(@{$Drives{$Key}}, $Rotational)
+		push(@{$Drives{$Key}}, $Rotational || '???')
 	} else {
 		# Just in-case, but shouldn't happen.
 		push(@{$Drives{$Key}}, '???')
 	}
+
+	# Determine drive's size, based on the hardware sector size.
+	my $SizeFile = "$BlockDir/size";
+	my $SectorFile = "$BlockDir/queue/hw_sector_size";
+	-f -r $SectorFile and $Sectors = ReadFile($SectorFile);
+	-f -r $SizeFile and $Size = ReadFile($SizeFile);
+
+	my $Bytes = $Size * $Sectors // '???';
+	my $BytesWidth = length($Bytes);
+	push(@{$Drives{$Key}}, $Bytes);
+
+	$BytesWidth > $MaxWidthSize and $MaxWidthSize = length($Bytes)
 }
 
 #----------------------------------------------------Begin Displaying the Table
@@ -241,30 +258,33 @@ foreach my $Key (@Keys) {
 # Display the header, sized dynamically.
 if ($ShowHeader and scalar(@Keys)) {
 	printf(
-		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-5s %-s\n" . $Colors{'reset'},
+		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-5s %-*s %-s\n" . $Colors{'reset'},
 		$MaxWidthBlock, 'NAME', $MaxWidthState, 'STATE', $MaxWidthModel,
-		'MODEL', $MaxWidthRev, 'REV', 'ROT', 'TEMP'
+		'MODEL', $MaxWidthRev, 'REV', 'ROT', $MaxWidthSize, 'SIZE', 'TEMP'
 	);
 }
 
-# Usage: Display(<KEY>, <TEMP>, <COLOR>)
 sub Display($;$;$) {
+	my ($Key, $Temp, $Color) = @_;
+
 	printf(
-		"%-*s %-*s %-*s %*s %-5s $Colors{$_[2]}%d$Colors{'reset'}%s\n",
-		$MaxWidthBlock, $_[0], $MaxWidthState, $Drives{$_[0]}->[0],
-		$MaxWidthModel, $Drives{$_[0]}->[2], $MaxWidthRev,
-		$Drives{$_[0]}->[1], $Drives{$_[0]}->[4], $_[1], $Notation
+		"%-*s %-*s %-*s %*s %-5s %-*d $Colors{$Color}%d$Colors{'reset'}%s\n",
+		$MaxWidthBlock, $Key, $MaxWidthState, $Drives{$Key}->[0],
+		$MaxWidthModel, $Drives{$Key}->[2], $MaxWidthRev,
+		$Drives{$Key}->[1], $Drives{$Key}->[4], $MaxWidthSize,
+		$Drives{$Key}->[5], $Temp, $Notation
 	)
 }
 
-# Usage: Ranges(<CURRENT_TEMP>, <HIGH>, <LOW>, <KEY>)
 sub Ranges($;$;$;$) {
-	if ($_[0] > $_[1]) {
-		Display($_[3], $_[0], 'red')
-	} elsif ($_[0] > $_[2] and $_[0] <= $_[1]) {
-		Display($_[3], $_[0], 'yellow')
+	my ($CurrentTemp, $High, $Low, $Key) = @_;
+
+	if ($CurrentTemp > $High) {
+		Display($Key, $CurrentTemp, 'red')
+	} elsif ($CurrentTemp > $Low and $CurrentTemp <= $High) {
+		Display($Key, $CurrentTemp, 'yellow')
 	} else {
-		Display($_[3], $_[0], 'green')
+		Display($Key, $CurrentTemp, 'green')
 	}
 }
 
