@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sat  6 Mar 14:10:14 GMT 2021
+# Last Change       - Sun  7 Mar 01:27:42 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -39,7 +39,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-06';
+my $CurVer = '2021-03-07';
 my $Progrm = 'dtp';
 
 sub Usage {
@@ -172,12 +172,8 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 	}
 }
 
-if (!keys %hash) {
-	print("No drivetemp device found\nPlease check if drivetemp kernel module enabled\n");
-	exit(1);
-}
-
 @Keys = keys(%Drives);
+scalar(@Keys) or die("No storage devices found");
 
 if ($ShowHeader and scalar(@Keys)) {
 	printf(
