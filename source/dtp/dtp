@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 02:10:11 GMT 2021
+# Last Change       - Sun  7 Mar 02:19:53 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -48,11 +48,13 @@ sub Usage {
 		  -v, --version            - Output the version datestamp.
 		  -C, --no-color           - Disable ANSI color escape sequences.
 		  -H, --no-header          - Omit table header from output.
+		  -N, --no-notation        - Omit the temperature notation.
 		  -f, --fahrenheit         - Display temperatures in Fahrenheit.
 	} =~ tr/\t//dr)
 }
 
 my $HWMon = '/sys/class/hwmon';
+my $Notation = '°C';
 my $ShowHeader = 1;
 my $Fahrenheit = 0;
 my $ShowColor = 1;
@@ -66,8 +68,10 @@ while (defined($ARGV[0])) {
 		$ShowHeader = 0
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
 		$ShowColor = 0
+	} elsif ($ARGV[0] =~ '^(--no-notation|-N)$') {
+		$Notation = ''
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
-		$Fahrenheit = 1
+		($Fahrenheit, $Notation) = (1, '°F')
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Incorrect option(s) specified")
 	} else {
@@ -170,6 +174,7 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 		} elsif ($File =~ '/temp1_input$') {
 			$Temp = ReadFile($File)
 		} elsif (length($Model) and length($Temp)) {
+			($#Targets > -1 and not grep({$_ eq $Block} @Targets)) and next;
 			$Drives{$Block} = [$Vendor, $Rev, $Model, $Temp]
 		}
 	}
@@ -189,16 +194,14 @@ if ($ShowHeader and scalar(@Keys)) {
 # Usage: Display(<KEY>, <TEMP>, <COLOR>)
 sub Display($;$;$) {
 	printf(
-		"%-*s %-*s %-*s %*s $Colors{$_[2]}%d$Colors{'reset'}°C\n",
+		"%-*s %-*s %-*s %*s $Colors{$_[2]}%d$Colors{'reset'}%s\n",
 		$MaxWidthBlock, $_[0], $MaxWidthVendor, $Drives{$_[0]}->[0],
 		$MaxWidthModel, $Drives{$_[0]}->[2], $MaxWidthRev,
-		$Drives{$_[0]}->[1], $_[1]
+		$Drives{$_[0]}->[1], $_[1], $Notation
 	)
 }
 
 foreach my $Key (sort({$a cmp $b} @Keys)) {
-	($#Targets > -1 and not grep({$_ eq $Key} @Targets)) and next;
-
 	my $Temp = substr($Drives{$Key}->[3], 0, 2);
 	$Fahrenheit and $Temp = ($Temp * 1.8) + 32;
 
