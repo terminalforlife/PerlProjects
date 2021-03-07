@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 02:19:53 GMT 2021
+# Last Change       - Sun  7 Mar 02:28:40 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,10 +14,9 @@
 #
 # Features:
 #
-#TODO: Allow user to disable the temperature notiation. (IE: °C)
+#TODO: Use `Err()` instead of `die()`/`warn()`.
 #TODO: Use drive's own recommended operating ranges.
 #TODO: Allow use of `-o`|`--output` to adjust the columns.
-#TODO: Use `Err()` instead of `die()`/`warn()`.
 #TODO: Consider allowing user to list drives exceeding a given temperature.
 #TODO: Replace Vendor column with something useful.
 #TODO: Add column for whether it's a rotational drive or not. (IE: SSD/HDD)
@@ -53,6 +52,11 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
+sub Err($;$) {
+	print(STDERR "ERROR: %s\n", $_[0]);
+	$_[1] and exit($_[1])
+}
+
 my $HWMon = '/sys/class/hwmon';
 my $Notation = '°C';
 my $ShowHeader = 1;
@@ -73,7 +77,7 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
 		($Fahrenheit, $Notation) = (1, '°F')
 	} elsif ($ARGV[0] =~ '^-') {
-		die("Incorrect option(s) specified")
+		Err(1, 'Incorrect option(s) specified.')
 	} else {
 		last
 	}
@@ -98,14 +102,14 @@ exit(1) if $TargetErr > 0;
 
 # Usage: ReadFile(<FILE>)
 sub ReadFile($) {
-	if (open(my $FH, '<', $_[0])) {
-		chomp(my $Buffer = join("\n", <$FH>));
-		close($FH);
+	-f $_[0] or Err(1, "File '$_[0]' missing.");
+	-r $_[0] or Err(1, "File '$_[0]' unreadable.");
 
-		return($Buffer =~ s/[[:space:]]+$//r)
-	} else {
-		die("$!")
-	}
+	open(my $FH, '<', $_[0]) or die("$!");
+	chomp(my $Buffer = join("\n", <$FH>));
+	close($FH);
+
+	return($Buffer =~ s/[[:space:]]+$//r)
 }
 
 # Usage: Width(<STRING>, <MAX_WIDTH>)
@@ -181,7 +185,7 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 }
 
 @Keys = keys(%Drives);
-scalar(@Keys) or die("No storage devices found");
+scalar(@Keys) or Err(1, 'No storage devices found.');
 
 if ($ShowHeader and scalar(@Keys)) {
 	printf(
