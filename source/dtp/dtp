@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 02:28:40 GMT 2021
+# Last Change       - Sun  7 Mar 02:31:47 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,11 +14,9 @@
 #
 # Features:
 #
-#TODO: Use `Err()` instead of `die()`/`warn()`.
 #TODO: Use drive's own recommended operating ranges.
 #TODO: Allow use of `-o`|`--output` to adjust the columns.
 #TODO: Consider allowing user to list drives exceeding a given temperature.
-#TODO: Replace Vendor column with something useful.
 #TODO: Add column for whether it's a rotational drive or not. (IE: SSD/HDD)
 #
 # Bugs:
@@ -140,11 +138,11 @@ my (%Drives, @Keys);
 my $MaxWidthRev = length('REV');
 my $MaxWidthModel = length('MODEL');
 my $MaxWidthBlock = length('NAME');
-my $MaxWidthVendor = length('VENDOR');
+my $MaxWidthState = length('STATE');
 foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 	-d -r -x $Dir or next;
 
-	my ($Model, $Temp, $Vendor, $Rev, $Block) = ('') x 5;
+	my ($Model, $Temp, $State, $Rev, $Block) = ('') x 5;
 	foreach my $File (glob("$Dir/*")) {
 		-f -r $File or next;
 
@@ -156,9 +154,9 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 					if ($DevFile =~ '/model$') {
 						$Model = ReadFile($DevFile);
 						$MaxWidthModel = Width($Model, $MaxWidthModel)
-					} elsif ($DevFile =~ '/vendor$') {
-						$Vendor = ReadFile($DevFile);
-						$MaxWidthVendor = Width($Vendor, $MaxWidthVendor)
+					} elsif ($DevFile =~ '/state$') {
+						$State = ReadFile($DevFile);
+						$MaxWidthState = Width($State, $MaxWidthState)
 					} elsif ($DevFile =~ '/rev$') {
 						$Rev = ReadFile($DevFile);
 						$MaxWidthRev = Width($Rev, $MaxWidthRev)
@@ -179,7 +177,7 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 			$Temp = ReadFile($File)
 		} elsif (length($Model) and length($Temp)) {
 			($#Targets > -1 and not grep({$_ eq $Block} @Targets)) and next;
-			$Drives{$Block} = [$Vendor, $Rev, $Model, $Temp]
+			$Drives{$Block} = [$State, $Rev, $Model, $Temp]
 		}
 	}
 }
@@ -190,7 +188,7 @@ scalar(@Keys) or Err(1, 'No storage devices found.');
 if ($ShowHeader and scalar(@Keys)) {
 	printf(
 		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-s\n" . $Colors{'reset'},
-		$MaxWidthBlock, 'NAME', $MaxWidthVendor, 'VENDOR', $MaxWidthModel,
+		$MaxWidthBlock, 'NAME', $MaxWidthState, 'STATE', $MaxWidthModel,
 		'MODEL', $MaxWidthRev, 'REV', 'TEMP'
 	);
 }
@@ -199,7 +197,7 @@ if ($ShowHeader and scalar(@Keys)) {
 sub Display($;$;$) {
 	printf(
 		"%-*s %-*s %-*s %*s $Colors{$_[2]}%d$Colors{'reset'}%s\n",
-		$MaxWidthBlock, $_[0], $MaxWidthVendor, $Drives{$_[0]}->[0],
+		$MaxWidthBlock, $_[0], $MaxWidthState, $Drives{$_[0]}->[0],
 		$MaxWidthModel, $Drives{$_[0]}->[2], $MaxWidthRev,
 		$Drives{$_[0]}->[1], $_[1], $Notation
 	)
