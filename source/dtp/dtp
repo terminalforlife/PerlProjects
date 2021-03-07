@@ -54,7 +54,7 @@ sub Usage {
 
 my $HWMon = '/sys/class/hwmon';
 my $ShowHeader = 1;
-my $Fahrenheit = 1;
+my $Fahrenheit = 0;
 my $ShowColor = 1;
 
 while (defined($ARGV[0])) {
