@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 03:33:31 GMT 2021
+# Last Change       - Sun  7 Mar 03:48:04 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,7 +20,7 @@
 #
 # Bugs:
 #
-# N/A
+#TODO: Possibly-buggy output when temperatures exceed a certain point.
 #
 # Dependencies:
 #
@@ -46,6 +46,7 @@ sub Usage {
 		  -H, --no-header          - Omit table header from output.
 		  -N, --no-notation        - Omit the temperature notation.
 		  -f, --fahrenheit         - Display temperatures in Fahrenheit.
+		  -r, --ranges [L,H]       - Use temperature ranges of L and H.
 	} =~ tr/\t//dr)
 }
 
@@ -92,6 +93,22 @@ while (defined($ARGV[0])) {
 		$Notation = ''
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
 		($Fahrenheit, $Notation) = (1, '°F')
+	} elsif ($ARGV[0] =~ '^(--ranges|-r)$') {
+		if (length($ARGV[1])) {
+			if ($ARGV[1] =~ '^([[:digit:]]+),([[:digit:]]+)$') {
+				# Filling both measurements, intentionally.
+				%Ranges = (
+					'F' => [$2, $1],
+					'C' => [$2, $1]
+				)
+			} else {
+				Err(1, "One or more invalid ranges.")
+			}
+
+			shift()
+		} else {
+			Err(1, "OPT '$ARGV[0]' requires an argument.")
+		}
 	} elsif ($ARGV[0] =~ '^-') {
 		Err(1, 'Incorrect option(s) specified.')
 	} else {
