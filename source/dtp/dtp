@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 03:30:13 GMT 2021
+# Last Change       - Sun  7 Mar 03:32:33 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ sub Usage {
 }
 
 sub Err($;$) {
-	print(STDERR "ERROR: %s\n", $_[0]);
+	printf(STDERR "ERROR: %s\n", $_[0]);
 	$_[1] and exit($_[1])
 }
 
