@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 02:01:33 GMT 2021
+# Last Change       - Sun  7 Mar 02:05:48 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,7 +14,6 @@
 #
 # Features:
 #
-#TODO: Add support for Fahrenheit -- duh.
 #TODO: Allow user to disable the temperature notiation. (IE: °C)
 #TODO: Use drive's own recommended operating ranges.
 #TODO: Allow use of `-o`|`--output` to adjust the columns.
@@ -204,12 +203,22 @@ foreach my $Key (sort({$a cmp $b} @Keys)) {
 	$Fahrenheit and $Temp = ($Temp * 1.8) + 32;
 
 	if ($ShowColor) {
-		if ($Temp > 50) {
-			Display($Key, $Temp, 'red')
-		} elsif ($Temp > 30 and $Temp <= 50) {
-			Display($Key, $Temp, 'yellow')
+		if ($Fahrenheit) {
+			if ($Temp > 122) {
+				Display($Key, $Temp, 'red')
+			} elsif ($Temp > 86 and $Temp <= 122) {
+				Display($Key, $Temp, 'yellow')
+			} else {
+				Display($Key, $Temp, 'green')
+			}
 		} else {
-			Display($Key, $Temp, 'green')
+			if ($Temp > 50) {
+				Display($Key, $Temp, 'red')
+			} elsif ($Temp > 30 and $Temp <= 50) {
+				Display($Key, $Temp, 'yellow')
+			} else {
+				Display($Key, $Temp, 'green')
+			}
 		}
 	} else {
 		Display($Key, $Temp, undef)
