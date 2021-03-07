@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 02:05:48 GMT 2021
+# Last Change       - Sun  7 Mar 02:10:11 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ my $CurVer = '2021-03-07';
 my $Progrm = 'dtp';
 
 sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [DEV]
+	print(qq{Usage: $Progrm [OPTS] [DEV_1 [DEV_2] ...]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
