@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 03:03:44 GMT 2021
+# Last Change       - Sun  7 Mar 03:30:13 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -70,6 +70,12 @@ my %Colors = (
 		'cyan'   => "\e[96m",
 		'grey'  => "\e[2;37m",
 		'reset'  => "\e[0m"
+);
+
+# High and low temperature ranges.
+my %Ranges = (
+	'F' => [122, 86],
+	'C' => [50, 30]
 );
 
 while (defined($ARGV[0])) {
@@ -226,27 +232,26 @@ sub Display($;$;$) {
 	)
 }
 
+# Usage: Ranges(<TEMP>, <HIGH>, <LOW>, <KEY>)
+sub Ranges($;$;$;$) {
+	if ($_[0] > $_[1]) {
+		Display($_[2], $_[0], 'red')
+	} elsif ($_[0] > $_[2] and $_[0] <= $_[1]) {
+		Display($_[3], $_[0], 'yellow')
+	} else {
+		Display($_[3], $_[0], 'green')
+	}
+}
+
 foreach my $Key (sort({$a cmp $b} @Keys)) {
 	my $Temp = substr($Drives{$Key}->[3], 0, 2);
 	$Fahrenheit and $Temp = ($Temp * 1.8) + 32;
 
 	if ($ShowColor) {
 		if ($Fahrenheit) {
-			if ($Temp > 122) {
-				Display($Key, $Temp, 'red')
-			} elsif ($Temp > 86 and $Temp <= 122) {
-				Display($Key, $Temp, 'yellow')
-			} else {
-				Display($Key, $Temp, 'green')
-			}
+			Ranges($Temp, $Ranges{'F'}->[0], $Ranges{'F'}->[1], $Key)
 		} else {
-			if ($Temp > 50) {
-				Display($Key, $Temp, 'red')
-			} elsif ($Temp > 30 and $Temp <= 50) {
-				Display($Key, $Temp, 'yellow')
-			} else {
-				Display($Key, $Temp, 'green')
-			}
+			Ranges($Temp, $Ranges{'C'}->[0], $Ranges{'C'}->[1], $Key)
 		}
 	} else {
 		Display($Key, $Temp, undef)
