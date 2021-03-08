@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun  7 Mar 15:27:07 GMT 2021
+# Last Change       - Mon  8 Mar 00:56:02 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-07';
+my $CurVer = '2021-03-08';
 my $Progrm = 'dtp';
 
 sub Usage {
@@ -49,6 +49,7 @@ sub Usage {
 		  -H, --si                 - For size, use powers of 1000, not 1024.
 		  -N, --no-notation        - Omit the temperature notation.
 		  -f, --fahrenheit         - Display temperatures in Fahrenheit.
+		  -o, --output [FMT]       - Use FMT instead of the default layout.
 		  -r, --ranges [L,H]       - Use temperature ranges of L and H.
 	} =~ tr/\t//dr)
 }
@@ -58,6 +59,7 @@ sub Err($;$) {
 	$_[0] and exit($_[0])
 }
 
+my @ValidCols = qw{name state model rev rot size temp};
 my $HWMon = '/sys/class/hwmon';
 my $BlockDirs = '/sys/block';
 my $CustomRanges = 0;
@@ -65,8 +67,8 @@ my $Notation = '°C';
 my $ShowHeader = 1;
 my $Fahrenheit = 0;
 my $ShowColor = 1;
-my $Unit = 'B';
 my $Powers = 1024;
+my $Unit = 'B';
 
 my %Colors = (
 		'red'    => "\e[91m",
@@ -85,6 +87,7 @@ my %Ranges = (
 	'C' => [50, 30]
 );
 
+my @TargetCols;
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
@@ -111,7 +114,26 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--si|-H)$') {
 		$Powers = 1000
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
-		($Fahrenheit, $Notation) = (1, '°F')
+		if ($Notation eq '') {
+			$Fahrenheit = 1
+		} else {
+			($Fahrenheit, $Notation) = (1, '°F')
+		}
+	} elsif ($ARGV[0] =~ '^(--output|-o)$') {
+		length($ARGV[1]) or Err(1, "");
+
+		my $InvalidCols = 0;
+		foreach my $Col (split(',', $ARGV[1])) {
+			if (grep({$_ eq $Col} @ValidCols)) {
+				push(@TargetCols, $Col)
+			} else {
+				Err(0, "")
+			}
+		}
+
+		$InvalidCols > 0 and exit(1);
+
+		shift()
 	} elsif ($ARGV[0] =~ '^(--ranges|-r)$') {
 		if (length($ARGV[1])) {
 			if ($ARGV[1] =~ '^([[:digit:]]+),([[:digit:]]+)$') {
@@ -151,7 +173,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^/dev/(sd|fd|hd)[[:alpha:]]+$') {
 		push(@Targets, $ARGV[0])
 	} else {
-		warn("$!");
+		Err(0, "DEV '$ARGV[0]' invalid.");
 		$TargetErr++
 	}
 
@@ -191,6 +213,7 @@ sub Width($;$) {
 # Fetch bulk of column information.
 my (%Drives, @Keys);
 my $MaxWidthRev = length('REV');
+my $MaxWidthTemp = length('TEMP');
 my $MaxWidthModel = length('MODEL');
 my $MaxWidthBlock = length('NAME');
 my $MaxWidthState = length('STATE');
@@ -231,10 +254,12 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 				}
 			}
 		} elsif ($File =~ '/temp1_input$') {
-			$Temp = ReadFile($File)
+			$Temp = ReadFile($File) =~ s/\d{3}$//r;
+			$Fahrenheit and $Temp = int(($Temp * 1.8) + 32);
+			$MaxWidthTemp = Width("$Temp$Notation", $MaxWidthTemp);
 		} elsif (length($Model) and length($Temp)) {
 			($#Targets > -1 and not grep({$_ eq $Block} @Targets)) and next;
-			$Drives{$Block} = [$State, $Rev, $Model, $Temp]
+			$Drives{$Block} = [$State, $Rev, $Model, "$Temp$Notation"]
 		}
 	}
 }
@@ -292,31 +317,81 @@ if ($ShowHeader and scalar(@Keys)) {
 	my $HeaderSize = "SIZE_$Unit";
 	$Unit eq 'B' and $HeaderSize = 'SIZE';
 
-	printf(
-		$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-5s %-*s %-s\n" . $Colors{'reset'},
-		$MaxWidthBlock, 'NAME', $MaxWidthState, 'STATE', $MaxWidthModel,
-		'MODEL', $MaxWidthRev, 'REV', 'ROT', $MaxWidthSize, $HeaderSize, 'TEMP'
-	);
+	if ($#TargetCols > -1) {
+		my @Data;
+		foreach my $Col (@TargetCols) {
+			if ($Col eq 'name') {
+				push(@Data, sprintf("%-*s", $MaxWidthBlock, 'NAME'))
+			} elsif ($Col eq 'state') {
+				push(@Data, sprintf("%-*s", $MaxWidthState, 'STATE'))
+			} elsif ($Col eq 'model') {
+				push(@Data, sprintf("%-*s", $MaxWidthModel, 'MODEL'))
+			} elsif ($Col eq 'rev') {
+				push(@Data, sprintf("%-*s", $MaxWidthRev, 'REV'))
+			} elsif ($Col eq 'rot') {
+				push(@Data, sprintf("%-5s", 'ROT'))
+			} elsif ($Col eq 'size') {
+				push(@Data, sprintf("%-*s", $MaxWidthSize, 'SIZE'))
+			} elsif ($Col eq 'temp') {
+				push(@Data, sprintf("%-*s", $MaxWidthTemp - 1, 'TEMP'))
+				#         I've no idea why this is needed. -^
+			}
+		}
+
+		map(print($Colors{'grey'} . "$_ " . $Colors{'reset'}), @Data);
+		print("\n")
+	} else {
+		printf(
+			$Colors{'grey'} . "%-*s %-*s %-*s %-*s %-5s %-*s %-s\n" . $Colors{'reset'},
+			$MaxWidthBlock, 'NAME', $MaxWidthState, 'STATE', $MaxWidthModel,
+			'MODEL', $MaxWidthRev, 'REV', 'ROT', $MaxWidthSize, $HeaderSize, 'TEMP'
+		);
+	}
 }
 
 sub Display($;$;$) {
 	my ($Key, $Temp, $Color) = @_;
 
-	printf(
-		"%-*s %-*s %-*s %*s %-5s %-*s $Colors{$Color}%d$Colors{'reset'}%s\n",
-		$MaxWidthBlock, $Key, $MaxWidthState, $Drives{$Key}->[0],
-		$MaxWidthModel, $Drives{$Key}->[2], $MaxWidthRev,
-		$Drives{$Key}->[1], $Drives{$Key}->[4], $MaxWidthSize,
-		$Drives{$Key}->[5], $Temp, $Notation
-	)
+	if ($#TargetCols > -1) {
+		my @Data;
+		foreach my $Col (@TargetCols) {
+			if ($Col eq 'name') {
+				push(@Data, sprintf('%-*s', $MaxWidthBlock, $Key))
+			} elsif ($Col eq 'state') {
+				push(@Data, sprintf('%-*s', $MaxWidthState, $Drives{$Key}->[0]))
+			} elsif ($Col eq 'model') {
+				push(@Data, sprintf('%-*s', $MaxWidthModel, $Drives{$Key}->[2]))
+			} elsif ($Col eq 'rev') {
+				push(@Data, sprintf('%-*s', $MaxWidthRev, $Drives{$Key}->[1]))
+			} elsif ($Col eq 'rot') {
+				push(@Data, sprintf('%-5s', $Drives{$Key}->[4]))
+			} elsif ($Col eq 'size') {
+				push(@Data, sprintf('%-*s', $MaxWidthSize, $Drives{$Key}->[5]))
+			} elsif ($Col eq 'temp') {
+				push(@Data, sprintf("$Colors{$Color}%-*s$Colors{'reset'}", $MaxWidthTemp, $Temp))
+			}
+		}
+
+		map(print("$_ "), @Data);
+		print("\n")
+	} else {
+		printf(
+			"%-*s %-*s %-*s %*s %-5s %-*s $Colors{$Color}%s$Colors{'reset'}\n",
+			$MaxWidthBlock, $Key, $MaxWidthState, $Drives{$Key}->[0],
+			$MaxWidthModel, $Drives{$Key}->[2], $MaxWidthRev,
+			$Drives{$Key}->[1], $Drives{$Key}->[4], $MaxWidthSize,
+			$Drives{$Key}->[5], $Temp
+		)
+	}
 }
 
 sub Ranges($;$;$;$) {
 	my ($CurrentTemp, $High, $Low, $Key) = @_;
+	my $CurrentTempRaw = $CurrentTemp =~ tr/01234567890//drc;
 
-	if ($CurrentTemp > $High) {
+	if ($CurrentTempRaw > $High) {
 		Display($Key, $CurrentTemp, 'red')
-	} elsif ($CurrentTemp > $Low and $CurrentTemp <= $High) {
+	} elsif ($CurrentTempRaw > $Low and $CurrentTempRaw <= $High) {
 		Display($Key, $CurrentTemp, 'yellow')
 	} else {
 		Display($Key, $CurrentTemp, 'green')
@@ -324,8 +399,7 @@ sub Ranges($;$;$;$) {
 }
 
 foreach my $Key (sort({$a cmp $b} @Keys)) {
-	my $Temp = $Drives{$Key}->[3] =~ s/\d{3}$//r;
-	$Fahrenheit and $Temp = int(($Temp * 1.8) + 32);
+	my $Temp = $Drives{$Key}->[3];
 
 	if ($ShowColor) {
 		if ($Fahrenheit) {
