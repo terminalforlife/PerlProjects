@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Mon  8 Mar 01:16:10 GMT 2021
+# Last Change       - Mon  8 Mar 16:02:45 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,7 +16,6 @@
 #
 #TODO: Use drive's own recommended operating ranges.
 #TODO: Consider allowing user to list drives exceeding a given temperature.
-#TODO: Check user-provided ranges are within valid... ranges.
 #
 # Bugs:
 #
@@ -137,6 +136,8 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--ranges|-r)$') {
 		if (length($ARGV[1])) {
 			if ($ARGV[1] =~ '^([[:digit:]]+),([[:digit:]]+)$') {
+				$2 < $1 and Err(1, "Value H less than L, for '$ARGV[0]' OPT.");
+
 				$CustomRanges = 1;
 
 				# Filling both measurements, intentionally.
