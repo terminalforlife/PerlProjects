@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Mon  8 Mar 01:14:05 GMT 2021
+# Last Change       - Mon  8 Mar 01:16:10 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,7 +15,6 @@
 # Features:
 #
 #TODO: Use drive's own recommended operating ranges.
-#TODO: Allow use of `-o`|`--output` to adjust the columns.
 #TODO: Consider allowing user to list drives exceeding a given temperature.
 #TODO: Check user-provided ranges are within valid... ranges.
 #
