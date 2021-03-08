@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Mon  8 Mar 00:56:02 GMT 2021
+# Last Change       - Mon  8 Mar 01:14:05 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -120,14 +120,15 @@ while (defined($ARGV[0])) {
 			($Fahrenheit, $Notation) = (1, '°F')
 		}
 	} elsif ($ARGV[0] =~ '^(--output|-o)$') {
-		length($ARGV[1]) or Err(1, "");
+		length($ARGV[1]) or Err(1, "OPT '$ARGV[0]' requires an argument.");
 
 		my $InvalidCols = 0;
 		foreach my $Col (split(',', $ARGV[1])) {
 			if (grep({$_ eq $Col} @ValidCols)) {
 				push(@TargetCols, $Col)
 			} else {
-				Err(0, "")
+				$InvalidCols++;
+				Err(0, "Requested column '$Col' invalid.")
 			}
 		}
 
