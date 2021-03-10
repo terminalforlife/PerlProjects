@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-
+#cito M:755 O:0 G:0 T:/usr/bin/ptz
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ptz
 # Started On        - Sat 18 May 21:21:35 BST 2019
-# Last Change       - Wed 10 Mar 21:03:39 GMT 2021
+# Last Change       - Wed 10 Mar 21:12:08 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -38,19 +38,19 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  -c, --no-commas          - Omit commas from returned value.
+		  -C, --no-commas          - Omit commas from returned value.
 	} =~ tr/\t//dr)
 }
 
-my $DoCommas = 'True';
+my $DoCommas = 1;
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ /^(--help|-h|-\?)$/) {
 		Usage(); exit 0
 	} elsif($ARGV[0] =~ /^(--version|-v)$/) {
 		print("$CurVer\n"); exit 0
-	} elsif($ARGV[0] =~ /^(--no-commas|-c)$/) {
-		$DoCommas = 'False'
+	} elsif($ARGV[0] =~ /^(--no-commas|-C)$/) {
+		$DoCommas = 0
 	} elsif($ARGV[0] =~ /^-.*/) {
 		die("Incorrect argument(s) specified")
 	} else {
@@ -78,7 +78,7 @@ $Target =~ /^\d{4}-\d{2}-\d{2}$/a or die("Invalid target date");
 my $CurrentTime = localtime->epoch();
 my $TargetTime = Time::Piece->strptime($Target, '%Y-%m-%d')->epoch();
 
-if ($DoCommas eq 'True') {
+if ($DoCommas) {
 	print(CommaInt($TargetTime - $CurrentTime) . "\n")
 } else {
 	print($TargetTime - $CurrentTime . "\n")
