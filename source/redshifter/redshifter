@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Wed 13 Jan 00:01:06 GMT 2021
+# Last Change       - Wed 10 Mar 21:27:27 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,16 +13,17 @@
 #   redshift (>= 1.10-5)
 #------------------------------------------------------------------------------
 
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2021-01-13";
+my $CurVer = "2021-03-10";
 my $Progrm = 'redshifter';
 
-sub Usage{
+sub Usage {
 	print(qq{Usage: $Progrm [OPTS] [ACTION]
 
 		  -h, --help               - Display this help information.
@@ -39,12 +40,12 @@ sub Usage{
 	} =~ tr/\t//dr)
 }
 
-my ($Temp, $GammasNow);
 my $Buffer = "$ENV{HOME}/.config/rs-gamma";
 my $ConfigDir = ($Buffer =~ m{(.*)?(?:/.*)})[0];
 
-scalar(@ARGV) == 0 and die("Argument(s) required");
+@ARGV == 0 and die("Argument(s) required");
 
+my ($Temp, $GammasNow);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(1); exit(0)
@@ -62,7 +63,7 @@ while (defined($ARGV[0])) {
 		last
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
 my @Bins;
@@ -75,8 +76,8 @@ foreach my $Dir (split(':', $ENV{PATH})) {
 
 grep({$_ eq 'redshift'} @Bins) or die("Dependency 'redshift' not found");
 
-# Usage: {[<] | [>]} [GAMMA_INT]
-sub GetSetValue {
+# Usage: GetSetValue([<|>], [GAMMA_INT])
+sub GetSetValue($;$) {
 	if (-f $Buffer) {
 		-r $Buffer or die("File '$Buffer' lacks read access");
 		-w $Buffer or die("File '$Buffer' lacks write access");
@@ -90,8 +91,9 @@ sub GetSetValue {
 	close($FH)
 }
 
-sub ChkVal { # Usage: [ACTION] [VALUE]
-	$_[1] =~ '^[0-9]+$' or die("Action '$_[0]' needs an integer");
+# Usage: ChkVal([ACTION], [VALUE])
+sub ChkVal($;$) {
+	$_[1] =~ /^\d+$/a or die("Action '$_[0]' needs an integer");
 
 	if ($_[0] eq 'raise') {
 		$Temp = $GammasNow + $_[1];
@@ -150,5 +152,5 @@ while (defined($ARGV[0])){
 		die("Incorrect action(s) specified")
 	}
 
-	shift(@ARGV)
+	shift()
 }
