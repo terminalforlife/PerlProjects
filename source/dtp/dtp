@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Wed 10 Mar 20:42:15 GMT 2021
+# Last Change       - Wed 10 Mar 20:55:14 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ while (defined($ARGV[0])) {
 		shift()
 	} elsif ($ARGV[0] =~ '^(--ranges|-r)$') {
 		if (length($ARGV[1])) {
-			if ($ARGV[1] =~ '^([[:digit:]]+),([[:digit:]]+),([[:digit:]]+),([[:digit:]]+)$') {
+			if ($ARGV[1] =~ /^(\d+),(\d+),(\d+),(\d+)$/a) {
 				$4 < $3 and Err(1, "Value VH less than H, for '$ARGV[0]' OPT.");
 				$3 < $2 and Err(1, "Value H less than L, for '$ARGV[0]' OPT.");
 				$2 < $1 and Err(1, "Value L less than VL, for '$ARGV[0]' OPT.");
@@ -257,7 +257,7 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 				}
 			}
 		} elsif ($File =~ '/temp1_input$') {
-			$Temp = ReadFile($File) =~ s/\d{3}$//r;
+			$Temp = ReadFile($File) =~ s/\d{3}$//ra;
 			$Fahrenheit and $Temp = int(($Temp * 1.8) + 32);
 			$MaxWidthTemp = Width("$Temp$Notation", $MaxWidthTemp);
 		} elsif (length($Model) and length($Temp)) {
@@ -302,10 +302,10 @@ foreach my $Key (@Keys) {
 	}
 
 	# Have to do this here and not via `printf()`, due to possible '???'.
-	$FinalSize = $FinalSize =~ s/(\d+\.\d{2})\d+$/$1/r;
+	$FinalSize = $FinalSize =~ s/(\d+\.\d{2})\d+$/$1/ra;
 
 	# When the size of the drive is too small for the unit to cleanly display.
-	$FinalSize !~ '^(\d+|\d+\.\d+)$' and $FinalSize = '0.00';
+	$FinalSize !~ /^(\d+|\d+\.\d+)$/a and $FinalSize = '0.00';
 
 	push(@{$Drives{$Key}}, $FinalSize || '???');
 
