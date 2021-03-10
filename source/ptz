@@ -3,11 +3,11 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ptz
 # Started On        - Sat 18 May 21:21:35 BST 2019
-# Last Change       - Fri 13 Nov 15:39:30 GMT 2020
+# Last Change       - Wed 10 Mar 21:03:39 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# Limited functionality compared to the shell version.
+# Limited functionality compared to the shell version of ToZero.
 #
 # Features:
 #
@@ -22,12 +22,15 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+require Time::Piece;
+
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
 use Time::Piece;
 
-my $CurVer = "2020-11-13";
+my $CurVer = '2021-03-10';
 my $Progrm = 'ptz';
 
 sub Usage {
@@ -61,13 +64,15 @@ scalar(@ARGV) == 0 and die("Target date of YYYY-MM-DD is required");
 
 my $Target = shift();
 
-sub CommaInt {
-	my $Number = reverse(shift());
-    $Number =~ s/(\d{3})(?=\d)/$1,/g;
+sub CommaInt($) {
+	my $Int = $_[0];
+
+	my $Number = reverse($Int);
+    $Number =~ s/(\d{3})(?=\d)/$1,/ga;
     return(reverse($Number))
 }
 
-$Target =~ '^\d{4}-\d{2}-\d{2}$' or die("Invalid target date");
+$Target =~ /^\d{4}-\d{2}-\d{2}$/a or die("Invalid target date");
 
 # Fetch current time, then target time, in seconds since epoch.
 my $CurrentTime = localtime->epoch();
