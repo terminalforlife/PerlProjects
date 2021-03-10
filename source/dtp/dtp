@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Mon  8 Mar 16:02:45 GMT 2021
+# Last Change       - Wed 10 Mar 00:07:07 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-08';
+my $CurVer = '2021-03-10';
 my $Progrm = 'dtp';
 
 sub Usage {
@@ -81,8 +81,8 @@ my %Colors = (
 
 # High and low temperature ranges.
 my %Ranges = (
-	'F' => [122, 86],
-	'C' => [50, 30]
+	'F' => [122, 104],
+	'C' => [50, 40]
 );
 
 my @TargetCols;
