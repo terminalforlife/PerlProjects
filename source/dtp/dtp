@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Wed 10 Mar 00:07:07 GMT 2021
+# Last Change       - Wed 10 Mar 20:42:15 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ sub Usage {
 		  -N, --no-notation        - Omit the temperature notation.
 		  -f, --fahrenheit         - Display temperatures in Fahrenheit.
 		  -o, --output [FMT]       - Use FMT instead of the default layout.
-		  -r, --ranges [L,H]       - Use temperature ranges of L and H.
+		  -r, --ranges [VL,L,H,VH] - Use provided temperature ranges.
 	} =~ tr/\t//dr)
 }
 
@@ -79,10 +79,10 @@ my %Colors = (
 		'reset'  => "\e[0m"
 );
 
-# High and low temperature ranges.
+# In order: very low, low, high, and very high temperatures.
 my %Ranges = (
-	'F' => [122, 104],
-	'C' => [50, 40]
+	'F' => [68, 77, 104, 122],
+	'C' => [20, 25, 40, 50]
 );
 
 my @TargetCols;
@@ -135,15 +135,17 @@ while (defined($ARGV[0])) {
 		shift()
 	} elsif ($ARGV[0] =~ '^(--ranges|-r)$') {
 		if (length($ARGV[1])) {
-			if ($ARGV[1] =~ '^([[:digit:]]+),([[:digit:]]+)$') {
-				$2 < $1 and Err(1, "Value H less than L, for '$ARGV[0]' OPT.");
+			if ($ARGV[1] =~ '^([[:digit:]]+),([[:digit:]]+),([[:digit:]]+),([[:digit:]]+)$') {
+				$4 < $3 and Err(1, "Value VH less than H, for '$ARGV[0]' OPT.");
+				$3 < $2 and Err(1, "Value H less than L, for '$ARGV[0]' OPT.");
+				$2 < $1 and Err(1, "Value L less than VL, for '$ARGV[0]' OPT.");
 
 				$CustomRanges = 1;
 
 				# Filling both measurements, intentionally.
 				%Ranges = (
-					'F' => [$2, $1],
-					'C' => [$2, $1]
+					'F' => [$1, $2, $3, $4],
+					'C' => [$1, $2, $3, $4]
 				)
 			} else {
 				Err(1, "One or more invalid ranges.")
@@ -386,16 +388,20 @@ sub Display($;$;$) {
 	}
 }
 
-sub Ranges($;$;$;$) {
-	my ($CurrentTemp, $High, $Low, $Key) = @_;
+sub Ranges($;$;$;$;$;$) {
+	my ($CurrentTemp, $VeryLow, $Low, $High, $VeryHigh, $Key) = @_;
 	my $CurrentTempRaw = $CurrentTemp =~ tr/01234567890//drc;
 
-	if ($CurrentTempRaw > $High) {
+	if ($CurrentTempRaw > $VeryHigh) {
 		Display($Key, $CurrentTemp, 'red')
-	} elsif ($CurrentTempRaw > $Low and $CurrentTempRaw <= $High) {
+	} elsif ($CurrentTempRaw >= $High and $CurrentTempRaw <= $VeryHigh) {
 		Display($Key, $CurrentTemp, 'yellow')
-	} else {
+	} elsif ($CurrentTempRaw > $Low and $CurrentTempRaw < $High) {
 		Display($Key, $CurrentTemp, 'green')
+	} elsif ($CurrentTempRaw > $VeryLow and $CurrentTempRaw <= $Low) {
+		Display($Key, $CurrentTemp, 'cyan')
+	} elsif ($CurrentTempRaw <= $VeryLow) {
+		Display($Key, $CurrentTemp, 'blue')
 	}
 }
 
@@ -404,9 +410,9 @@ foreach my $Key (sort({$a cmp $b} @Keys)) {
 
 	if ($ShowColor) {
 		if ($Fahrenheit) {
-			Ranges($Temp, $Ranges{'F'}->[0], $Ranges{'F'}->[1], $Key)
+			Ranges($Temp, $Ranges{'F'}->[0], $Ranges{'F'}->[1], $Ranges{'F'}->[2], $Ranges{'F'}->[3], $Key)
 		} else {
-			Ranges($Temp, $Ranges{'C'}->[0], $Ranges{'C'}->[1], $Key)
+			Ranges($Temp, $Ranges{'C'}->[0], $Ranges{'C'}->[1], $Ranges{'C'}->[2], $Ranges{'C'}->[3], $Key)
 		}
 	} else {
 		Display($Key, $Temp, undef)
