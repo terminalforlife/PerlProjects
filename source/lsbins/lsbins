@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019
-# Last Change       - Mon 25 Jan 22:36:38 GMT 2021
+# Last Change       - Wed 10 Mar 21:51:33 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-01-25';
+my $CurVer = '2021-03-10';
 my $Progrm = 'lsbins';
 
 sub Usage {
@@ -42,24 +42,27 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
-my $NoDescribe = 'false';
-my $CaseInsen = 'false';
-my $ExtReg = 'false';
-my $ShowAll = 'false';
+my $CaseInsen = 0;
+my $ExtReg = 0;
+my $NoDescribe = 0;
+my $ShowAll = 0;
 
+my ($FlagExtReg, $FlagCaseInsen);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
 	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
-		$CaseInsen = 'true'
+		$FlagCaseInsen = $ARGV[0];
+		$CaseInsen = 1
 	} elsif ($ARGV[0] =~ '^(--extended-regexp|-E)$') {
-		$ExtReg = 'true'
+		$FlagExtReg = $ARGV[0];
+		$ExtReg = 1
 	} elsif ($ARGV[0] =~ '^(--nodescribe|-N)$') {
-		$NoDescribe = 'true'
+		$NoDescribe = 1
 	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
-		$ShowAll = 'true'
+		$ShowAll = 1
 	} elsif ($ARGV[0] =~ '^-.*') {
 		die("Unrecognised option(s) specified")
 	} else {
@@ -72,10 +75,10 @@ while (defined($ARGV[0])) {
 scalar(@ARGV) > 1 and die('Only one MATCH is applicable');
 
 unless (defined($ARGV[0])) {
-	if ($ExtReg eq 'true') {
-		die("Option '--extended-regexp|-E' provided, but missing MATCH")
-	} elsif ($CaseInsen eq 'true') {
-		die("Option '--ignore-case|-i' provided, but missing MATCH")
+	if ($ExtReg) {
+		die("OPT '$FlagExtReg' provided, but missing MATCH")
+	} elsif ($CaseInsen) {
+		die("OPT '$FlagCaseInsen' provided, but missing MATCH")
 	}
 }
 
@@ -101,55 +104,61 @@ foreach my $Dir (split(':', $ENV{PATH})) {
 
 @ExeArray = sort({$a cmp $b} @ExeArray);
 
-sub DoMatch {
-	defined($ARGV[0]) or return(0);
+# Usage: DoMatch(<NAME>)
+sub DoMatch($) {
+	defined($ARGV[0]) or return(1);
 
 	# If a MATCH is provided, check for it, then skip if found.
-	if ($CaseInsen eq 'true') {
-		$_[0] =~ /$ARGV[0]/i and return(0)
-	} elsif ($ExtReg eq 'true') {
-		$_[0] =~ /$ARGV[0]/x and return(0)
-	} elsif ($CaseInsen eq 'true' and $ExtReg eq 'true') {
-		$_[0] =~ /$ARGV[0]/ix and return(0)
+	if ($CaseInsen) {
+		$_[0] =~ /$ARGV[0]/i and return(1)
+	} elsif ($ExtReg) {
+		$_[0] =~ /$ARGV[0]/x and return(1)
+	} elsif ($CaseInsen and $ExtReg) {
+		$_[0] =~ /$ARGV[0]/ix and return(1)
 	} else {
-		$_[0] =~ $ARGV[0] and return(0)
+		$_[0] =~ $ARGV[0] and return(1)
 	}
 
-	return(1)
+	return(0)
 }
 
-sub DepChk {
-	my @Files;
-	foreach my $Dir (split(':', $ENV{'PATH'})) {
-		-d $Dir or next;
-		opendir(my $DH, $Dir);
-		push(@Files, readdir($DH));
-		closedir($DH);
+my $FoundMan = 0;
+foreach my $Dir (split(':', $ENV{'PATH'})) {
+	-d -r -x $Dir or next;
+
+	foreach my $File (glob("$Dir/*")) {
+		-f -r -x $File or next;
+
+		my $Base = ($File =~ m{(?:.*/)([^/].*)})[0];
+		if ($Base eq 'man') {
+			$FoundMan = 1;
+			last
+		}
 	}
 
-	grep({$_ eq 'man'} @Files) or return(1)
+	$FoundMan and last
 }
 
-if ($NoDescribe ne 'true' and DepChk('man') == 1){
+if (not $NoDescribe and $FoundMan){
 	my $OldName = '';
 	foreach (`man -f @ExeArray 2> /dev/null`) {
 		chomp();
 		my $Name = (split(' ', $_))[0];
 
 		# Using `OldName` to avoid alternative descriptions.
-		if ($Name eq $OldName and $ShowAll ne 'true') { next }
+		if ($Name eq $OldName and not $ShowAll) { next }
 
 		# Capitalise the first letter of the description.
 		my $Desc = ' - ' . ucfirst(s/^.* - //gr);
 
-		DoMatch($Name) == 0 or next;
+		DoMatch($Name) or next;
 		printf("%s%s\n", $Name, $Desc);
 
 		$OldName = $Name
 	}
 }else{
 	foreach (@ExeArray){
-		next unless DoMatch($_) == 0;
+		DoMatch($_) or next;
 		printf("%s\n", $_)
 	}
 }
