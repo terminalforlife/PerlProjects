@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Mon 18 Jan 03:22:30 GMT 2021
+# Last Change       - Sat 13 Mar 23:28:37 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,27 +24,28 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
-use v5.22.1;
-use strict;
-use warnings;
-use autodie;
-
 require Term::ANSIColor;
 require Term::ReadKey;
 require Text::Wrap;
 require Time::Piece;
 require APTHistory;
 
+use v5.22.1;
+use strict;
+use warnings;
+use autodie;
+
 no warnings 'uninitialized';
 
-my $CurVer = '2021-01-18';
-my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+my $CurVer = '2021-03-13';
+my $Progrm = 'apt-history';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  --margin [INT]           - Set margin for event information to INT.
 		  --no-color-status        - Don't show packages not installed in red.
 		  -A, --action [TYPE]      - Filter action by TYPE. See below.
 		  -C, --no-color           - Disable ANSII color escape sequences.
@@ -63,7 +64,7 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
-my $Pad = ' ' x 4;
+my $Margin = 4;
 my $PKGStyle = 'OneLine';
 
 my (
@@ -140,6 +141,19 @@ while (defined($ARGV[0])) {
 		$DoCommand = 'True'
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
 		$NoColor = 'True'
+	} elsif ($ARGV[0] eq '--margin') {
+		unless (length($ARGV[1])) {
+			die("OPT '$ARGV[0]' requires an argument")
+		} elsif ($ARGV[1] !~ /^\d+$/a) {
+			die("Invalid argument for '$ARGV[0]' OPT")
+		} else {
+			# To maintain sane and readable output, but gives the user some
+			# control over a preferred margin, such as 4 or 8; 4 is default.
+			$ARGV[1] > 8 and die("Argument for '$ARGV[0]' OPT out of range");
+
+			$Margin = $ARGV[1];
+			shift()
+		}
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Incorrect option(s) specified")
 	} else {
@@ -181,7 +195,7 @@ if ($DoReverse eq 'True') {
 
 # This is normal, when the logs rotate, but the user might think something was
 # wrong; came across this myself and was really confused!
-if (scalar(@SortedKeys) == 0) {
+unless (scalar(@SortedKeys)) {
 	print(STDERR "No APT log entries found -- nothing to do.\n");
 	exit(0) # <-- Cleaner; no need to keep going if we're here.
 }
@@ -241,6 +255,8 @@ foreach my $Key (@SortedKeys) {
 
 	#---------------------------------------------------------Begin Main Output
 
+	my $Pad = ' ' x $Margin;
+
 	# Once filtering is all done, see how many entries were found. We just need
 	# this, to discover if nothing was found under the filters used or not.
 	$Count++;
@@ -261,7 +277,7 @@ foreach my $Key (@SortedKeys) {
 		$Text::Wrap::separator = "\n"
 	}
 
-	unless (length($History{$Key}{'ReqByUser'}) == 0) {
+	if (length($History{$Key}{'ReqByUser'})) {
 		printf(
 			"%sUser '%s' (%d) %s the following:\n", $Pad,
 			$History{$Key}{'ReqByUser'},
@@ -282,4 +298,4 @@ foreach my $Key (@SortedKeys) {
 	print("\n")
 }
 
-$Count == 0 and print(STDERR "No APT log entries found with given filters.\n");
+$Count or print(STDERR "No APT log entries found with given filters.\n");
