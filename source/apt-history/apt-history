@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Sat 13 Mar 23:28:37 GMT 2021
+# Last Change       - Sat 13 Mar 23:35:14 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -267,11 +267,8 @@ foreach my $Key (@SortedKeys) {
 		# To denote that it's a newline, as it would be on the command-line.
 		$Text::Wrap::separator = " \\\n";
 
-		printf(
-			"%s\n", wrap($Pad, $Pad,
-				"$C_Command$History{$Key}{Command}$C_Reset\n\n"
-			)
-		);
+		my $Command = "$C_Command$History{$Key}{Command}$C_Reset\n\n";
+		printf("%s\n", wrap($Pad, $Pad, $Command));
 
 		# Restore it to a standard newline, for the rest of apt-history.
 		$Text::Wrap::separator = "\n"
@@ -289,8 +286,8 @@ foreach my $Key (@SortedKeys) {
 	}
 
 	print("\n");
-	if ($PKGStyle eq 'OneLine') {
-		print("$Pad$_\n") foreach (@Packages)
+	if ($PKGStyle eq 'OneLine') { # <-- Default.
+		map(print("$Pad$_\n"), @Packages)
 	} elsif ($PKGStyle eq 'Wrapped') {
 		print(wrap("$Pad", "$Pad", join(' ', @Packages)) . "\n")
 	}
