@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 14 Mar 17:19:45 GMT 2021
+# Last Change       - Sun 14 Mar 17:27:37 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -298,37 +298,42 @@ sub GetDirSize($) {
 
 #---------------------------------------------------------------OS & LSB Checks
 
-unless ($ForceRun eq 'true'){
-	if ($^O ne 'linux'){
+unless ($ForceRun eq 'true') {
+	if ($^O ne 'linux') {
 		# Second & final chance to determine the OS type.
 		my $VerFile = '/proc/version';
-		if (-f -r $VerFile){
-			open(my $FH, '<', $VerFile);
-			my $OS = (split(' ', <$FH>))[0];
-			close($FH);
+		if (-f -r $VerFile) {
+			if (open(my $FH, '<', $VerFile)) {
+				my $OS = substr(<$FH>, 0, 5);
+				close($FH);
 
-			$OS eq 'Linux' or Err(1, 'Unsupported OS.')
-		}else{
+				$OS eq 'Linux' or Err(1, 'Unsupported OS.')
+			} else {
+				die("$!")
+			}
+		} else {
 			Err(1, 'Unrecognised OS.')
 		}
 	}
 
 	my $OSRelFile = '/etc/os-release';
-	if (-f -r $OSRelFile){
-		open(my $FH, '<', $OSRelFile);
+	if (-f -r $OSRelFile) {
+		if (open(my $FH, '<', $OSRelFile)) {
+			my $Found = 0;
+			while (my $Line = <$FH>) {
+				chomp(my ($Key, $Value) = split('=', $Line));
 
-		my $Found;
-		while (my $Line = <$FH>){
-			chomp(my ($Key, $Value) = split('=', $Line));
-			if ($Key eq 'ID' and grep({$_ eq 'ubuntu'} @SupportedLSBs)){
-				$Found = 'true'
+				$Key eq 'ID' and grep({$_ eq 'ubuntu'} @SupportedLSBs)
+					and $Found = 1
 			}
+
+			close($FH);
+
+			$Found or Err(1, 'Unsupported LSB.')
+		} else {
+			die("$!")
 		}
-
-		close($FH);
-
-		$Found eq 'true' or Err(1, 'Unsupported LSB.')
-	}else{
+	} else {
 		Err(1, 'Unrecognised LSB.')
 	}
 }
