@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  3 Mar 15:23:56 GMT 2021
+# Last Change       - Sun 14 Mar 16:59:33 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -93,7 +93,8 @@
 #   libnumber-bytes-human-perl (>= 0.09-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.26.1-6)
+#   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
 require Filesys::DiskSpace;
@@ -103,7 +104,7 @@ require Term::ReadKey;
 require Text::Wrap;
 require POSIX;
 
-use v5.22.1;
+use v5.26.1;
 use strict;
 use warnings;
 use autodie;
@@ -111,13 +112,13 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-03';
+my $CurVer = '2021-03-14';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
-sub Usage{
+sub Usage {
 	print(qq{Usage: $Progrm [OPTS]
 
 		  -h, --help               - Display this help information.
@@ -183,11 +184,12 @@ while (defined($ARGV[0])){
 		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ /^(--version|-v)$/){
 		print("$CurVer\n"); exit(0)
-	}elsif($ARGV[0] =~ /--config|-c/){
-		length($ARGV[1]) > 0 or Err(1, "OPT '$ARGV[0]' requires a file.");
-
+	}elsif($ARGV[0] =~ /^(--config|-c)$/){
 		shift();
 
+		length($ARGV[0]) or Err(1, "OPT '$1' requires a file.");
+
+		# Not checking for a valid file, because UbuChk can generate its own.
 		my $DirName = ($ARGV[0] =~ m{(.*[^/])?(?:/.*)})[0];
 		-d $DirName or Err(1, "Directory '$DirName' not found.");
 
@@ -199,34 +201,41 @@ while (defined($ARGV[0])){
 	}elsif($ARGV[0] eq '--hush-ignored'){
 		$HushIgnored = 'true'
 	}elsif($ARGV[0] =~ /^(--query|-Q)$/){
-		length($ARGV[1]) > 0 or Err(1, "OPT '$ARGV[0]' requires an alert ID.");
-
 		shift();
 
+		length($ARGV[0]) or Err(1, "OPT '$1' requires an alert ID.");
 		$ARGV[0] =~ '^[[:digit:]]{4}$' or Err(1, 'Invalid alert ID.');
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
-	}elsif($ARGV[0] =~ /^--skip=/){
-		@SkipIDs = split(',', $ARGV[0] =~ s/^--skip=//r);
+	}elsif($ARGV[0] =~ /^(--skip=)(.*)$/){
+		@SkipIDs = split(',', $2);
 
-		@SkipIDs > 0 or Err(1, "OPT '--skip=' requires at least one alert ID.");
+		scalar(@SkipIDs) or Err(1, "OPT '$1' requires at least one ID.");
 
-		map(/^[[:digit:]]{4}$/ or Err(1, "Invalid alert ID."), @SkipIDs)
+		my $Failed = 0;
+		foreach my $ID (@SkipIDs) {
+			unless (/^[[:digit:]]{4}$/) {
+				Err(0, "Alert ID '$ID' invalid.");
+				$Failed++
+			}
+		}
+
+		exit(1) if $Failed
 	}elsif($ARGV[0] =~ /^(--verbose|-V)$/){
 		$Verbose = 'true'
 	}elsif($ARGV[0] eq '--list-keys'){
 		$ListKeys = 'true'
 	}elsif($ARGV[0] eq '--list-dbalerts'){
 		$ListDbAlerts = 'true'
-	}elsif($ARGV[0] =~ /--key|-k/){
-		length($ARGV[1]) > 0 or Err(1, "OPT '$ARGV[0]' requires a key.");
-
+	}elsif($ARGV[0] =~ /^(--key|-k)$/){
 		shift();
+
+		length($ARGV[1]) or Err(1, "OPT '$1' requires a key.");
 
 		my ($Key, $Value) = split('=', $ARGV[0]);
 		$KeyOpt{$Key} = $Value
-	}elsif ($ARGV[0] =~ /^-/){
+	}elsif ($ARGV[0] =~ substr($ARGV[0], 0, 1)){
 		Err(1, "Incorrect option(s) specified.")
 	}else{
 		last
@@ -234,6 +243,9 @@ while (defined($ARGV[0])){
 
 	shift()
 }
+
+-w $MainDir or Err(1, "Directory '$MainDir' unwritable.");
+-x $MainDir or Err(1, "Directory '$MainDir' unexectuable.");
 
 sub DepChk{
 	my @Files;
