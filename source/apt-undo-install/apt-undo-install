@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/apt-undo-install
 # Started On        - Tue 23 Apr 18:46:07 BST 2019
-# Last Change       - Sun 14 Mar 00:52:04 GMT 2021
+# Last Change       - Sun 14 Mar 01:21:02 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -120,8 +120,9 @@ my @PathFiles;
 foreach my $Dir (split(':', $ENV{'PATH'})) {
 	-d -r -x $Dir or next;
 
-	my @Files = map(m{.*/(.*)$}, glob("$Dir/*"));
-	push(@PathFiles, @Files)
+	foreach my $File (glob("$Dir/*")) {
+		-f -r -x $File and push(@PathFiles, $File =~ m{.*/(.*)$})
+	}
 }
 
 my $MissingDeps = 0;
