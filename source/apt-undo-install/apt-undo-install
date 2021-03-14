@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/apt-undo-install
 # Started On        - Tue 23 Apr 18:46:07 BST 2019
-# Last Change       - Thu 26 Nov 05:27:32 GMT 2020
+# Last Change       - Sun 14 Mar 00:52:04 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,16 +24,17 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+require AptPkg::Cache;
+
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-26";
+my $CurVer = '2021-03-14';
 my $Progrm = 'apt-undo-install';
-
-my $AptLogFile = '/var/log/apt/history.log';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS]
@@ -61,6 +62,8 @@ sub Usage {
 # By default, just the one package install process will be undone.
 my $TimesExec = 1;
 
+my $AptLogFile = '/var/log/apt/history.log';
+
 my (
 	$OutputFormat, $ToAssume, $ViewLog, $OutOnly,
 	$BeQuiet, $ToSim, $FiltaDate, $FiltaTime
@@ -72,69 +75,72 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print($CurVer . "\n"); exit(0)
 	} elsif ($ARGV[0] =~ '^--output-only:(desc|list|col)$') {
-		$OutputFormat = substr($ARGV[0], 14);
+		$OutputFormat = $1;
 		$OutOnly = 1
-	} elsif ($ARGV[0] =~ '^--view|-V$') {
+	} elsif ($ARGV[0] =~ '^(--view|-V)$') {
 		$ViewLog = 1
 	} elsif ($ARGV[0] =~ '^(--count|-c)$') {
 		shift();
 
-		$ARGV[0] =~ '^[0-9]+$' or die("Invalid count specified");
+		length($ARGV[0]) or die("Missing count for '$1' OPT");
+		$ARGV[0] =~ /^\d+$/a or die("Invalid count for '$1' OPT");
 
 		$TimesExec = $ARGV[0]
 	} elsif ($ARGV[0] =~ '^(--date|-d)$') {
 		shift();
 
-		$ARGV[0] =~ '^[0-9]+-[0-9]+-[0-9]+$' or die("Invalid date specified");
+		length($ARGV[0]) or die("Missing date for '$1' OPT");
+		$ARGV[0] =~ /^\d+-\d+-\d+$/a or die("Invalid date for '$1' OPT");
 
 		$FiltaDate = $ARGV[0]
 	} elsif ($ARGV[0] =~ '^(--logfile|-l)$') {
 		shift();
 
-		length($ARGV[0]) == 0 and die("Option '--logfile|-l' requires a file");
+		length($ARGV[0]) or die("Missing file for '$1' OPT");
 
-		$AptLogFile = $ARGV[0]
+		$AptLogFile = $ARGV[0];
 	} elsif ($ARGV[0] =~ '^(--time|-t)$') {
 		shift();
 
-		$ARGV[0] =~ '^[0-9]+:[0-9]+:[0-9]+$' or die("Invalid time specified");
+		length($ARGV[0]) or die("Missing time for '$1' OPT");
+		$ARGV[0] =~ /^\d+:\d+:\d+$/a or die("Invalid time for '$1' OPT");
 
 		$FiltaTime = $ARGV[0]
 	} elsif ($ARGV[0] =~ '^-') {
-		last # <-- Pass over to apt-get.
+		print("Handing remaining flags over to apt-get(8)...\n");
+		last
 	} else {
-		die("Unrecognised arguments) specified.")
+		die("Unrecognised arguments) specified")
 	}
 
 	shift()
 }
 
-sub DepChk{
-	my @Files;
-	foreach my $Dir (split(':', $ENV{'PATH'})) {
-		-d $Dir or next;
-		opendir(my $DH, $Dir) or next;
-		push(@Files, readdir($DH));
-		closedir($DH);
-	}
+my @PathFiles;
+foreach my $Dir (split(':', $ENV{'PATH'})) {
+	-d -r -x $Dir or next;
 
-	my $Found = scalar(@_);
-	foreach my $CurDep (@_) {
-		grep({$_ eq $CurDep} @Files) and $Found--
-	}
-
-	return($Found)
+	my @Files = map(m{.*/(.*)$}, glob("$Dir/*"));
+	push(@PathFiles, @Files)
 }
 
-DepChk('apt-get', 'column', 'less');
+my $MissingDeps = 0;
+foreach my $CurDep ('apt-get', 'column', 'less') {
+	unless (grep({$_ eq $CurDep} @PathFiles)) {
+		warn("Dependency '$CurDep' not met");
+		$MissingDeps++
+	}
+}
+
+exit(1) if $MissingDeps;
 
 if ($ViewLog) {
 	system(qq{less "$AptLogFile"});
 	exit(0)
 }
 
--f $AptLogFile or die("File '$AptLogFile' not found");
--r $AptLogFile or die("File '$AptLogFile' is unreadable");
+-f $AptLogFile or die("File '$AptLogFile' missing");
+-r $AptLogFile or die("File '$AptLogFile' unreadable");
 
 open(my $FH, '<', $AptLogFile);
 my @Data = <$FH>;
@@ -149,11 +155,11 @@ foreach (@Data) {
 	$InstallWC++
 }
 
-$TimesExec > $InstallWC and die("Only $InstallWC available undo(s).");
+$TimesExec > $InstallWC and die("Only $InstallWC available undo(s)");
 
 my @InstalledPKGs;
 if ($FiltaDate and $FiltaTime) {
-	my $SeenDate = 'false';
+	my $SeenDate = 0;
 	my $Count = 0;
 	my @CurLine;
 
@@ -163,13 +169,13 @@ if ($FiltaDate and $FiltaTime) {
 
 		if ($CurLine[0] eq "Start-Date:") {
 			if ($CurLine[1] eq $FiltaDate and $CurLine[2] eq $FiltaTime) {
-				$SeenDate = 'true';
+				$SeenDate = 1;
 				$Count = 0
 			}
 		}
 
-		$SeenDate eq 'true' and $Count++;
-		unless ($Count == 4 and $CurLine[0] eq 'Install:') { next }
+		$SeenDate and $Count++;
+		next unless $Count == 4 and $CurLine[0] eq 'Install:';
 
 		foreach (@CurLine) {
 			/^(Install:|.*[\(\)].*)/ or push(@InstalledPKGs, $_)
@@ -181,7 +187,7 @@ if ($FiltaDate and $FiltaTime) {
 	@InstalledPKGs or die("Invalid time and/or date specified")
 } elsif (not ($FiltaDate and $FiltaTime) and ($FiltaDate or $FiltaTime)) {
 	die("Options '--date|-d' and '--time|-t' come as a pair")
-}else{
+} else {
 	my $DesiredIndices = $InstallWC - $TimesExec;
 	foreach ($DesiredIndices..$InstallWC) {
 		next unless $InstallOnlyLines[$_]; # <-- Avoids empty line errors.
