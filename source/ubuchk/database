@@ -61,6 +61,8 @@ General system security.
 The permissions may well be excessive for the given file. Typically, a `$PATH` executable (`/bin`, `/sbin`, etc) should be no higher than `755` (`rwxr-xr-x`) unless more advanced permissions are set, for which, as of 2020-02-04, UbuChk doesn't check.
 :6005,3579
 If a `$PATH` executable is owned by a standard user or in such a group, chances are it's a mistake and/or security issue, therefore should probably be rectified. These files are usually, but certainly not always, owned by root (`0`) and part of the root group (`0`).
+.
+An exception to this would be if the executable is in the user's own '~/bin' directory, for example, in which case it makes sense for those files to be owned by the user and not by 'root'.
 :6712
 By default, in most Debian- and Ubuntu-based distributions of Linux, when a package is simply removed (even with `[--]autoremove`) global configuration and other associated files remain. This is observed when running `dpkg -l` in a terminal and looking for packages with a status of `rc`.
 .
