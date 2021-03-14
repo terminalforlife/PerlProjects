@@ -3,22 +3,25 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-download-deps
 # Started On        - Sat  4 Jan 21:55:31 GMT 2020
-# Last Change       - Mon 11 Jan 16:17:52 GMT 2021
+# Last Change       - Sun 14 Mar 00:05:15 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Dependencies:
 #
+#   apt (>= 1.6.12)
 #   libapt-pkg-perl (>= 0.1.29build7)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
+require AptPkg::Cache;
+
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
-use AptPkg::Cache;
 
-my $CurVer = '2021-01-11';
+my $CurVer = '2021-03-14';
 my $Progrm = 'apt-download-deps';
 
 sub Usage {
@@ -30,7 +33,7 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
-my $BaseToo = 'false';
+my $BaseToo = 0;
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
@@ -38,7 +41,7 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
 	} elsif ($ARGV[0] =~ '^(--include-base|-b)$') {
-		$BaseToo = 'true'
+		$BaseToo = 1
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Incorrect argument(s) specified")
 	} else {
@@ -48,18 +51,35 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-scalar(@ARGV) == 0 and die('At least one package is required');
+scalar(@ARGV) or die('At least one package is required');
+
+my $Found = 0;
+foreach my $Dir (split(':', $ENV{'PATH'})) {
+	-d -r -x $Dir or next;
+
+	foreach my $File (glob("$Dir/*")) {
+		-r -x $File or next;
+
+		$File =~ '.*/apt-get$' and $Found = 1
+	}
+}
+
+$Found or die("Dependency 'apt-get' not met");
+
+#----------------------------------------------------Determine the Dependencies
+
+use AptPkg::Cache;
 
 my $Cache = AptPkg::Cache->new();
 
-my $MissingPKG = '';
-sub FetchDeps{
+my $MissingPKG = 0;
+sub FetchDeps($) {
 	my $Get = $Cache->get($_[0]);
 	my $Vers = $Get->{'VersionList'};
 
-	unless (defined($Vers)){
+	unless (defined($Vers)) {
 		warn("Package '$_[0]' not found");
-		$MissingPKG = 'true';
+		$MissingPKG = 1;
 		return(0)
 	}
 
@@ -68,7 +88,7 @@ sub FetchDeps{
 	my @Packages;
 
 	my $Iter = 0;
-	while ($Iter < scalar(@{$Deps})){
+	while ($Iter < scalar(@{$Deps})) {
 		my $Dep = $Deps->[$Iter++];
 
 		next unless $Dep->{'DepType'} eq 'Depends';
@@ -79,23 +99,15 @@ sub FetchDeps{
 	return(@Packages)
 }
 
-my @Executables;
-foreach my $Dir (split(':', $ENV{'PATH'})) {
-	-d $Dir or next;
-	opendir(my $DH, $Dir) or next;
-	push(@Executables, readdir($DH));
-	closedir($DH);
-}
-
-grep({$_ eq 'apt-get'} @Executables) or die("Dependency 'apt-get' not met");
+#---------------------------------------------------Start Download Debian Files
 
 my @ToDL;
-while (scalar(@ARGV) > 0){
+while (scalar(@ARGV) > 0) {
 	push(@ToDL, FetchDeps($ARGV[0]));
-	if ($BaseToo eq 'true'){
-		system("apt-get download $ARGV[0] @ToDL") unless $MissingPKG eq 'true';
-	}else{
-		system("apt-get download @ToDL") unless $MissingPKG eq 'true';
+	if ($BaseToo) {
+		system("apt-get download $ARGV[0] @ToDL") unless $MissingPKG;
+	} else {
+		system("apt-get download @ToDL") unless $MissingPKG;
 	}
 
 	shift()
