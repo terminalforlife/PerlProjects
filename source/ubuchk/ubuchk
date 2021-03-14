@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 14 Mar 16:59:33 GMT 2021
+# Last Change       - Sun 14 Mar 17:19:45 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -57,6 +57,7 @@
 #TODO: Parse files, like `sources.list`, for abnormals, like 'Proposed' & PPAs.
 #TODO: Somehow check for reduction in SystemD log file, via journalctl(1).
 #TODO: Somehow handle the first digit in `stat()` mode.
+#TODO: Use integer booleans instead of string booleans, except in config file.
 #
 # Ports for which to add a check:
 #
@@ -247,38 +248,43 @@ while (defined($ARGV[0])){
 -w $MainDir or Err(1, "Directory '$MainDir' unwritable.");
 -x $MainDir or Err(1, "Directory '$MainDir' unexectuable.");
 
-sub DepChk{
+sub DepChk {
 	my @Files;
 	foreach my $Dir (split(':', $ENV{'PATH'})) {
-		-d $Dir or next;
-		opendir(my $DH, $Dir) or next;
-		push(@Files, readdir($DH));
-		closedir($DH);
+		-d -r -x $Dir or next;
+
+		foreach my $File (glob("$Dir/*")) {
+			-f -r -x $File or next;
+
+			my $Base = ($File =~ m{(?:.*/)([^/.*])})[0];
+			push(@Files, $Base)
+		}
 	}
 
-	my $Found = scalar(@_);
 	foreach my $CurDep (@_) {
-		grep({$_ eq $CurDep} @Files) and $Found--
+		grep({$_ eq $CurDep} @Files) or return(0)
 	}
 
-	return($Found)
+	return(1)
 }
 
 # Taken directly from the TFL module. (2020-02-29)
-sub GetDirSize{
+sub GetDirSize($) {
+	my $Dir = $_[0];
+
 	my (@Dirs, $Size);
-	foreach (glob("$_[0]/{*,.*}")){
-		next if m{/(\.\.|\.)$};
+	foreach (glob("$Dir/{*,.*}")){
+		next if $_ eq '.' or $_ eq '..';
 		next if -l; # <-- Avoid infinite loop.
 
-		push(@Dirs, $_) if -d -x;
+		push(@Dirs, $_) if -d -r -x;
 
 		$Size += -s if -f
 	}
 
 	foreach (@Dirs){
 		foreach (glob("$_/{*,.*}")){
-			next if m{/(\.\.|\.)$};
+			next if $_ eq '.' or $_ eq '..';
 			next if -l; # <-- Avoid infinite loop.
 
 			push(@Dirs, $_) if -d -x;
