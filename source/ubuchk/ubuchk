@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 14 Mar 17:27:37 GMT 2021
+# Last Change       - Sun 14 Mar 17:42:02 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -343,7 +343,8 @@ my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
 
 #-----------------------------------------------------Miscellaneous Subroutines
 
-sub Human{
+# Usage: Human(<BYTES>)
+sub Human($) {
 	use Number::Bytes::Human 'format_bytes';
 
 	return(
@@ -351,70 +352,73 @@ sub Human{
 	)
 }
 
-sub Info{ # Usage: [STRING]
-	print("$_[0]\n") if $Verbose eq 'true'
-}
+# Usage: Info(<STRING>)
+sub Info($) {print("$_[0]\n") if $Verbose eq 'true'}
 
-sub FileChk{ # Usage: [FILE]
-	my $Errs;
-	unless (-r $_[0]){
+# Usage: FileChk(<FILE>)
+sub FileChk($) {
+	my $Errs = 0;
+	unless (-r $_[0]) {
 		Err(0, "File '$_[0]' unreadable."); $Errs++
-	}elsif (-B -s $_[0]){
+	} elsif (-B -s $_[0]) {
 		Err(0, "File '$_[0]' is binary."); $Errs++
 	}
 
-	exit(1) if $Errs > 0;
-
-	my $BaseName = ($_[0] =~ m{(?:.*/)(.*)})[0];
+	exit(1) if $Errs;
 }
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
 # alert is shown. Not sure why; something about changing a read-only variable.
 # This is usually not ideal, but at least when there are many alerts, the file
 # won't constantly be opened and processed.
-if (-f $Database){
-	-r $Database or Err(1, "File '$Database' unreadable.");
+if (-f $Database) {
+	FileChk($Database);
 
-	open(my $FH, '<', $Database);
-	@DBData = <$FH>;
-	close($FH);
-}else{
+	if (open(my $FH, '<', $Database)) {
+		@DBData = <$FH>;
+		close($FH);
+	} else {
+		warn("$!")
+	}
+} else {
+	# Only error out here if queries are NOT completely disabled.
 	unless ($AutoQuery ne 'true' and $Query ne 'true'){
-		# Only error out here if queries are NOT completely disabled.
 		Err(1, "File '$Database' not found.")
 	}
 }
 
-sub QueryAlert{
+# Usage: QueryAlert(<>, <ALERT_ID>)
+sub QueryAlert($;$) {
 	use Term::ReadKey 'GetTerminalSize';
 	use Text::Wrap 'wrap';
 
-	$HelpAlertID = $_[1] if length($HelpAlertID) == 0;
+	$HelpAlertID = $_[1] unless length($HelpAlertID);
 
-	my ($Found, @Body);
-	foreach (@DBData){
+	my @Body;
+	my $Found = 0;
+	foreach (@DBData) {
 		chomp();
 
-		if (/^:[[:digit:],]+$/){
-			last if $Found eq 'true';
+		if (/^:[[:digit:],]+$/) {
+			last if $Found;
 
 			my @CurIDs = split(',', substr($_, 1));
 			foreach (@CurIDs){
 				next unless $_ == $HelpAlertID;
 
-				$Found = 'true';
+				$Found = 1;
 				last
 			}
-		}elsif ($Found eq 'true'){
+		} elsif ($Found) {
 			push(@Body, $_)
 		}
 	}
 
-	$Found eq 'true' or Err(1, "Alert '$HelpAlertID' not found.");
+	$Found or Err(1, "Alert '$HelpAlertID' not found.");
 
 	$Text::Wrap::columns = (GetTerminalSize())[0] - 2;
 
-	print("Alert #$HelpAlertID:\n") unless length($_[1]) > 0;
+	print("Alert #$HelpAlertID:\n") unless length($_[1]);
 
 	print("\n");
 	foreach (@Body){
@@ -437,7 +441,7 @@ sub QueryAlert{
 		);
 	}
 
-	exit($_[0]) unless $_[1] > 0;
+	exit($_[0]) unless $_[1];
 
 	# Prevents a query from being persistent with `AutoQuery`.
 	$HelpAlertID = ''
