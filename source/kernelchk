@@ -97,7 +97,7 @@ printf("%-14s%-s\n%-14s%-s\n", 'CURRENT:', $Current, 'SAVED:', $Saved)
 
 exit(0) if $Current eq $Saved;
 
-if($Notify){
+if ($Notify) {
 	my $Text = 'Kernel version mis-match detected.';
 	my $Notify = Gtk2::Notify->new($Text);
 	$Notify->set_urgency('critical');
