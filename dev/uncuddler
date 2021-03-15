@@ -61,6 +61,4 @@ truncate($FH, -s $ARGV[0]) or die("$!");
 map(print($FH "$_"), @Lines);
 close($FH);
 
-print("\nUncuddled $Uncuddled statement(s), loop(s), and/or subroutine(s).\n");
-
-system('git status')
+print("\nUncuddled $Uncuddled statement(s), loop(s), and/or subroutine(s).\n")
