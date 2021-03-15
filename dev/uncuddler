@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/dev/uncuddler
 # Started On        - Sun 14 Mar 23:02:24 GMT 2021
-# Last Change       - Mon 15 Mar 00:56:23 GMT 2021
+# Last Change       - Mon 15 Mar 00:57:55 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ foreach my $File (@ARGV) {
 			$Uncuddled++;
 
 			my $DeTabbed = "$1 $2 $3" =~ s/\t/        /gr;
-			printf("\e[2;37m%#*d\e[0m  \e[1;91m%s\e[0m\n", $Width, $Num, $DeTabbed);
+			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
 		} elsif (/([[:space:]]*\})(else)(\{.*)$/) {
 			push(@Lines, "$1 $2 $3\n");
 			$Uncuddled++;
