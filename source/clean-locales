@@ -70,17 +70,17 @@ die("Directory '$LocDir' doesn't exist") unless -d $LocDir;
 my $ErrCount = 0;
 
 # $_[0] = The directory or file to process.
-sub DelIt{
-	sub ErrUpCount{
+sub DelIt {
+	sub ErrUpCount {
 		print($_[0]);
 		$ErrCount++
 	}
 
-	if (-d $_[0]){
+	if (-d $_[0]) {
 		remove_tree($_[0], {safe => 1}) or ErrUpCount("$_[0]  [!]\n")
-	}elsif (-f $_[0]){
+	} elsif (-f $_[0]) {
 		unlink($_[0]) or ErrUpCount("$_[0]  [!]\n")
-	}else{
+	} else {
 		ErrUpCount("$_[0]  [?]\n")
 	}
 }
