@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/dev/uncuddler
 # Started On        - Sun 14 Mar 23:02:24 GMT 2021
-# Last Change       - Mon 15 Mar 00:15:10 GMT 2021
+# Last Change       - Mon 15 Mar 00:56:23 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,50 +15,88 @@
 # Although I've intended for this script to be for TFL programs (my code, -
 # basically), it could probably be used on your end, if needed.
 #
-# WARNING: Edits happen in-place, without prompting, and should be used on a
-#          project you can undo, such as a tracked file within a Git repo'.
+# Edits by default are NOT written to disk -- see usage below. In both cases, -
+# changes are displayed onto the terminal in a pretty way.
 #
-# Usage: uncuddler [FILE]
+# Usage: uncuddler [--write|-w] [FILE_1 [FILE_2] ...]
 #------------------------------------------------------------------------------
 
 use v5.22.1;
 use strict;
 use warnings;
 
-open(my $FH, '+<', $ARGV[0]) or die("$!");
-my @Data = <$FH>;
+my $Write = 0;
 
-my @Lines;
-my $Num = 0;
-my $Uncuddled = 0;
-my $Width = length(scalar(@Data));
-foreach (@Data) {
-	$Num++;
-
-	my $DeTabbed = $_;
-	if (/([[:space:]]*if|elsif|unless|while|until|foreach|do)(\(.*\))(\{.*)$/) {
-		push(@Lines, "$1 $2 $3\n");
-		$Uncuddled++;
-
-		my $DeTabbed = "$1 $2 $3" =~ s/\t/    /gr;
-		printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
-	} elsif (/([[:space:]]*sub) (.*[^\s])(\{.*)$/) {
-		push(@Lines, "$1 $2 $3\n");
-		$Uncuddled++;
-
-		my $DeTabbed = "$1 $2 $3" =~ s/\t/    /gr;
-		printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--write|-w)$') {
+		$Write = 1
+	} elsif (substr($ARGV[0], 0, 1) eq '-') {
+		die("Incorrect option(s) specified")
 	} else {
-		push(@Lines, $_);
+		last
+	}
 
-		my $DeTabbed = $_ =~ s/\t/    /gr;
-		printf("\e[2;37m%#*d\e[0m  %s", $Width, $Num, $DeTabbed);
+	shift()
+}
+
+my $Uncuddled = 0;
+foreach my $File (@ARGV) {
+	print("\e[92mFILE: $File\e[0m\n");
+
+	open(my $FH, '+<', $File) or die("$!");
+	my @Data = <$FH>;
+
+	my @Lines;
+	my $Num = 0;
+	my $Width = length(scalar(@Data));
+	foreach (@Data) {
+		$Num++;
+
+		#TODO: Rework this block to use substitutions. This is unwieldy.
+		if (/([[:space:]]*if|elsif|unless|while|until|foreach|do)(\(.*\))(\{.*)$/) {
+			push(@Lines, "$1 $2 $3\n");
+			$Uncuddled++;
+
+			my $DeTabbed = "$1 $2 $3" =~ s/\t/        /gr;
+			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
+		} elsif (/([[:space:]]*\bif)( \(.*\))(\{.*)$/) {
+			push(@Lines, "$1$2 $3\n");
+			$Uncuddled++;
+
+			my $DeTabbed = "$1$2 $3" =~ s/\t/        /gr;
+			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
+		} elsif (/([[:space:]]*\})(elsif)(\s.*)(\{.*)$/) {
+			push(@Lines, "$1 $2$3 $4\n");
+			$Uncuddled++;
+
+			my $DeTabbed = "$1 $2$3 $4" =~ s/\t/        /gr;
+			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
+		} elsif (/([[:space:]]*sub) (.*[^\s])(\{.*)$/) {
+			push(@Lines, "$1 $2 $3\n");
+			$Uncuddled++;
+
+			my $DeTabbed = "$1 $2 $3" =~ s/\t/        /gr;
+			printf("\e[2;37m%#*d\e[0m  \e[1;91m%s\e[0m\n", $Width, $Num, $DeTabbed);
+		} elsif (/([[:space:]]*\})(else)(\{.*)$/) {
+			push(@Lines, "$1 $2 $3\n");
+			$Uncuddled++;
+
+			my $DeTabbed = "$1 $2 $3" =~ s/\t/        /gr;
+			printf("\e[2;37m%#*d\e[0m  \e[1;91m%s\e[0m\n", $Width, $Num, $DeTabbed);
+		} else {
+			push(@Lines, $_);
+
+			my $DeTabbed = $_ =~ s/\t/        /gr;
+			printf("\e[2;37m%#*d\e[0m  %s", $Width, $Num, $DeTabbed);
+		}
+	}
+
+	if ($Write) {
+		seek($FH, 0, 0) or die("$!");
+		truncate($FH, -s $File) or die("$!");
+		map(print($FH "$_"), @Lines);
+		close($FH);
 	}
 }
 
-#seek($FH, 0, 0) or die("$!");
-#truncate($FH, -s $ARGV[0]) or die("$!");
-#map(print($FH "$_"), @Lines);
-#close($FH);
-
-print("\nUncuddled $Uncuddled statement(s), loop(s), and/or subroutine(s).\n")
+print("\e[92mUncuddled $Uncuddled statement(s), loop(s), and/or subroutine(s).\e[0m\n")
