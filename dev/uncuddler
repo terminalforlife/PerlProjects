@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/dev/uncuddler
 # Started On        - Sun 14 Mar 23:02:24 GMT 2021
-# Last Change       - Mon 15 Mar 01:15:05 GMT 2021
+# Last Change       - Mon 15 Mar 01:25:15 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -70,9 +70,20 @@ my $Spaces = ' ' x $NumSpaces;
 
 my $Uncuddled = 0;
 foreach my $File (@ARGV) {
+	my $ErrCount = 0;
+	unless (-f $File) {warn("File '$File' missing"); $ErrCount++}
+	unless (-r $File) {warn("File '$File' unreadable"); $ErrCount++}
+	unless (-w $File) {warn("File '$File' unwritable"); $ErrCount++}
+	next if $ErrCount > 0;
+
 	print("\e[92mFILE: $File\e[0m\n");
 
-	open(my $FH, '+<', $File) or die("$!");
+	my $FH;
+	unless (open($FH, '+<', $File)) {
+		warn("$!");
+		next
+	}
+
 	my @Data = <$FH>;
 
 	my @Lines;
