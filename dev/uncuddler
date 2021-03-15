@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/dev/uncuddler
 # Started On        - Sun 14 Mar 23:02:24 GMT 2021
-# Last Change       - Mon 15 Mar 00:57:55 GMT 2021
+# Last Change       - Mon 15 Mar 01:15:05 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,21 +14,48 @@
 # This script is for uncuddiling those statements, loops, and definitions.
 # Although I've intended for this script to be for TFL programs (my code, -
 # basically), it could probably be used on your end, if needed.
-#
-# Edits by default are NOT written to disk -- see usage below. In both cases, -
-# changes are displayed onto the terminal in a pretty way.
-#
-# Usage: uncuddler [--write|-w] [FILE_1 [FILE_2] ...]
 #------------------------------------------------------------------------------
 
 use v5.22.1;
 use strict;
 use warnings;
 
+my $CurVer = '2021-03-15';
+my $Progrm = 'uncuddler';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [FILE_1 [FILE_2] ...]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -m, --matching           - Print only changed lines.
+		  -s, --spaces [INT]       - Replace tabs with INT whitespaces.
+		  -w, --write              - Write changes to disk.
+	} =~ tr/\t//dr)
+}
+
+my $NumSpaces = 8;
+my $Matching = 0;
 my $Write = 0;
 
 while (defined($ARGV[0])) {
-	if ($ARGV[0] =~ '^(--write|-w)$') {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--matching|-m)$') {
+		$Matching = 1
+	} elsif ($ARGV[0] =~ '^(--spaces|-s)$') {
+		shift();
+
+		unless (length($ARGV[0])) {
+			die("Argument missing for '$1' OPT")
+		} elsif ($ARGV[0] !~ /^\d+$/a) {
+			die("OPT '$1' requires an integer")
+		} else {
+			$NumSpaces = $ARGV[0]
+		}
+	} elsif ($ARGV[0] =~ '^(--write|-w)$') {
 		$Write = 1
 	} elsif (substr($ARGV[0], 0, 1) eq '-') {
 		die("Incorrect option(s) specified")
@@ -38,6 +65,8 @@ while (defined($ARGV[0])) {
 
 	shift()
 }
+
+my $Spaces = ' ' x $NumSpaces;
 
 my $Uncuddled = 0;
 foreach my $File (@ARGV) {
@@ -57,37 +86,39 @@ foreach my $File (@ARGV) {
 			push(@Lines, "$1 $2 $3\n");
 			$Uncuddled++;
 
-			my $DeTabbed = "$1 $2 $3" =~ s/\t/        /gr;
+			my $DeTabbed = "$1 $2 $3" =~ s/\t/$Spaces/gr;
 			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
 		} elsif (/([[:space:]]*\bif)( \(.*\))(\{.*)$/) {
 			push(@Lines, "$1$2 $3\n");
 			$Uncuddled++;
 
-			my $DeTabbed = "$1$2 $3" =~ s/\t/        /gr;
+			my $DeTabbed = "$1$2 $3" =~ s/\t/$Spaces/gr;
 			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
 		} elsif (/([[:space:]]*\})(elsif)(\s.*)(\{.*)$/) {
 			push(@Lines, "$1 $2$3 $4\n");
 			$Uncuddled++;
 
-			my $DeTabbed = "$1 $2$3 $4" =~ s/\t/        /gr;
+			my $DeTabbed = "$1 $2$3 $4" =~ s/\t/$Spaces/gr;
 			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
 		} elsif (/([[:space:]]*sub) (.*[^\s])(\{.*)$/) {
 			push(@Lines, "$1 $2 $3\n");
 			$Uncuddled++;
 
-			my $DeTabbed = "$1 $2 $3" =~ s/\t/        /gr;
+			my $DeTabbed = "$1 $2 $3" =~ s/\t/$Spaces/gr;
 			printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
 		} elsif (/([[:space:]]*\})(else)(\{.*)$/) {
 			push(@Lines, "$1 $2 $3\n");
 			$Uncuddled++;
 
-			my $DeTabbed = "$1 $2 $3" =~ s/\t/        /gr;
+			my $DeTabbed = "$1 $2 $3" =~ s/\t/$Spaces/gr;
 			printf("\e[2;37m%#*d\e[0m  \e[1;91m%s\e[0m\n", $Width, $Num, $DeTabbed);
 		} else {
 			push(@Lines, $_);
 
-			my $DeTabbed = $_ =~ s/\t/        /gr;
-			printf("\e[2;37m%#*d\e[0m  %s", $Width, $Num, $DeTabbed);
+			unless ($Matching) {
+				my $DeTabbed = $_ =~ s/\t/$Spaces/gr;
+				printf("\e[2;37m%#*d\e[0m  %s", $Width, $Num, $DeTabbed);
+			}
 		}
 	}
 
