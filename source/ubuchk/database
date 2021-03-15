@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Fri 29 Jan 03:06:57 GMT 2021
+# Last Change       - Mon 15 Mar 21:49:23 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -216,7 +216,7 @@ For a general overview as to what these words even mean, check out the following
 .
 https://www.guidingtech.com/8888/difference-between-malware-virus-rootkits-trojans-worm-spyware
 :7619
-It's typically -- if not always -- harmless to clear out the user's `~/.cache` directory. At worst, you'll moderately interfere with some current programs you've got running, such as firefox(1). While these files are certainly useful, they're can easily wind up consuming a large sum of your storage space.
+It's typically -- if not always -- harmless to clear out the user's `~/.cache` directory. At worst, you'll moderately interfere with some current programs you've got running, such as firefox(1). While these files are certainly useful, they can easily wind up consuming a large sum of your storage space.
 .
 To clear out the current user's common cache files, execute `rm -r ~/.cache` within a terminal.
 :7620
