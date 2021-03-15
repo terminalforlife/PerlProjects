@@ -560,7 +560,7 @@ if ($Verbose eq 'true' and -f $DefaultConfigFile) {
 
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
 
-sub Boolean{
+sub Boolean {
 	$_[0] =~ '^(true|false)$' or Err(1, "Invalid boolean '$_[0]' detected.")
 }
 
@@ -1411,7 +1411,7 @@ if ($Laptop eq 'true') {
 		}
 	}
 
-	if (-d "$BaseDir/BAT1"){ # <-- Ensure at least one battery exists.
+	if (-d "$BaseDir/BAT1") { # <-- Ensure at least one battery exists.
 		foreach (glob("$BaseDir/BAT[1-9]")) {
 			my $BatFile = "$_/capacity";
 			my $KNowFile = "$_/charge_now";
@@ -1615,7 +1615,7 @@ if ($CPUTemp eq 'true') {
 		}
 
 		# Ensure we have the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
-		sub Suffix{ # Usage: [INT]
+		sub Suffix { # Usage: [INT]
 			my $Num = $_[0] + 1;
 			return("${Num}st") if $Num =~ '1$';
 			return("${Num}nd") if $Num =~ '2$';
@@ -1624,7 +1624,7 @@ if ($CPUTemp eq 'true') {
 		}
 
 		# Taken directly from the TFL module. (2020-02-29)
-		sub CelsFahr{
+		sub CelsFahr {
 			if ($_[0] eq 'F') {
 				use POSIX 'ceil';
 
