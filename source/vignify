@@ -41,7 +41,7 @@ unless (@ARGV == 2 or @ARGV == 3){
 my $Input = $ARGV[0];
 my $Output = $ARGV[1];
 
-sub GetRes{
+sub GetRes {
 	my $X11 = X11::Protocol->new();
 
 	return([$X11->width_in_pixels(), $X11->height_in_pixels()]);
@@ -67,7 +67,7 @@ $Image->Vignette(
 
 $Image->Display(':0');
 
-sub YNInput{
+sub YNInput {
 	print("$_[0] [Y/N] ");
 	my $Reply = <STDIN>;
 
