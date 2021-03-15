@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/dev/uncuddler
 # Started On        - Sun 14 Mar 23:02:24 GMT 2021
-# Last Change       - Mon 15 Mar 00:04:19 GMT 2021
+# Last Change       - Mon 15 Mar 00:15:10 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -36,13 +36,13 @@ foreach (@Data) {
 	$Num++;
 
 	my $DeTabbed = $_;
-	if (/(if|elsif|unless|while|until|foreach|do)(\(.*\))(\{.*)$/) {
+	if (/([[:space:]]*if|elsif|unless|while|until|foreach|do)(\(.*\))(\{.*)$/) {
 		push(@Lines, "$1 $2 $3\n");
 		$Uncuddled++;
 
 		my $DeTabbed = "$1 $2 $3" =~ s/\t/    /gr;
 		printf("\e[2;37m%#*d\e[0m  \e[91m%s\e[0m\n", $Width, $Num, $DeTabbed);
-	} elsif (/(sub) (.*[^\s])(\{.*)$/) {
+	} elsif (/([[:space:]]*sub) (.*[^\s])(\{.*)$/) {
 		push(@Lines, "$1 $2 $3\n");
 		$Uncuddled++;
 
@@ -56,9 +56,9 @@ foreach (@Data) {
 	}
 }
 
-seek($FH, 0, 0) or die("$!");
-truncate($FH, -s $ARGV[0]) or die("$!");
-map(print($FH "$_"), @Lines);
-close($FH);
+#seek($FH, 0, 0) or die("$!");
+#truncate($FH, -s $ARGV[0]) or die("$!");
+#map(print($FH "$_"), @Lines);
+#close($FH);
 
 print("\nUncuddled $Uncuddled statement(s), loop(s), and/or subroutine(s).\n")
