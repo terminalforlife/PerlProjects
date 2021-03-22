@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Mon 22 Mar 14:44:41 GMT 2021
+# Last Change       - Mon 22 Mar 14:53:39 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,7 +15,7 @@
 #
 # Bugs:
 #
-#TODO: Account for filting by both UID and User simultaneously.
+# N/A
 #
 # Dependencies:
 #
@@ -74,6 +74,7 @@ my (
 	$FilterUID, $FilterPKG, $C_Name, $NoColorStatus, $HistFile
 );
 
+my ($ArgFilterUID, $ArgFilterUser);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
@@ -119,18 +120,20 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--user|-u)$') {
 		shift();
 
-		if (length($ARGV[0]) == 0) {
+		unless (length($ARGV[0])) {
 			die("No USER specified for filtering")
 		} else {
+			$ArgFilterUser = $1;
 			$FilterUser = $ARGV[0]
 		}
 	} elsif ($ARGV[0] =~ '^(--user-id|-U)$') {
 		shift();
 
-		if (length($ARGV[0]) == 0) {
-			die("No UID specified for filtering")
+		$ArgFilterUID = $1;
+		unless (length($ARGV[0])) {
+			die('No UID specified for filtering')
 		} elsif ($ARGV[0] !~ '^[0-9]*$') {
-			die("Invalid UID provided")
+			die('Invalid UID provided')
 		} else {
 			$FilterUID = $ARGV[0]
 		}
@@ -162,6 +165,10 @@ while (defined($ARGV[0])) {
 	}
 
 	shift()
+}
+
+if (length($FilterUID) and length($FilterUser)) {
+	die("OPTs '$ArgFilterUID' and '$ArgFilterUser' specified")
 }
 
 #-------------------------------------------------Gather History & Package Data
