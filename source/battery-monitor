@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/battery-monitor
 # Started On        - Mon 27 Jan 02:54:42 GMT 2020
-# Last Change       - Sun  1 Nov 18:30:32 GMT 2020
+# Last Change       - Mon 22 Mar 01:38:24 GMT 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,14 +22,15 @@
 #   upower (>= 0.99.7-2)
 #------------------------------------------------------------------------------
 
+require Gtk2::Notify;
+
+use v5.26.1;
 use strict;
 use warnings;
 use autodie;
 use Gtk2::Notify '-init', 'battery_monitor';
 
 no warnings 'uninitialized';
-
-my $CurVer = "2020-11-01";
 
 my $LidFile = '/proc/acpi/button/lid/LID0/state';
 my $ChassisFile = '/sys/devices/virtual/dmi/id/chassis_type';
@@ -40,24 +41,24 @@ sub Notify{
 	$Noti->show()
 }
 
-sub DepChk {
-	my @Files;
-	foreach my $Dir (split(':', $ENV{'PATH'})) {
-		opendir(my $DH, $Dir) or next;
-		push(@Files, readdir($DH));
-		closedir($DH)
-	}
+my @Files;
+foreach my $Dir (split(':', $ENV{'PATH'})) {
+	-d -r -x "$Dir" or next;
 
-	my $Found = scalar(@_);
-	foreach my $CurDep (@_) {
-		grep({$_ eq $CurDep} @Files) and $Found--
+	foreach my $File (glob("$Dir/*")) {
+		my $Base = ($File =~ m{(?:.*/)([^/].*)})[0];
+		-f -r -x $File and push(@Files, $File);
 	}
-
-	return($Found)
 }
 
 while (){
-	DepChk('upower', 'systemctl') > 0 and die("Dependency check failure");
+	my $MissingDeps = 0;
+	foreach my $CurDep ('upower', 'systemctl') {
+		unless (grep({$_ eq $CurDep} @Files)) {
+			die("Dependency '$CurDep' not met");
+			$MissingDeps++
+		}
+	}
 
 	if (open(my $FH, '<', $ChassisFile)){
 		chomp(my $Chassis = <$FH>);
