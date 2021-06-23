@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/previewer/previewer
 # Started On        - Mon 22 Apr 01:30:36 BST 2019
-# Last Change       - Mon  1 Feb 01:37:25 GMT 2021
+# Last Change       - Wed 23 Jun 04:15:32 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ use Text::Wrap;
 use LWP::UserAgent;
 use Term::ReadKey 'GetTerminalSize';
 
-my $CurVer = '2021-02-01';
+my $CurVer = '2021-06-23';
 my $Progrm = 'previewer';
 
 sub Usage {
@@ -48,7 +48,7 @@ sub Usage {
 		  --raw-output             - Display as it is in the database.
 		  -S, --summary            - Conclude the reviews with a summary.
 		  -a, --show-all           - Show all reviews, regardless of rating.
-		  -b, --boring             - Omit these ASCII psuedo-borders.
+		  -i, --statistics         - List some interest statistics.
 		  -u, --user [NAME]        - Only show review(s) by NAME user.
 
 		  Although $Progrm uses Linux Mint's review and rating database, it
@@ -69,13 +69,12 @@ sub Usage {
 
 my $IfUser = '';
 my $Argless = 0;
-my $BeBoring = 0;
 my $ShowAll = 0;
 my $UpdateDB = 0;
 my $ShowStats = 0;
 my $NoReviews = 0;
 my $DoRaw = 0;
-my $P1 = '+'; my $P2 = '|';
+my $Stats = 0;
 my $Database = "$ENV{HOME}/.config/reviewer.db";
 my $DBSite = 'https://community.linuxmint.com/data/reviews.list';
 
@@ -102,12 +101,12 @@ while (defined($ARGV[0])) {
 		die('No user specified') unless $ARGV[0];
 
 		$IfUser = $ARGV[0]
-	} elsif ($ARGV[0] =~ '^(--boring|-b)$') {
-		$BeBoring = 1
 	} elsif ($ARGV[0] =~ '^--no-reviews$') {
 		$NoReviews = 1
 	} elsif ($ARGV[0] =~ '^--raw-output$') {
 		$DoRaw = 1
+	} elsif ($ARGV[0] =~ '^(--statistics|-i)$') {
+		$Stats = 1
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Incorrect option(s) specified")
 	} else {
@@ -129,7 +128,9 @@ unless ($UpdateDB or $IfUser or ($ShowAll and $Argless)) {
 			die('Told to show all, but provided a rating')
 		}
 	} else {
-		$ShowAll or die('A rating is by default required')
+		if (not $ShowAll and not $Stats) {
+			die('A rating is by default required')
+		}
 	}
 }
 
@@ -186,25 +187,25 @@ sub Format { # <-- Arguments are typically $Said, $Rate, then $User.
 		printf("%d/5 ('%s')\n", $_[1], $_[2])
 	} else {
 		printf(
-			"%d/5 ('%s')\n $P1\n%s $P1\n",
-			$_[1], $_[2], wrap(" $P2 ", " $P2 ", $_[0])
+			"%d/5 ('%s')\n\n%s \n",
+			$_[1], $_[2], wrap("  ", "  ", $_[0])
 		)
 	}
 }
 
-if ($BeBoring) {
-	$P1 = ' ';
-	$P2 = ' '
-}
-
+my (%Users, %IDs);
 my $PackOld;
 foreach (@FileData) {
 	my @CurLine = split('~~~');
 
 	my $Pack = $CurLine[0];
+	my $RvID = $CurLine[1];
+	my $User = $CurLine[2];
 	my $Rate = $CurLine[3];
 	my $Said = $CurLine[4];
-	my $User = $CurLine[2];
+
+	$Users{$User} = 1;
+	$IDs{$RvID} = 1;
 
 	if (length($IfUser) > 0) { # <-- Go by users.
 		if (not $ARGV[0]) {
@@ -255,27 +256,29 @@ foreach (@FileData) {
 	}
 }
 
+if ($Stats) {
+	print('Reviews        ' . scalar(%IDs) . "\n");
+	print('Users          ' . scalar(%Users) . "\n");
+
+	exit(0)
+}
+
 if ($Count == 0) {
 	print(STDERR "Uh-oh! ...no reviews were found.\n");
 	exit(2)
 }
 
 if ($ShowStats) {
-	sub Display {
-		my $Buffer = qq{
-			 $_[1]$_[2]
-			 $_[0] Reviews:     $Count/$TotalCount
-			 $_[0]
-			 $_[0] Total 5/5:   $Ratings{5}
-			 $_[0] Total 4/5:   $Ratings{4}
-			 $_[0] Total 3/5:   $Ratings{3}
-			 $_[0] Total 2/5:   $Ratings{2}
-			 $_[0] Total 1/5:   $Ratings{1}
-			 $_[1]$_[2]
-		};
+	my $Buffer = qq{
+		Showed $Count review(s) of $TotalCount made by @{[scalar(%Users)]} users.
 
-		print($Buffer =~ tr/\t//dr)
-	}
+		Total 5/5:   $Ratings{5}
+		Total 4/5:   $Ratings{4}
+		Total 3/5:   $Ratings{3}
+		Total 2/5:   $Ratings{2}
+		Total 1/5:   $Ratings{1}
 
-	$BeBoring ? Display(' ', ' ', ' ') : Display('|', '+', '>')
+	};
+
+	print($Buffer =~ tr/\t//dr)
 }
