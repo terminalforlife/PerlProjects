@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/previewer/previewer
 # Started On        - Mon 22 Apr 01:30:36 BST 2019
-# Last Change       - Wed 23 Jun 04:15:32 BST 2021
+# Last Change       - Wed 23 Jun 04:22:22 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -45,10 +45,9 @@ sub Usage {
 		  --db-file [PATH]         - Instead, use this database file.
 		  --db-update              - Download and update the database.
 		  --no-reviews             - Omit the review text from the output.
-		  --raw-output             - Display as it is in the database.
-		  -S, --summary            - Conclude the reviews with a summary.
 		  -a, --show-all           - Show all reviews, regardless of rating.
-		  -i, --statistics         - List some interest statistics.
+		  -r, --raw                - Display as it is in the database.
+		  -s, --summary            - Conclude the reviews with a summary.
 		  -u, --user [NAME]        - Only show review(s) by NAME user.
 
 		  Although $Progrm uses Linux Mint's review and rating database, it
@@ -83,7 +82,7 @@ while (defined($ARGV[0])) {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
-	} elsif ($ARGV[0] =~ '^(--summary|-S)$') {
+	} elsif ($ARGV[0] =~ '^(--summary|-s)$') {
 		$ShowStats = 1
 	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
 		$ShowAll = 1
@@ -103,10 +102,8 @@ while (defined($ARGV[0])) {
 		$IfUser = $ARGV[0]
 	} elsif ($ARGV[0] =~ '^--no-reviews$') {
 		$NoReviews = 1
-	} elsif ($ARGV[0] =~ '^--raw-output$') {
+	} elsif ($ARGV[0] =~ '^(--raw|-r)$') {
 		$DoRaw = 1
-	} elsif ($ARGV[0] =~ '^(--statistics|-i)$') {
-		$Stats = 1
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Incorrect option(s) specified")
 	} else {
