@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/noselbuf
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/noselbuf
+# Started On        - Fri  2 Jul 03:11:14 BST 2021
+# Last Change       - Fri  2 Jul 03:17:27 BST 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Super-basic and somewhat-experimental script to work around the selection
+# buffer, by clearing it before clicking the middle mouse button (button 2).
+# You can set this script to be executed on a middle click, by somethig like
+# `xbindkeys`. This likely will fail miserably if on Wayland.
+#
+# Alternatively, use `xsel`/`xclip` and `xdotool`.
+#
+# Written after reading:
+#
+#   https://forums.linuxmint.com/viewtopic.php?f=90&t=351993
+#
+# Dependencies:
+#
+#   libclipboard-perl (>= 0.13-1)
+#   libx11-guitest-perl (>= 0.28-1build4)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+use autodie;
+use Clipboard 'Copy';
+use X11::GUITest qw{PressMouseButton ReleaseMouseButton M_BTN2};
+
+PressMouseButton(M_BTN2);
+Clipboard->copy('');
+ReleaseMouseButton(M_BTN2)
