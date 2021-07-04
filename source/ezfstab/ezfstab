@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ezfstab/ezfstab
 # Started On        - Sun  4 Jul 03:50:14 BST 2021
-# Last Change       - Sun  4 Jul 05:53:36 BST 2021
+# Last Change       - Sun  4 Jul 05:55:01 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -29,9 +29,9 @@
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
-require v5.22.1;
 require 'sys/ioctl.ph';
 
+use v5.22.1;
 use strict;
 use warnings;
 use autodie;
