@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ezfstab/ezfstab
 # Started On        - Sun  4 Jul 03:50:14 BST 2021
-# Last Change       - Sun  4 Jul 05:50:24 BST 2021
+# Last Change       - Sun  4 Jul 05:53:36 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ sub Prompt() {
 
 sub Menu() {
 	print(qq{
-		Selection an option:
+		Select an option:
 
 		  [\e[93mA\e[0m]dd entry
 		  [\e[93mR\e[0m]emove entry
