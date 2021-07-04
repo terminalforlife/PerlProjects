@@ -1,0 +1,196 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/ezfstab
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/ezfstab/ezfstab
+# Started On        - Sun  4 Jul 03:50:14 BST 2021
+# Last Change       - Sun  4 Jul 05:50:24 BST 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Simple, pretty, and interactive command-line tool to allow a user to easily
+# make changes to the '/etc/fstab' file — the filesystem table.
+#
+# Work in progress.
+#
+# Features:
+#
+#TODO: Add ability to add new entries to the file.
+#TODO: Add ability to remove existing entries from the file.
+#TODO: Add ability to open the file with an editor, using `$EDITOR`.
+#TODO: Add ability to back up the existing file.
+#TODO: Add ability to restore the backed-up file.
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+require v5.22.1;
+require 'sys/ioctl.ph';
+
+use strict;
+use warnings;
+use autodie;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2021-07-04';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+	} =~ tr/\t//dr)
+}
+
+my $File = '/etc/fstab';
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} else {
+		die("ERROR: Incorrect option(s) specified")
+	}
+
+	shift()
+}
+
+#$< == 0 or die("ERROR: Root access is required.\n");
+
+#-----------------------------------------------------------Various Subroutines
+
+sub Info($;$) {
+	if ($_[0] eq 'dots') {
+		printf("\e[1;93m*\e[0m %s ...\n", $_[1])
+	} elsif ($_[0] eq 'good') {
+		printf("\e[1;92m%s\e[0m\n", $_[1])
+	} elsif ($_[0] eq 'neutral') {
+		printf("%s\n", $_[1])
+	} elsif ($_[0] eq 'bad') {
+		printf("\e[1;91m%s\e[0m\n", $_[1])
+	}
+}
+
+sub Prompt() {
+	while (1) {
+		if (length($_[0]) > 0) {
+			Info('neutral', "$_[0] ")
+		}
+
+		print('> ');
+		chomp(our $Reply = <STDIN>);
+
+		unless (length($Reply)) {
+			Info('bad', 'Incorrect response — try again.')
+		} else {
+			return($Reply)
+		}
+	}
+}
+
+sub Menu() {
+	print(qq{
+		Selection an option:
+
+		  [\e[93mA\e[0m]dd entry
+		  [\e[93mR\e[0m]emove entry
+
+		  [\e[93mQ\e[0m]uit
+
+	} =~ tr/\t//dr);
+
+	while (1) {
+		my $Reply = Prompt();
+
+		if ($Reply =~ '^[Aa]$') {
+			Info('bad', 'Feature not yet available.')
+		} elsif ($Reply =~ '^[Rr]$') {
+			Info('bad', 'Feature not yet available.')
+		} elsif ($Reply =~ '^[Qq]$') {
+			exit(0)
+		} else {
+			Info('bad', 'Unrecognised response — try again.')
+		}
+	}
+}
+
+#-----------------------------------------------------------Check Terminal Size
+
+open(TTY, '<', "/dev/tty");
+ioctl(TTY, &TIOCGWINSZ, my $Size);
+my $Cols = (unpack("S4", $Size))[1];
+close(TTY);
+
+if ($Cols < 80) {
+	Info('bad', "Not enough terminal columns.");
+	Info('neutral', "Resize terminal to >= 80 columns.");
+	exit(1)
+}
+
+#---------------------------------------------------------Gather Data from File
+
+Info('dots', "Looking for '/etc/fstab'");
+
+-f -r $File or die("ERROR: File '/etc/fstab' missing or unreadable.\n");
+Info('good', 'File found and readable.');
+
+Info('dots', "Reading from '/etc/fstab'");
+
+open(my $FH, '<', $File);
+my @Lines = <$FH>;
+close($FH);
+
+my @Entries;
+foreach (@Lines) {
+	chomp();
+
+	/^([[:space:]]*#|$)/ and next();
+	push(@Entries, $_)
+}
+
+#-------------------------------------------------------------Print Information
+
+my $EntryWord;
+my $TTL = @Entries;
+
+if ($TTL == 0) {
+	Info('bad', 'No entries found — nothing to do.');
+	exit(1)
+} else {
+	if ($TTL == 1) {
+		$EntryWord = 'entry'
+	} elsif ($TTL == 0 or $TTL > 1) {
+		$EntryWord = 'entries'
+	}
+
+	Info('good', "Found $TTL $EntryWord.");
+
+	Info('neutral', "Mountpoints:\n");
+	foreach (@Entries) {
+		my @Line = split(' ', $_);
+		unless ($Line[2] eq 'swap' or $Line[3] eq 'sw') {
+			Info('neutral', "  $Line[1]")
+		}
+	}
+
+	print("\nSwap file(s) or partition(s):\n\n");
+
+	foreach (@Entries) {
+		my @Line = split(' ', $_);
+		if ($Line[2] eq 'swap' or $Line[3] eq 'sw') {
+			Info('neutral', "  $Line[0]")
+		}
+	}
+}
+
+#---------------------------------------------------------------------Main Menu
+
+my $MenuSelection = Menu();
