@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Wed  7 Jul 16:01:36 BST 2021
+# Last Change       - Wed  7 Jul 16:05:33 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,6 +23,7 @@
 #
 # Dependencies:
 #
+#   libwww-perl (>= 6.31-1)
 #   perl (>= 5.22.1-9)
 #------------------------------------------------------------------------------
 
