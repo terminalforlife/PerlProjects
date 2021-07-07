@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Wed  7 Jul 16:37:32 BST 2021
+# Last Change       - Wed  7 Jul 17:34:55 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -40,16 +40,36 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  -C, --no-color           - Disable ANSI color escape sequences.
+		  -t, --total              - Display the total number of hits.
 	} =~ tr/\t//dr)
 }
 
 my $Domain = 'https://distrowatch.com';
 
+my $Green = "\e[92m";
+my $Grey = "\e[37m";
+my $Red = "\e[91m";
+my $Yellow = "\e[93m";
+my $Reset = "\e[0m";
+
+my $Color = 1;
+my $Total = 0;
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+		$Color = 0;
+
+		$Green = '';
+		$Grey = '';
+		$Red = '';
+		$Yellow = '';
+		$Reset = '';
+	} elsif ($ARGV[0] =~ '^(--total|-t)$') {
+		$Total = 1
 	} else {
 		die("Incorrect option(s) specified")
 	}
@@ -85,6 +105,8 @@ foreach (split("\n", $Response->decoded_content())) {
 	}
 }
 
+$Rank = '';
+
 #------------------------------------------------------------------Display Data
 
 my @Keys = keys(%Entries);
@@ -96,14 +118,18 @@ unless (scalar(@Keys)) {
 
 my $PercentLenMax = 0;
 foreach (sort({$a <=> $b} @Keys)) {
-	if ($_ > 10) {
-		last()
-	} elsif ($_ <= 3 and $_ >= 1) {
-		$Rank = "\e[92m"
-	} elsif ($_ <= 7 and $_ > 3) {
-		$Rank = "\e[93m"
-	} elsif ($_ <= 10 and $_ > 7) {
-		$Rank = "\e[91m"
+	if ($Color) {
+		if ($_ > 10) {
+			last()
+		} elsif ($_ <= 3 and $_ >= 1) {
+			$Rank = "\e[92m"
+		} elsif ($_ <= 7 and $_ > 3) {
+			$Rank = "\e[93m"
+		} elsif ($_ <= 10 and $_ > 7) {
+			$Rank = "\e[91m"
+		}
+	} else {
+		$_ > 10 and last()
 	}
 
 	$HitsLen = length($Entries{$_}->[1]);
@@ -115,9 +141,10 @@ foreach (sort({$a <=> $b} @Keys)) {
 	$PercentLen > $PercentLenMax and $PercentLenMax = $PercentLen;
 
 	printf(
-		$Rank . "%#2d \e[37m%*d %*s\e[0m %s\n", $_, $HitsLenMax,
-		$Entries{$_}->[1], $PercentLenMax, $Percent, $Entries{$_}->[0]
+		$Rank . "%#2d " . $Grey . "%*d %*s" . $Reset . " %s\n", $_,
+		$HitsLenMax, $Entries{$_}->[1], $PercentLenMax, $Percent,
+		$Entries{$_}->[0]
 	)
 }
 
-#print("\nTotal: $HitsTTL\n")
+print("\nTotal: $HitsTTL\n") if $Total
