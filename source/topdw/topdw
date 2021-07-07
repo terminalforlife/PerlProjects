@@ -1,0 +1,108 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/topdw
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/topdw/topdw
+# Started On        - Wed  7 Jul 14:59:41 BST 2021
+# Last Change       - Wed  7 Jul 16:01:36 BST 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Simple (at least for now) PERL tool to list DistroWatch's top 10 rated Linux
+# distributions, by hits-per-day. Basic functionality to start with.
+#
+# Features:
+#
+#TODO: Show the top 10 by default, with flags for a given range or all 100.
+#TODO: Add flag to disable color, and for color, and try to detect TERM.
+#TODO: Add header, with the ability to disable it.
+#TODO: Add new column for the percentage of all votes.
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+require LWP::UserAgent;
+
+use v5.22.1;
+use strict;
+use warnings;
+use LWP::UserAgent;
+
+my $CurVer = '2021-07-07';
+my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+	} =~ tr/\t//dr)
+}
+
+my $Domain = 'https://distrowatch.com';
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} else {
+		die("Incorrect option(s) specified")
+	}
+
+	shift()
+}
+
+#----------------------------------------------------------Fetch and Parse Data
+
+my $UA = LWP::UserAgent->new(
+	'ua' => 'Mozilla/5.0',
+	'protocols_allowed' => ['http', 'https'],
+	'max_redirect' => 3,
+	'timeout' => 5
+);
+
+my $Response = $UA->get($Domain);
+$Response->is_success() or die("$!");
+
+my $HitsMaxLen = 0;
+my ($Rank, $Name, $Hits, %Entries);
+foreach (split("\n", $Response->decoded_content())) {
+	chomp();
+
+	if (/^[[:space:]]+<th class="phr1">([[:digit:]]+)</) {
+		$Rank = $1
+	} elsif (/^[[:space:]]+<td class="phr2"><a href=".*">(.*)<\/a>/) {
+		$Name = $1
+	} elsif (/^[[:space:]]+<td class="phr3" title=".*">([[:digit:]]+)</) {
+		$Entries{$Rank} = [$Name, $1]
+	}
+}
+
+#------------------------------------------------------------------Display Data
+
+$Rank = '%2d';
+foreach (sort({$a <=> $b} keys(%Entries))) {
+	if ($_ > 10) {
+		last()
+	} elsif ($_ <= 3 and $_ >= 1) {
+		$Rank = "\e[92m"
+	} elsif ($_ <= 7 and $_ > 3) {
+		$Rank = "\e[93m"
+	} elsif ($_ <= 10 and $_ > 7) {
+		$Rank = "\e[91m"
+	}
+
+	my $HitsLen = length($Entries{$_}->[1]);
+	$HitsLen > $HitsMaxLen and $HitsMaxLen = $HitsLen;
+
+	printf(
+		$Rank . "%2d \e[37m%*d\e[0m %s\n", $_, $HitsMaxLen,
+		$Entries{$_}->[1], $Entries{$_}->[0]
+	)
+}
