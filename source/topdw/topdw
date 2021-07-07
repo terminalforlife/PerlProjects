@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Wed  7 Jul 16:05:33 BST 2021
+# Last Change       - Wed  7 Jul 16:37:32 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,8 +14,6 @@
 #
 #TODO: Show the top 10 by default, with flags for a given range or all 100.
 #TODO: Add flag to disable color, and for color, and try to detect TERM.
-#TODO: Add header, with the ability to disable it.
-#TODO: Add new column for the percentage of all votes.
 #
 # Bugs:
 #
@@ -71,8 +69,9 @@ my $UA = LWP::UserAgent->new(
 my $Response = $UA->get($Domain);
 $Response->is_success() or die("$!");
 
-my $HitsMaxLen = 0;
-my ($Rank, $Name, $Hits, %Entries);
+my $HitsTTL = 0;
+my $HitsLenMax = 0;
+my ($HitsLen, $Rank, $Name, $Hits, %Entries);
 foreach (split("\n", $Response->decoded_content())) {
 	chomp();
 
@@ -81,14 +80,22 @@ foreach (split("\n", $Response->decoded_content())) {
 	} elsif (/^[[:space:]]+<td class="phr2"><a href=".*">(.*)<\/a>/) {
 		$Name = $1
 	} elsif (/^[[:space:]]+<td class="phr3" title=".*">([[:digit:]]+)</) {
-		$Entries{$Rank} = [$Name, $1]
+		$Entries{$Rank} = [$Name, $1];
+		$HitsTTL += $1
 	}
 }
 
 #------------------------------------------------------------------Display Data
 
-$Rank = '%2d';
-foreach (sort({$a <=> $b} keys(%Entries))) {
+my @Keys = keys(%Entries);
+
+unless (scalar(@Keys)) {
+	print(STDERR "Uh-oh! No rankings found.\n");
+	exit(1)
+}
+
+my $PercentLenMax = 0;
+foreach (sort({$a <=> $b} @Keys)) {
 	if ($_ > 10) {
 		last()
 	} elsif ($_ <= 3 and $_ >= 1) {
@@ -99,11 +106,18 @@ foreach (sort({$a <=> $b} keys(%Entries))) {
 		$Rank = "\e[91m"
 	}
 
-	my $HitsLen = length($Entries{$_}->[1]);
-	$HitsLen > $HitsMaxLen and $HitsMaxLen = $HitsLen;
+	$HitsLen = length($Entries{$_}->[1]);
+	$HitsLen > $HitsLenMax and $HitsLenMax = $HitsLen;
+
+	my $Percent = sprintf("%3.1f%%", ($Entries{$_}->[1] / $HitsTTL) * 100);
+
+	my $PercentLen = length($Percent);
+	$PercentLen > $PercentLenMax and $PercentLenMax = $PercentLen;
 
 	printf(
-		$Rank . "%2d \e[37m%*d\e[0m %s\n", $_, $HitsMaxLen,
-		$Entries{$_}->[1], $Entries{$_}->[0]
+		$Rank . "%#2d \e[37m%*d %*s\e[0m %s\n", $_, $HitsLenMax,
+		$Entries{$_}->[1], $PercentLenMax, $Percent, $Entries{$_}->[0]
 	)
 }
+
+#print("\nTotal: $HitsTTL\n")
