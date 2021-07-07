@@ -1,0 +1,106 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/purgerc
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/purgerc/purgerc
+# Started On        - Wed  7 Jul 06:26:10 BST 2021
+# Last Change       - Wed  7 Jul 07:16:35 BST 2021
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Simple Debian/Ubuntu tool for purging only 'rc' packages with APT.
+#
+# This is a PERL rewrite of `purgerc`, which was originally written in Bourne
+# Shell. This version doesn't rely on dpkg(1) or id(1), but still uses
+# apt-get(8).
+#
+# As with the previous iteration, there's a limit to the number of packages
+# which apt-get(8) can purge at any one time, but that limit is so high at to
+# likely never or very rarely be an issue for most use-cases.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   apt (>= 1.2.32)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use v5.22.1;
+use strict;
+use warnings;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2021-07-07';
+my $Progrm = 'purgerc';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+
+		If executed without root permissions, simulation mode is used.
+	} =~ tr/\t//dr)
+}
+
+my $File = '/var/lib/dpkg/status';
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} else {
+		die("Incorrect option(s) specified")
+	}
+
+	shift()
+}
+
+#----------------------Parse Package Database to Get List of Installed Packages
+
+my $RCs;
+if (open(my $FH, '<', $File)) {
+	my ($Package, $Status, $Arch);
+	while (<$FH>) {
+		chomp(my ($Key, $Value) = split(': ', $_));
+
+		if ($Key eq 'Package') {
+			$Package = $Value
+		} elsif ($Key eq 'Status') {
+			$Status = $Value
+		} elsif ($Key eq 'Architecture') {
+			if ($Status eq 'deinstall ok config-files') {
+				$RCs .= " $Package:$Value"
+			}
+		}
+	}
+
+	close($FH) or die("$!")
+} else {
+	die("$!")
+}
+
+#-----------------------Begin Removing or Simulating the Removal of RC Packages
+
+my $Sim;
+if ($< == 0) {
+	$Sim = ''
+} else {
+	print("Running in simulation mode.\n");
+	$Sim = '-s -o APT::Get::Show-User-Simulation-Note=0'
+}
+
+system(
+	"apt-get $Sim -o Dpkg::Progress=true -o Dpkg::Progress-Fancy=true\\
+		-o APT::Get::AutomaticRemove=true remove --purge $RCs"
+);
+
+exit($?)
