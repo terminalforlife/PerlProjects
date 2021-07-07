@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Wed  7 Jul 17:34:55 BST 2021
+# Last Change       - Wed  7 Jul 17:37:34 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ foreach (sort({$a <=> $b} @Keys)) {
 	$HitsLen = length($Entries{$_}->[1]);
 	$HitsLen > $HitsLenMax and $HitsLenMax = $HitsLen;
 
-	my $Percent = sprintf("%3.1f%%", ($Entries{$_}->[1] / $HitsTTL) * 100);
+	my $Percent = sprintf("%3.2f%%", ($Entries{$_}->[1] / $HitsTTL) * 100);
 
 	my $PercentLen = length($Percent);
 	$PercentLen > $PercentLenMax and $PercentLenMax = $PercentLen;
