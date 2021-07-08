@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Thu  8 Jul 06:30:09 BST 2021
+# Last Change       - Thu  8 Jul 06:32:45 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -98,11 +98,11 @@ my ($HitsLen, $Rank, $Name, $Hits, %Entries);
 foreach (split("\n", $Response->decoded_content())) {
 	chomp();
 
-	if (/^[[:space:]]+<th class="phr1">([[:digit:]]+)</) {
+	if (/"phr1">(\d+)</) {
 		$Rank = $1
-	} elsif (/^[[:space:]]+<td class="phr2"><a href=".*">(.*)<\/a>/) {
+	} elsif (/"phr2"><a href=".*">(.*)<\/a>/) {
 		$Name = $1
-	} elsif (/^[[:space:]]+<td class="phr3" title="Yesterday: ([[:digit:]]+)">([[:digit:]]+)</) {
+	} elsif (/"phr3" title="Yesterday: (\d+)">(\d+)</) {
 		$Entries{$Rank} = [$Name, $2, $1];
 		$HitsTTL += $1
 	}
