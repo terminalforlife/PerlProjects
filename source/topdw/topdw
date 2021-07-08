@@ -3,12 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Wed  7 Jul 17:37:34 BST 2021
+# Last Change       - Thu  8 Jul 06:26:11 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Simple (at least for now) PERL tool to list DistroWatch's top 10 rated Linux
-# distributions, by hits-per-day. Basic functionality to start with.
+# distributions, by hits-per-day for the last six months. Basic functionality
+# to start with.
 #
 # Features:
 #
@@ -32,7 +33,7 @@ use strict;
 use warnings;
 use LWP::UserAgent;
 
-my $CurVer = '2021-07-07';
+my $CurVer = '2021-07-08';
 my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
 
 sub Usage {
@@ -99,8 +100,8 @@ foreach (split("\n", $Response->decoded_content())) {
 		$Rank = $1
 	} elsif (/^[[:space:]]+<td class="phr2"><a href=".*">(.*)<\/a>/) {
 		$Name = $1
-	} elsif (/^[[:space:]]+<td class="phr3" title=".*">([[:digit:]]+)</) {
-		$Entries{$Rank} = [$Name, $1];
+	} elsif (/^[[:space:]]+<td class="phr3" title="Yesterday: ([[:digit:]]+)">([[:digit:]]+)</) {
+		$Entries{$Rank} = [$Name, $2, $1];
 		$HitsTTL += $1
 	}
 }
@@ -115,6 +116,8 @@ unless (scalar(@Keys)) {
 	print(STDERR "Uh-oh! No rankings found.\n");
 	exit(1)
 }
+
+print("HPD in the Last 6 Months:\n\n");
 
 my $PercentLenMax = 0;
 foreach (sort({$a <=> $b} @Keys)) {
@@ -135,15 +138,24 @@ foreach (sort({$a <=> $b} @Keys)) {
 	$HitsLen = length($Entries{$_}->[1]);
 	$HitsLen > $HitsLenMax and $HitsLenMax = $HitsLen;
 
+	my $UpDown = '?';
+	if ($Entries{$_}->[1] > $Entries{$_}->[2]) {
+		$UpDown = '>'
+	} elsif ($Entries{$_}->[1] < $Entries{$_}->[2]) {
+		$UpDown = '<'
+	} elsif ($Entries{$_}->[1] == $Entries{$_}->[2]) {
+		$UpDown = '='
+	}
+
 	my $Percent = sprintf("%3.2f%%", ($Entries{$_}->[1] / $HitsTTL) * 100);
 
 	my $PercentLen = length($Percent);
 	$PercentLen > $PercentLenMax and $PercentLenMax = $PercentLen;
 
 	printf(
-		$Rank . "%#2d " . $Grey . "%*d %*s" . $Reset . " %s\n", $_,
+		$Rank . "%#2d " . $Grey . "%*d %*s %s" . $Reset . " %s\n", $_,
 		$HitsLenMax, $Entries{$_}->[1], $PercentLenMax, $Percent,
-		$Entries{$_}->[0]
+		$UpDown, $Entries{$_}->[0]
 	)
 }
 
