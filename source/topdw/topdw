@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Fri  9 Jul 10:36:34 BST 2021
+# Last Change       - Fri  9 Jul 10:44:12 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,7 +13,7 @@
 #
 # Features:
 #
-# N/A
+#TODO: Add flag to filter results by a given distribution.
 #
 # Bugs:
 #
@@ -109,8 +109,6 @@ my $UA = LWP::UserAgent->new(
 
 my $Response = $UA->get($Domain);
 $Response->is_success() or Err(1, 'Failed to download web page.');
-
-open(my $FH, '<', '/home/ichy/Desktop/TestDir/temp.html');
 
 my $HitsTTL = 0;
 my $HitsLenMax = 0;
