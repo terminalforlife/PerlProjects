@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw
 # Started On        - Wed  7 Jul 14:59:41 BST 2021
-# Last Change       - Fri  9 Jul 11:08:21 BST 2021
+# Last Change       - Thu 15 Jul 12:21:23 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use strict;
 use warnings;
 use LWP::UserAgent;
 
-my $CurVer = '2021-07-09';
+my $CurVer = '2021-07-15';
 my $Progrm = ($0 =~ m{(?:.*/)?([^/].*)})[0];
 
 sub Usage {
@@ -41,6 +41,7 @@ sub Usage {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  -C, --no-color           - Disable ANSI color escape sequences.
+		  -n, --number [INT]       - List up to INT number of distributions.
 		  -t, --total              - Display the total number of hits.
 
 		Numbers shown are for the HPD in the Last 6 Months.
@@ -78,7 +79,7 @@ while (defined($ARGV[0])) {
 		$Reset = '';
 	} elsif ($ARGV[0] =~ '^(--total|-t)$') {
 		$Total = 1
-	} elsif ($ARGV[0] =~ '^(--ranks|-r)$') {
+	} elsif ($ARGV[0] =~ '^(--number|-n)$') {
 		shift();
 
 		my $Option = $1;
