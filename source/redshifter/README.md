@@ -13,10 +13,7 @@ While the primarily functionality is to increment and decrement, the user can al
 
 # Installation Instructions
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito), but it'll be a pain if you wish to include the man page and BASH completion support (as of 2021-01-12), so you can do one of:
-
-  * Install via [Redshifter's DEB package](https://github.com/terminalforlife/DEB-Packages/tree/master/redshifter) for Debian- and Ubuntu-based systems.
-  * Install the very latest version via Redshifter's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/redshifter/redshifter-installer).
+Install the very latest version via Redshifter's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/redshifter/redshifter-installer).
 
 For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
 
