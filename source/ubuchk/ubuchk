@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sun 14 Mar 23:00:19 GMT 2021
+# Last Change       - Wed 25 Aug 14:48:36 BST 2021
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-14';
+my $CurVer = '2021-08-25';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
@@ -935,6 +935,14 @@ if ($PathPerms eq 'true') {
 		my @AlertPerms;
 		foreach (split(':', $ENV{'PATH'})) {
 			Info("Looking in '$_' directory.");
+
+			# Ignore directories added to PATH which are in HOME. Added for
+			# people who would otherwise get a LOT of unnecessary alerts.
+			#
+			# The downside, is that `next()` will not happen if the user's HOME
+			# is not in '/home', but that's highly unlikely, especially in
+			# Ubuntu.
+			next() if $_ =~ m/^\/home/;
 
 			foreach (glob("$_/*")) {
 				my ($Mode, $Owner, $Group) = (stat($_))[2,4,5];
