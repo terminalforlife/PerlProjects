@@ -21,7 +21,7 @@
 
 # Bug/Issue Reporting
 
-If you have any issues or bugs, I strongly recommend reporting it here on GitHub, as it's where I spend most of my time, these days. Failing that, since we're not all obsessed with GitHub, send me an E-Mail over at _terminalforlife@yahoo.com_ (rarely checked, if I'm honest). Lastly, I'm _Learn Linux_ over at [YouTube](https://www.youtube.com/c/LearnLinux), so feel free to leave a comment over there; I read them _all_.
+If you have any issues or bugs, I strongly recommend reporting it here on GitHub, as it will surely get my attention. Failing that, since we're not all obsessed with GitHub, send me an E-Mail over at _terminalforlife@yahoo.com_ (rarely checked, if I'm honest). Lastly, I'm _Terminalforlife_ (formerly _Learn Linux_) over at [YouTube](https://www.youtube.com/c/Terminalforlife), so feel free to leave a comment over there; I always try to read them _all_.
 
 Be sure to provide as much information as possible, if you're reporting a bug, such as program output, error messages, system information, etc.
 
