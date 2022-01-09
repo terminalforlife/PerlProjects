@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins/lsbins-installer
 # Started On        - Wed 17 Feb 01:19:32 GMT 2021
-# Last Change       - Fri  9 Jul 11:25:15 BST 2021
+# Last Change       - Sun  9 Jan 18:08:53 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -157,28 +157,30 @@ for File in\
 	'lsbins.1.gz:/usr/share/man/man1/lsbins.1.gz'\
 	'lsbins:/usr/bin/lsbins'
 do
-	Replace='False'
+	if [ -f "${File#*:}" ]; then
+		Replace='False'
 
-	while :; do
-		printf "File '%s' found.\n" "${File#*:}"
-		printf 'Replace existing file? [Y/N] '
+		while :; do
+			printf "File '%s' found.\n" "${File#*:}"
+			printf 'Replace existing file? [Y/N] '
 
-		read Input
-		case $Input in
-			[Yy]|[Yy][Ee][Ss])
-				Replace='True'
-				break ;;
-			[Nn]|[Nn][Oo])
-				Replace='False'
-				break ;;
-			'')
-				Err 0 'Empty response -- try again.' ;;
-			*)
-				Err 0 'Invalid response -- try again.' ;;
-		esac
-	done
+			read Input
+			case $Input in
+				[Yy]|[Yy][Ee][Ss])
+					Replace='True'
+					break ;;
+				[Nn]|[Nn][Oo])
+					Replace='False'
+					break ;;
+				'')
+					Err 0 'Empty response -- try again.' ;;
+				*)
+					Err 0 'Invalid response -- try again.' ;;
+			esac
+		done
 
-	[ "$Replace" = 'True' ] || continue
+		[ "$Replace" = 'True' ] || continue
+	fi
 
 	printf "* Installing '%s' ... " "${File%%:*}"
 	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then

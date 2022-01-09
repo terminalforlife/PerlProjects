@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/previewer/previewer-installer
 # Started On        - Fri 19 Feb 01:08:09 GMT 2021
-# Last Change       - Tue  2 Mar 17:03:25 GMT 2021
+# Last Change       - Sun  9 Jan 18:08:59 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -157,28 +157,30 @@ for File in\
 	'previewer.1.gz:/usr/share/man/man1/previewer.1.gz'\
 	'previewer:/usr/bin/previewer'
 do
-	Replace='False'
+	if [ -f "${File#*:}" ]; then
+		Replace='False'
 
-	while :; do
-		printf "File '%s' found.\n" "${File#*:}"
-		printf 'Replace existing file? [Y/N] '
+		while :; do
+			printf "File '%s' found.\n" "${File#*:}"
+			printf 'Replace existing file? [Y/N] '
 
-		read Input
-		case $Input in
-			[Yy]|[Yy][Ee][Ss])
-				Replace='True'
-				break ;;
-			[Nn]|[Nn][Oo])
-				Replace='False'
-				break ;;
-			'')
-				Err 0 'Empty response -- try again.' ;;
-			*)
-				Err 0 'Invalid response -- try again.' ;;
-		esac
-	done
+			read Input
+			case $Input in
+				[Yy]|[Yy][Ee][Ss])
+					Replace='True'
+					break ;;
+				[Nn]|[Nn][Oo])
+					Replace='False'
+					break ;;
+				'')
+					Err 0 'Empty response -- try again.' ;;
+				*)
+					Err 0 'Invalid response -- try again.' ;;
+			esac
+		done
 
-	[ "$Replace" = 'True' ] || continue
+		[ "$Replace" = 'True' ] || continue
+	fi
 
 	printf "* Installing '%s' ... " "${File%%:*}"
 	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then

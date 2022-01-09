@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater-installer
 # Started On        - Tue 24 Nov 03:32:18 GMT 2020
-# Last Change       - Fri  9 Jul 11:25:08 BST 2021
+# Last Change       - Sun  9 Jan 18:08:40 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -172,28 +172,30 @@ for File in\
 	'cheater.1.gz:/usr/share/man/man1/cheater.1.gz' 'cheater:/usr/bin/cheater'\
 	'excluded_lines:/usr/share/cheater/excluded_lines'
 do
-	Replace='False'
+	if [ -f "${File#*:}" ]; then
+		Replace='False'
 
-	while :; do
-		printf "File '%s' found.\n" "${File#*:}"
-		printf 'Replace existing file? [Y/N] '
+		while :; do
+			printf "File '%s' found.\n" "${File#*:}"
+			printf 'Replace existing file? [Y/N] '
 
-		read Input
-		case $Input in
-			[Yy]|[Yy][Ee][Ss])
-				Replace='True'
-				break ;;
-			[Nn]|[Nn][Oo])
-				Replace='False'
-				break ;;
-			'')
-				Err 0 'Empty response -- try again.' ;;
-			*)
-				Err 0 'Invalid response -- try again.' ;;
-		esac
-	done
+			read Input
+			case $Input in
+				[Yy]|[Yy][Ee][Ss])
+					Replace='True'
+					break ;;
+				[Nn]|[Nn][Oo])
+					Replace='False'
+					break ;;
+				'')
+					Err 0 'Empty response -- try again.' ;;
+				*)
+					Err 0 'Invalid response -- try again.' ;;
+			esac
+		done
 
-	[ "$Replace" = 'True' ] || continue
+		[ "$Replace" = 'True' ] || continue
+	fi
 
 	printf "* Installing '%s' ... " "${File%%:*}"
 	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then
