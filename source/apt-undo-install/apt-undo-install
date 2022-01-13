@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/apt-undo-install
 # Started On        - Tue 23 Apr 18:46:07 BST 2019
-# Last Change       - Sun 14 Mar 01:21:02 GMT 2021
+# Last Change       - Thu 13 Jan 20:53:02 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-14';
+my $CurVer = '2022-01-13';
 my $Progrm = 'apt-undo-install';
 
 sub Usage {
@@ -41,16 +41,16 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  --output-only:[F]        - List only installed packages.
+		  --output-only:FMT        - Only display the packages as FMT.
 		  -V, --view               - View the contents of the logfile.
-		  -c, --count [N]          - Undo N number of installations.
-		  -d, --date [YYYY-MM-DD]  - Specify by the installation date.
-		  -l, --logfile [FILE]     - Specify an alternative logfile.
-		  -t, --time [HH:MM:SS]    - Specify by the installation time.
+		  -c, --count INT          - Undo INT number of installations.
+		  -d, --date YYYY-MM-DD    - Specify by the installation date.
+		  -l, --logfile FILE       - Specify an alternative logfile.
+		  -t, --time HH:MM:SS      - Specify by the installation time.
 
 		  Remaining options are passed over to apt-get(8).
 
-		  Valid '--output-only:' formats are 'col', 'desc', and 'list'.
+		  Valid FMTs are 'col', 'desc', and 'list'.
 
 		  The '--date|-d' and '--time|-t' options may fail to work with your
 		  APT logfile if you're using non-standard localisation settings for an
