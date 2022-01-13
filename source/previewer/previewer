@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/previewer/previewer
 # Started On        - Mon 22 Apr 01:30:36 BST 2019
-# Last Change       - Wed 23 Jun 04:22:22 BST 2021
+# Last Change       - Thu 13 Jan 21:09:34 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -34,21 +34,21 @@ use Text::Wrap;
 use LWP::UserAgent;
 use Term::ReadKey 'GetTerminalSize';
 
-my $CurVer = '2021-06-23';
+my $CurVer = '2022-01-13';
 my $Progrm = 'previewer';
 
 sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [PACKAGE] [RATING]
+	print(qq{Usage: $Progrm [OPTS] PACKAGE RATING
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  --db-file [PATH]         - Instead, use this database file.
+		  --db-file PATH           - Instead, use this database file.
 		  --db-update              - Download and update the database.
 		  --no-reviews             - Omit the review text from the output.
 		  -a, --show-all           - Show all reviews, regardless of rating.
 		  -r, --raw                - Display as it is in the database.
 		  -s, --summary            - Conclude the reviews with a summary.
-		  -u, --user [NAME]        - Only show review(s) by NAME user.
+		  -u, --user NAME          - Only show review(s) by NAME user.
 
 		  Although $Progrm uses Linux Mint's review and rating database, it
 		  can still prove useful in Debian- and Ubuntu-based installations.
