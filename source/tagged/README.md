@@ -2,6 +2,8 @@
 
 List commits per file in the CWD of a git(1) repository.
 
+This is the PERL version. Originally, Tagged was written in BASH, which can be found in the Extra repository. While this is a useful alternative, particularly for its speed, the focus will be on the BASH version.
+
 # Installation Instructions
 
 Installation can be done with [Cito](https://github.com/terminalforlife/PerlProjects/blob/master/source/cito). Your best bet, however, is to install via Tagged's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/tagged/tagged-installer).
