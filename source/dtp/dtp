@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Wed 10 Mar 20:55:14 GMT 2021
+# Last Change       - Thu 13 Jan 20:58:27 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-10';
+my $CurVer = '2022-01-13';
 my $Progrm = 'dtp';
 
 sub Usage {
@@ -42,13 +42,13 @@ sub Usage {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  --no-header              - Omit table header from output.
-		  --size=[U]               - Use unit U, instead of bytes.
+		  --size=UNIT              - Use unit UNIT, instead of bytes.
 		  -C, --no-color           - Disable ANSI color escape sequences.
 		  -H, --si                 - For size, use powers of 1000, not 1024.
 		  -N, --no-notation        - Omit the temperature notation.
 		  -f, --fahrenheit         - Display temperatures in Fahrenheit.
-		  -o, --output [FMT]       - Use FMT instead of the default layout.
-		  -r, --ranges [VL,L,H,VH] - Use provided temperature ranges.
+		  -o, --output FMT         - Use FMT instead of the default layout.
+		  -r, --ranges {VL|L|H|VH} - Use provided temperature ranges.
 	} =~ tr/\t//dr)
 }
 
