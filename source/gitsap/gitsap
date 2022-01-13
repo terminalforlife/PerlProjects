@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Sat  6 Mar 03:54:17 GMT 2021
+# Last Change       - Thu 13 Jan 21:05:33 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-06';
+my $CurVer = '2022-01-13';
 my $Progrm = 'gitsap';
 my $ProgrmFancy = 'GitSAP';
 
@@ -56,8 +56,8 @@ sub Usage {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  -i, --ignore-case        - Case-insensitive REGEX search.
-		  -P, --alt-path [PATH]    - Override value in config.
-		  --config [PATH]          - Override default file.
+		  -P, --alt-path PATH      - Override value in config.
+		  --config PATH            - Override default file.
 		  --force-reset            - Force generation of config file.
 		  --parseable              - Parseable output, similar to raw.
 
