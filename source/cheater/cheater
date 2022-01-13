@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Sun 14 Mar 01:19:34 GMT 2021
+# Last Change       - Thu 13 Jan 20:54:36 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ use Term::ANSIColor 'color';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-14';
+my $CurVer = '2022-01-13';
 my $Progrm = 'cheater';
 
 sub Usage {
@@ -55,7 +55,7 @@ sub Usage {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  -C, --no-colors          - Disable ANSI color escape sequences.
-		  -H, --highlight [REGEX]  - Highlight REGEX in the requested sheet(s).
+		  -H, --highlight REGEX    - Highlight REGEX in the requested sheet(s).
 		  -P, --no-pager           - Do not use less(1) or more(1) for paging.
 	} =~ tr/\t//dr)
 }
