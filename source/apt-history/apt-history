@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Mon 22 Mar 14:53:39 GMT 2021
+# Last Change       - Thu 13 Jan 20:28:44 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-03-22';
+my $CurVer = '2022-01-13';
 my $Progrm = 'apt-history';
 
 sub Usage {
@@ -45,17 +45,17 @@ sub Usage {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  --margin [INT]           - Set margin for event information to INT.
+		  --margin INT             - Set margin for event information to INT.
 		  --no-color-status        - Don't show packages not installed in red.
-		  -A, --action [TYPE]      - Filter action by TYPE. See below.
+		  -A, --action TYPE        - Filter action by TYPE. See below.
 		  -C, --no-color           - Disable ANSII color escape sequences.
-		  -D, --display [STYLE]    - Display packages in STYLE. See below.
-		  -H, --history [FILE]     - Use an alternative 'history.log' file.
-		  -U, --user-id [UID]      - Filter the logged results by UID.
+		  -D, --display STYLE      - Display packages in STYLE. See below.
+		  -H, --history FILE       - Use an alternative 'history.log' file.
+		  -U, --user-id UID        - Filter the logged results by UID.
 		  -c, --command            - Also show the actual command executed.
-		  -p, --package [PKG]      - Show results affecting only PKG.
+		  -p, --package PKG        - Show results affecting only PKG.
 		  -r, --reverse            - Display history in reverse; oldest first.
-		  -u, --user [USER]        - Filter the logged results by USER.
+		  -u, --user USER          - Filter the logged results by USER.
 
 		  Available package listing STYLEs are 'OneLine' and 'Wrapped'.
 		  Available TYPEs are 'Install', 'Purge', 'Remove', and 'Upgrade'.
