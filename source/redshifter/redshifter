@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Wed 10 Mar 21:27:27 GMT 2021
+# Last Change       - Thu 13 Jan 21:12:19 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -20,11 +20,11 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2021-03-10";
+my $CurVer = "2022-01-13";
 my $Progrm = 'redshifter';
 
 sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [ACTION]
+	print(qq{Usage: $Progrm [OPTS] ACTION
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -47,7 +47,7 @@ my $ConfigDir = ($Buffer =~ m{(.*)?(?:/.*)})[0];
 
 my ($Temp, $GammasNow);
 while (defined($ARGV[0])) {
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(1); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		print("$CurVer\n"); exit(0)
