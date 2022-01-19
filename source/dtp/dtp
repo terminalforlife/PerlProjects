@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Thu 13 Jan 20:58:27 GMT 2022
+# Last Change       - Wed 19 Jan 17:59:09 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-13';
+my $CurVer = '2022-01-19';
 my $Progrm = 'dtp';
 
 sub Usage {
@@ -42,7 +42,6 @@ sub Usage {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  --no-header              - Omit table header from output.
-		  --size=UNIT              - Use unit UNIT, instead of bytes.
 		  -C, --no-color           - Disable ANSI color escape sequences.
 		  -H, --si                 - For size, use powers of 1000, not 1024.
 		  -N, --no-notation        - Omit the temperature notation.
@@ -93,17 +92,6 @@ while (defined($ARGV[0])) {
 		print("$CurVer\n"); exit(0)
 	} elsif ($ARGV[0] eq '--no-header') {
 		$ShowHeader = 0
-	} elsif ($ARGV[0] =~ '^--size=') {
-		my ($OPT, $Value) = split('=', $ARGV[0]);
-		unless (length($Value)) {
-			Err(1, "OPT '$OPT=' missing its value.")
-		} elsif ($Value eq 'B' or $Value eq 'b') {
-			Err(1, "Redundant specification of bytes.")
-		} elsif ($Value !~ /^(K|M|G|T|P)$/i) {
-			Err(1, "OPT '$OPT=' given an invalid unit.")
-		} else {
-			$Unit = uc($Value)
-		}
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
 		$ShowColor = 0;
 		undef(%Colors)
@@ -211,6 +199,24 @@ sub Width($;$) {
 	}
 }
 
+sub Human($) {
+	my $Size = $_[0];
+	foreach ('', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y') {
+		if ($Size < $Powers) {
+			my $Result = sprintf("%.1f", $Size);
+			my $Len = length($Result);
+			my $LastTwo = substr($Result, $Len - 2);
+			if ($LastTwo eq '.0') {
+				return(substr($Result, 0, $Len - 2) . $_)
+			} else {
+				return($Result . $_)
+			}
+		}
+
+		$Size = $Size / $Powers
+	}
+}
+
 #------------------------------------------Populate Hash with Determined Values
 
 # Fetch bulk of column information.
@@ -291,25 +297,11 @@ foreach my $Key (@Keys) {
 	my $SectorFile = "$BlockDir/queue/hw_sector_size";
 	-f -r $SectorFile and $Sectors = ReadFile($SectorFile);
 	-f -r $SizeFile and $Size = ReadFile($SizeFile);
-	my $Bytes = $Size * $Sectors;
+	my $Size = Human($Size * $Sectors);
 
-	# Use sizes in the specified unit.
-	my $FinalSize = $Bytes;
-	foreach ('B', 'K', 'M', 'G', 'T', 'P') {
-		last if $_ eq $Unit;
+	push(@{$Drives{$Key}}, $Size || '???');
 
-		$FinalSize = $FinalSize / $Powers
-	}
-
-	# Have to do this here and not via `printf()`, due to possible '???'.
-	$FinalSize = $FinalSize =~ s/(\d+\.\d{2})\d+$/$1/ra;
-
-	# When the size of the drive is too small for the unit to cleanly display.
-	$FinalSize !~ /^(\d+|\d+\.\d+)$/a and $FinalSize = '0.00';
-
-	push(@{$Drives{$Key}}, $FinalSize || '???');
-
-	my $SizeWidth = length($FinalSize);
+	my $SizeWidth = length($Size);
 	$SizeWidth > $MaxWidthSize and $MaxWidthSize = $SizeWidth
 }
 
