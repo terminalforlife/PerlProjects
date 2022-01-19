@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Jan 15:55:08 GMT 2022
+# Last Change       - Wed 19 Jan 17:51:38 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -349,7 +349,14 @@ sub Human($) {
 	my $Size = $_[0];
 	foreach ('', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y') {
 		if ($Size < $HumanDivisor) {
-			return(sprintf("%.2f%s", $Size, $_));
+			my $Result = sprintf("%.1f", $Size);
+			my $Len = length($Result);
+			my $LastTwo = substr($Result, $Len - 2);
+			if ($LastTwo eq '.0') {
+				return(substr($Result, 0, $Len - 2) . $_)
+			} else {
+				return($Result . $_)
+			}
 		}
 
 		$Size = $Size / $HumanDivisor
