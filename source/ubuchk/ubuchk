@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 25 Aug 14:48:36 BST 2021
+# Last Change       - Wed 19 Jan 15:39:34 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -92,7 +92,6 @@
 # Dependencies:
 #
 #   libfilesys-diskspace-perl (>= 0.05-16)
-#   libnumber-bytes-human-perl (>= 0.09-1)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
 #   perl (>= 5.26.1-6)
@@ -100,7 +99,6 @@
 #------------------------------------------------------------------------------
 
 require Filesys::DiskSpace;
-require Number::Bytes::Human;
 require Term::ANSIColor;
 require Term::ReadKey;
 require Text::Wrap;
@@ -114,7 +112,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-08-25';
+my $CurVer = '2022-01-19';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
@@ -176,6 +174,9 @@ my $ConfigFile = "$MainDir/config";
 my $Database = '/usr/share/ubuchk/database';
 my $RKDatabase = '/usr/share/ubuchk/database-rk';
 my $DefaultConfigFile = "/usr/share/$Progrm/config";
+
+# Used with human-readable sizes.
+my $HumanDivisor = 1024;
 
 my $GID = (split(' ', $())[0];
 
@@ -345,11 +346,16 @@ my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
 
 # Usage: Human(<BYTES>)
 sub Human($) {
-	use Number::Bytes::Human 'format_bytes';
+	my $Size = $_[0];
+	foreach ('', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y') {
+		if ($Size < $HumanDivisor) {
+			return(sprintf("%.2f%s", $Size, $_));
 
-	return(
-		format_bytes($_[0], 'bs' => 1024, 'si' => 1, 'round_style' => 'round')
-	)
+			last()
+		}
+
+		$Size = $Size / $HumanDivisor
+	}
 }
 
 # Usage: Info(<STRING>)
