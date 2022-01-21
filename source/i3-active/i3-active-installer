@@ -1,0 +1,247 @@
+#!/bin/sh
+#cito M:755 O:0 G:0 T:/usr/bin/i3-active-installer
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/i3-active/i3-active-installer
+# Started On        - Wed 17 Feb 01:19:32 GMT 2021
+# Last Change       - Fri 21 Jan 02:07:34 GMT 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Simple, but pretty and mindful Bourne Shell installer for i3 Active.
+#
+# To use this installer, you can either:
+#
+#   Clone the repository, using git(1) command.
+#
+#     OR
+#
+#   Download the archive of it directly from GitHub, then extract its contents.
+#
+# Since this installer just fetches from GitHub, you needn't actually download
+# the entire PerlProjects repository to install it; only the installer.
+#
+# If you want a HOME-only installation, you'll have to either use Cito, or
+# otherwise install it manually, but you may miss out on a lot of features.
+#
+# NOTE: Due to changes in BASH 4.4, running this therein will spit out errors.
+#
+# Dependencies:
+#
+#   coreutils (>= 8.25-2)
+#   curl (>= 7.47.0-1) | wget (>= 1.17.1-1)
+#------------------------------------------------------------------------------
+
+Err(){
+	printf 'ERROR: %s\n' "$2" 1>&2
+	[ $1 -gt 0 ] && exit $1
+}
+
+if command -v curl 1> /dev/null 2>&1; then
+	DLCMD='curl -so'
+elif command -v wget 1> /dev/null 2>&1; then
+	DLCMD='wget -qO'
+else
+	printf "ERROR: Neither 'wget' nor 'curl' are available.\n" 1>&2
+	exit 1
+fi
+
+if [ `id -u` -ne 0 ]; then
+	printf "ERROR: Root access is required for system-wide changes.\n" 1>&2
+	exit 1
+fi
+
+while :; do
+	printf 'Install latest version of i3 Active? [Y/N] '
+
+	read Input
+	case $Input in
+		[Yy]|[Yy][Ee][Ss])
+			printf 'Continuing with installation.\n'
+			break ;;
+		[Nn]|[Nn][Oo])
+			printf 'Abandoning installation.\n'
+			exit 0 ;;
+		'')
+			Err 0 'Empty response -- try again.' ;;
+		*)
+			Err 0 'Invalid response -- try again.' ;;
+	esac
+done
+
+LogFile='/tmp/i3-active-installer.log'
+[ -f "$LogFile" ] || 1> "$LogFile"
+chmod 644 "$LogFile"
+
+TmpDir=`mktemp -d --suffix '_tfl'`
+
+URL='https://raw.githubusercontent.com/terminalforlife'
+URL="$URL/PerlProjects/master/source/i3-active"
+
+SigHandler(){
+	Sig=$?
+
+	printf 'Cleaning up temporary files:\n'
+	printf '* Removing '%s' ... ' "$TmpDir"
+	ErrCount=0
+	if rm -r "$TmpDir" 2>> "$LogFile"; then
+		printf '\033[32m[OK]\033[0m\n'
+	else
+		printf '\033[31m[ERR]\033[0m\n'
+	fi
+
+	if [ -s "$LogFile" ]; then
+		printf "Done! -- errors logged in: '${LogFile#$HOME}'\n"
+	else
+		printf 'Done!\n'
+	fi
+
+	exit $Sig
+}
+
+trap SigHandler EXIT INT QUIT ABRT TERM
+
+printf 'Fetching files from GitHub:\n'
+ErrCount=0
+for File in 'completions' 'i3-active' 'i3-active.1.gz'; do
+	printf "* Downloading '%s' ... " "$File"
+	if $DLCMD "$TmpDir/$File" "$URL/$File" 2>> "$LogFile"; then
+		printf '\033[32m[OK]\033[0m\n'
+
+		printf '* Verifying file contents ... '
+		Contents=`< "$TmpDir/$File"`
+		if [ "$(sed '1!d' "$TmpDir/$File")" = '404: Not Found' ]; then
+			ErrCount=$((ErrCount + 1))
+			printf '\033[31m[ERR]\033[0m\n'
+			rm "$TmpDir/$File" > /dev/null 2>&1
+		else
+			printf '\033[32m[OK]\033[0m\n'
+		fi
+	else
+		ErrCount=$((ErrCount + 1))
+		printf '\033[31m[ERR]\033[0m\n'
+	fi
+done
+
+if [ $ErrCount -gt 0 ]; then
+	printf 'ERROR: Failed to download one or more files.\n' 1>&2
+	exit 1
+fi
+
+printf 'Setting correct file attributes:\n'
+
+printf '* Assigning owner and group ... '
+if chown 0:0 "$TmpDir"/* 2>> "$LogFile"; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
+
+printf '* Assigning modes ... '
+ErrCount=0
+for File in 'i3-active:755' 'i3-active.1.gz:644' 'completions:644'; do
+	chmod ${File##*:} "$TmpDir/${File%:*}" 2>> "$LogFile" ||
+		ErrCount=$((ErrCount + 1))
+done
+
+if [ $ErrCount -eq 0 ]; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
+
+printf 'Moving files into place:\n'
+ErrCount=0
+for File in\
+\
+	'completions:/usr/share/bash-completion/completions/i3-active'\
+	'i3-active.1.gz:/usr/share/man/man1/i3-active.1.gz'\
+	'i3-active:/usr/bin/i3-active'
+do
+	if [ -f "${File#*:}" ]; then
+		Replace='False'
+
+		while :; do
+			printf "File '%s' found.\n" "${File#*:}"
+			printf 'Replace existing file? [Y/N] '
+
+			read Input
+			case $Input in
+				[Yy]|[Yy][Ee][Ss])
+					Replace='True'
+					break ;;
+				[Nn]|[Nn][Oo])
+					Replace='False'
+					break ;;
+				'')
+					Err 0 'Empty response -- try again.' ;;
+				*)
+					Err 0 'Invalid response -- try again.' ;;
+			esac
+		done
+
+		[ "$Replace" = 'True' ] || continue
+	fi
+
+	printf "* Installing '%s' ... " "${File%%:*}"
+	if mv "$TmpDir/${File%%:*}" "${File#*:}" 2>> "$LogFile"; then
+		printf '\033[32m[OK]\033[0m\n'
+	else
+		printf '\033[31m[ERR]\033[0m\n'
+	fi
+done
+
+printf 'Checking executable(s) work:\n'
+
+printf "* Verifying 'i3-active' ... "
+if i3-active -v > /dev/null 2>&1; then
+	printf '\033[32m[OK]\033[0m\n'
+else
+	printf '\033[31m[ERR]\033[0m\n'
+fi
+
+printf 'Checking for dependencies:\n'
+
+for File in '/usr/bin/i3-active'; do
+	printf "* Looking in '%s' file...\n" "$File"
+
+	FileErr=0
+	if ! [ -f "$File" ]; then
+		Err 0 "File '$File' missing."
+		FileErr=$((FileErr + 1))
+	elif ! [ -r "$File" ]; then
+		Err 0 "File '$File' unreadable."
+		FileErr=$((FileErr + 1))
+	fi
+
+	if [ $FileErr -ne 0 ]; then
+		Err 0 'Unable to determine dependencies.'
+		continue
+	fi
+
+	DepErr=0
+	Found='False'
+	while read Line; do
+		if [ "$Line" = '#' ]; then
+			continue
+		elif [ "$Line" = '# Dependencies:' ]; then
+			Found='True'
+		elif [ "$Found" = 'True' ]; then
+			# Line to help debug parsing on stubborn files.
+			#printf '\e[2;37m%s\e[0m\n' "$Line"
+
+			case $Line in
+				'#'------*)
+					break ;;
+				*)
+					case $Line in
+						'#   '[!\ ]*)
+							printf '\033[1;93m%s\e[0m\n' "${Line#\#   }" ;;
+						*)
+							DepErr=$((DepErr + 1)) ;;
+					esac ;;
+			esac
+		fi
+	done < "$File"
+
+	[ $DepErr -eq 0 ] || Err 0 'One or more invalid dependencies detected.'
+done
