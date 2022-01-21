@@ -12,6 +12,7 @@
   * [dtp](source/dtp) - View drive temperatures using SYSFS in modern Linux.
   * [getip](source/getip) - View your internal and/or external IP address.
   * [gitsap](source/gitsap) - Display an elegant overview of your git repositories.
+  * [i3-active](source/i3-active) - Output information about the active window in i3-wm.
   * [lsbins](source/lsbins) - A descriptive, searchable overview of PATH executables.
   * [previewer](source/previewer) - CLI solution to printing Linux Mint package reviews.
   * [redshifter](source/redshifter) - Redshift wrapper offering extra functionality
