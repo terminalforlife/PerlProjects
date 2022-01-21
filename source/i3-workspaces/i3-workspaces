@@ -1,0 +1,138 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/i3-workspaces
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/i3-workspaces/i3-workspaces
+# Started On        - Fri 21 Jan 18:01:01 GMT 2022
+# Last Change       - Fri 21 Jan 18:16:31 GMT 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Features:
+#
+#TODO: Add ability to filter the output to show only a given value.
+#TODO: Add flag for disabling ANSI color escape sequences.
+#TODO: Consider colorizing True (green) and false (red) values.
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+require AnyEvent::I3;
+
+use v5.22.1;
+use strict;
+use warnings;
+use AnyEvent::I3 'i3', 'TYPE_GET_WORKSPACES';
+
+no warnings 'uninitialized';
+
+my $CurVer = '2022-01-21';
+my $Progrm = 'i3-workspaces';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+	} =~ tr/\t//dr)
+}
+
+sub Err($;$) {
+	printf(STDERR "Err: %s\n", $2);
+	exit($1) if $1 > 0
+}
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} else {
+		die("Incorrect option(s) specified")
+	}
+
+	shift()
+}
+
+my $i3 = i3();
+$i3->connect()->recv() or Err(1, 'Failed to connect to i3-wm.');
+my $JSON = $i3->message(TYPE_GET_WORKSPACES)->recv();
+
+my $Nr_LenMax = 2;
+my $ID_LenMax = 2;
+my $Name_LenMax = 4;
+my $Visible_LenMax = 7;
+my $Output_LenMax = 6;
+my $Urgent_LenMax = 6;
+my $Focused_LenMax = 7;
+
+#----------------------------------------------------------------Main Functions
+
+sub Boolean($) {
+	if ($_[0] == 0) {
+		return("False")
+	} elsif ($_[0] == 1) {
+		return("True")
+	}
+}
+
+# Usage: LenChk(LEN, MAX_LEN)
+sub LenChk($;$) {
+	if ($_[0] > $_[1]) {
+		return($_[0])
+	} else {
+		return($_[1])
+	}
+}
+
+#----------------------------------------------------------Fetch Data from JSON
+
+my %Keys;
+foreach (@{$JSON}) {
+	my $Nr = $_->{num};
+	my $Name = "'$_->{name}'";
+	my $Visible = $_->{visible};
+	my $Output = $_->{output};
+	my $Urgent = $_->{urgent};
+	my $Focused = $_->{focused};
+
+	# Determine the correct width of the columns.
+	$Nr_LenMax = LenChk(length($Nr), $Nr_LenMax);
+	$Name_LenMax = LenChk(length($Name), $Name_LenMax);
+	$Visible_LenMax = LenChk(length($Visible), $Visible_LenMax);
+	$Output_LenMax = LenChk(length($Output), $Output_LenMax);
+	$Urgent_LenMax = LenChk(length($Urgent), $Urgent_LenMax);
+	$Focused_LenMax = LenChk(length($Focused), $Focused_LenMax);
+
+	$Keys{$Nr} = {
+		'Name' => $Name,
+		'Visible' => Boolean($Visible),
+		'Output' => $Output,
+		'Urgent' => Boolean($Urgent),
+		'Focused' => Boolean($Focused)
+	}
+}
+
+#-----------------------------------------------------------------Display Table
+
+printf(
+	"\e[2;37m%-*s %-*s %-*s %-*s %-*s %*s\e[0m\n", $Nr_LenMax, 'NR',
+	$Name_LenMax, 'NAME', $Visible_LenMax, 'VISIBLE', $Output_LenMax, 'OUTPUT',
+	$Urgent_LenMax, 'URGENT', $Focused_LenMax, 'FOCUSED'
+);
+
+foreach my $Nr (sort({$a <=> $b} keys(%Keys))) {
+	printf(
+		"%-*d %-*s %-*s %-*s %-*s %*s\n", $Nr_LenMax, $Nr, $Name_LenMax,
+		$Keys{$Nr}->{Name}, $Visible_LenMax, $Keys{$Nr}->{Visible},
+		$Output_LenMax, $Keys{$Nr}->{Output}, $Urgent_LenMax,
+		$Keys{$Nr}->{Urgent}, $Focused_LenMax, $Keys{$Nr}->{Focused}
+	)
+}
