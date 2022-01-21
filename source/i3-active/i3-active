@@ -1,0 +1,152 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/i3-active
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/i3-active/i3-active
+# Started On        - Fri 21 Jan 00:08:26 GMT 2022
+# Last Change       - Fri 21 Jan 01:52:49 GMT 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Output information for the active window in the i3-wm or i3-gaps. This is a
+# much leaner alternative to the use of xdotool(1), but specifically for this
+# window manager, and without the potential overhead xdotool(1) might offer.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   libanyevent-i3-perl (>= 0.17-1)
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+require AnyEvent::I3;
+
+use v5.26.1;
+use strict;
+use warnings;
+use AnyEvent::I3 'i3', 'TYPE_GET_TREE';
+
+no warnings 'uninitialized';
+
+my $CurVer = '2022-01-21';
+my $Progrm = 'i3-active';
+
+sub Usage {
+	print(qq{Usage: $Progrm [OPTS] [KEY]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+
+		  Where the optional KEY is either id, id_hex, id_dec, title, class, -
+		  instance, display, geometry, role, floating, border, layout, -
+		  fullscreen, sticky, or urgent, otherwise a full summary is displayed.
+
+		  The ID shown is displayed in hexadecimal, akin to xwininfo(1), but
+		  with decimal in parentheses, akin to xdotool(1).
+	} =~ tr/\t//dr)
+}
+
+sub Err($;$) {
+	print(STDERR "Err: %s\n", $_[1]);
+	exit($_[0]) if $_[0] > 0
+}
+
+my @ValidKeys = (
+	'id', 'id_hex', 'id_dec', 'title', 'class', 'instance', 'display',
+	'geometry', 'role', 'floating', 'border', 'layout', 'fullscreen',
+	'sticky', 'urgent'
+);
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		print("$CurVer\n"); exit(0)
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Incorrect option(s) specified")
+	} else {
+		last()
+	}
+
+	shift()
+}
+
+my $i3 = i3();
+$i3->connect()->recv or Err(1, 'Failed to connect to i3-wm.');
+my $JSON = $i3->message(TYPE_GET_TREE)->recv();
+
+sub Boolean($) {
+	if ($_[0] == 0) {
+		return('False')
+	} elsif ($_[0] == 1) {
+		return('True')
+	}
+}
+
+#------------------Traverse JSON for Nodes, Then Gather and Display Information
+
+my (%Keys, %NodeIDs);
+sub Recurse {
+	foreach my $Key (sort(keys(%{$_[0]}))) {
+		if ($_[0]->{focused} == 1) {
+			my @Size = ($_[0]->{geometry}->{width}, $_[0]->{geometry}->{height});
+			my @Position = ($_[0]->{geometry}->{x}, $_[0]->{geometry}->{y});
+
+			# Provides the ID as shown by both xdotool(1) and xwininfo(1).
+			$Keys{id_hex} = sprintf("0x%x", $_[0]->{window});
+			$Keys{id_dec} = $_[0]->{window};
+			$Keys{id} = sprintf("0x%x (%d)", $_[0]->{window}, $_[0]->{window});
+
+			$Keys{title} = $_[0]->{window_properties}->{title};
+			$Keys{class} = $_[0]->{window_properties}->{class};
+			$Keys{instance} = $_[0]->{window_properties}->{instance};
+			$Keys{geometry} = "$Size[0]x$Size[1]+$Position[0]+$Position[1]";
+			$Keys{role} = $_[0]->{window_properties}->{window_role};
+			$Keys{display} = $_[0]->{output};
+
+			# These values are specific to i3-wm/i3-gaps.
+			$Keys{floating} = $_[0]->{floating};
+			$Keys{border} = $_[0]->{current_border_width};
+			$Keys{layout} = $_[0]->{layout};
+
+			# These are either '0' or '1', but show as 'True' or 'False'.
+			$Keys{fullscreen} = Boolean($_[0]->{fullscreen_mode});
+			$Keys{sticky} = Boolean($_[0]->{sticky});
+			$Keys{urgent} = Boolean($_[0]->{urgent});
+
+			if (grep({$_ eq lc($ARGV[0])} @ValidKeys)) {
+				print("$Keys{$ARGV[0]}\n")
+			} else {
+				print(
+					"        ID: $Keys{id}\n" .
+					"     Title: $Keys{title}\n" .
+					"     Class: $Keys{class}\n" .
+					"  Instance: $Keys{instance}\n" .
+					"   Display: $Keys{display}\n" .
+					"  Geometry: $Keys{geometry}\n" .
+					"      Role: $Keys{role}\n\n" .
+					"  Floating: $Keys{floating}\n" .
+					"    Border: $Keys{border}\n" .
+					"    Layout: $Keys{layout}\n\n" .
+					"Fullscreen: $Keys{fullscreen}\n" .
+					"    Sticky: $Keys{sticky}\n" .
+					"    Urgent: $Keys{urgent}\n"
+				)
+			}
+
+			exit(0)
+		} elsif ($Key eq 'nodes') {
+			Recurse($_) foreach @{$_[0]->{$Key}}
+		}
+	}
+}
+
+foreach my $Node (@{$JSON->{nodes}}) {
+	Recurse($Node);
+}
