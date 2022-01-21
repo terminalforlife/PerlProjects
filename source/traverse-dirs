@@ -1,0 +1,69 @@
+#!/usr/bin/env perl
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/traverse-dirs
+# Started On        - Fri 21 Jan 22:45:20 GMT 2022
+# Last Change       - Fri 21 Jan 23:08:56 GMT 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This is a quick-'n'-fairly-dirty script to list all directories in the CWD or
+# a place specified as the first positional parameter, recursively. Symbolic
+# links are not followed. This is a manual approach, using only PERL via
+# function recursion.
+#
+# The output should mimic that of find(1)'s. Like find(1), the directories are
+# displayed as they are found.
+#
+# I could've used `glob()`, but I opted to manually open and read from the
+# directories; whether that made things more awkward or not, I can't decide.
+#
+# Yes, I know 'File::Find' exists. This is an exercise and demonstration of how
+# this can be done. Besides, one might not want to use all that 'File::Find'
+# stuff if all one wants to do is to simply grab the directories.
+#------------------------------------------------------------------------------
+
+use v5.22.1;
+use strict;
+use warnings;
+
+my $Target = $ARGV[0] || '.';
+
+# Address `Target` ending in '/'.
+my $Len = length($Target);
+if (substr($Target, $Len - 1, $Len) eq '/') {
+	$Target = substr($Target, 0, $Len - 1)
+}
+
+sub Recurse {
+	if (opendir(my $DH, $_[0])) {
+		foreach (readdir($DH)) {
+			next() if $_ eq '.' or $_ eq '..';
+			next() unless -d "$_[0]/$_";
+			next() if -l "$_[0]/$_";
+
+			print("$_[0]/$_\n");
+			Recurse("$_[0]/$_")
+		}
+
+		closedir($DH) or die("$!")
+	} else {
+		warn("$!: $_\n")
+	}
+}
+
+print("$Target/\n");
+if (opendir(my $DH, $Target)) {
+	foreach (readdir($DH)) {
+		next() if $_ eq '.' or $_ eq '..';
+		next() unless -d "$Target/$_";
+		next() if -l "$Target/$_";
+
+		print("$Target/$_\n");
+		Recurse("$Target/$_")
+	}
+
+	closedir($DH) or die("$!")
+} else {
+	die("$!: $Target\n")
+}
