@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed 19 Jan 17:51:38 GMT 2022
+# Last Change       - Sat 22 Jan 15:00:21 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -112,7 +112,7 @@ use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-19';
+my $CurVer = '2022-01-22';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
@@ -131,7 +131,7 @@ sub Usage {
 		  --skip=N[,N ...]         - Skip one or more N alerts, by ID.
 		  -Q, --query N            - Read about alert ID number N.
 		  -V, --verbose            - Execute checks verbosely.
-		  -c, --config [FILE]      - Use alternative configuration file.
+		  -c, --config FILE        - Use alternative configuration file.
 		  -k, --key K=V            - Override key K with value V.
 	} =~ tr/\t//dr)
 }
