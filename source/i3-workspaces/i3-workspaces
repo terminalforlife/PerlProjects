@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/i3-workspaces/i3-workspaces
 # Started On        - Fri 21 Jan 18:01:01 GMT 2022
-# Last Change       - Sat 22 Jan 18:54:00 GMT 2022
+# Last Change       - Sat 22 Jan 19:12:15 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ sub Usage {
 		  -q, --quotes             - Quote protect NAME and OUTPUT fields.
 
 		  It's also possible to output only property PROP of workspace NR.
-		  Valid PROPs are Name, Visible, Output, Urgent, and Focused.
+		  Valid PROPs are name, visible, output, urgent, and focused.
 	} =~ tr/\t//dr)
 }
 
@@ -53,7 +53,7 @@ sub Err($;$) {
 	exit($_[0]) if $_[0] > 0
 }
 
-my @Valids = ('Name', 'Visible', 'Output', 'Urgent', 'Focused');
+my @Valids = ('name', 'visible', 'output', 'urgent', 'focused');
 my $Grey = "\e[2;37m";
 my $Reset = "\e[0m";
 my $Quote = '';
@@ -86,11 +86,11 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-Err(1, "Argument '$ARGV[2]' invalid.")
-	if scalar(@ARGV) > 2;
+Err(1, "Argument '$ARGV[2]' invalid.") if scalar(@ARGV) > 2;
 
-my ($Arg_Nr, $Arg_Key) = @ARGV[0,1];
-if (defined($Arg_Nr) or defined($Arg_Key)) {
+my $Arg_Nr = lc($ARGV[0]);
+my $Arg_Key = lc($ARGV[1]);
+if (defined($ARGV[0]) or defined($ARGV[1])) {
 	Err(1, 'Unpaired NR and PROP arguments.')
 		unless defined($Arg_Nr) and defined($Arg_Key);
 
@@ -154,11 +154,11 @@ foreach (@{$JSON}) {
 	$Focused_LenMax = LenChk(length($Focused), $Focused_LenMax);
 
 	$Keys{$Nr} = {
-		'Name' => $Name,
-		'Output' => $Output,
-		'Visible' => $Visible,
-		'Urgent' => $Urgent,
-		'Focused' => $Focused
+		'name' => $Name,
+		'output' => $Output,
+		'visible' => $Visible,
+		'urgent' => $Urgent,
+		'focused' => $Focused
 	}
 }
 
@@ -184,8 +184,8 @@ printf(
 foreach my $Nr (sort({$a <=> $b} keys(%Keys))) {
 	printf(
 		"%-*d %-*s %-*s %-*s %-*s %*s\n", $Nr_LenMax, $Nr, $Name_LenMax,
-		$Keys{$Nr}->{Name}, $Output_LenMax, $Keys{$Nr}->{Output},
-		$Visible_LenMax, $Keys{$Nr}->{Visible}, $Urgent_LenMax,
-		$Keys{$Nr}->{Urgent}, $Focused_LenMax, $Keys{$Nr}->{Focused}
+		$Keys{$Nr}->{name}, $Output_LenMax, $Keys{$Nr}->{output},
+		$Visible_LenMax, $Keys{$Nr}->{visible}, $Urgent_LenMax,
+		$Keys{$Nr}->{urgent}, $Focused_LenMax, $Keys{$Nr}->{focused}
 	)
 }
