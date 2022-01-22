@@ -3,14 +3,16 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Sat 15 Feb 02:06:58 GMT 2020
+# Last Change       - Sat 22 Jan 00:11:16 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # This is the bash completion script for `lsbins`.
 #------------------------------------------------------------------------------
 
-_lsbins(){
+_lsbins() {
+	local Option Arg Args
+
 	while read; do
 		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
 			Option=${REPLY%% - *}
@@ -21,8 +23,6 @@ _lsbins(){
 	done <<< "$(lsbins -h)"
 
 	COMPREPLY=(`compgen -W "$Args" -- "$2"`)
-
-	unset Option Arg Args
 }
 
 complete -F _lsbins lsbins

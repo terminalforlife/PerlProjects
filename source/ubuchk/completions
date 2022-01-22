@@ -3,14 +3,16 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Tue  3 Mar 00:24:32 GMT 2020
+# Last Change       - Sat 22 Jan 00:13:11 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# This is the bash completion script for `ubuchk` & `ubuchk-db`.
+# This is the bash completion script for UbuChk, including `ubuchk-db`.
 #------------------------------------------------------------------------------
 
-_ubuchk(){
+_ubuchk() {
+	local Option Arg Args
+
 	case $1 in
 		ubuchk)
 			while read; do
@@ -38,9 +40,7 @@ _ubuchk(){
 						COMPREPLY=(`compgen -S '=' -W "$Args" -- "$2"`) ;;
 					*)
 						COMPREPLY=(`compgen -W "$Args" -- "$2"`) ;;
-			esac
-
-			unset Option Arg Args ;;
+			esac ;;
 		ubuchk-db)
 			COMPREPLY=(`compgen -W '-h --help -v --version' -- "$2"`) ;;
 	esac

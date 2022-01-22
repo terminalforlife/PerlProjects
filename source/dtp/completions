@@ -3,32 +3,26 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/completions
 # Started On        - Sat  6 Mar 03:21:01 GMT 2021
-# Last Change       - Sat  6 Mar 03:21:06 GMT 2021
+# Last Change       - Sat 22 Jan 00:10:38 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # This is the BASH completion script for `dtp`.
 #------------------------------------------------------------------------------
 
-_dtp(){
-	GetArgs(){
-		local CurLine Word
+_dtp() {
+	local Option Arg Args Packages
 
-		while read -a Line; do
-			[ "${Line[0]:0:1}" == '-' ] || continue
-
-			for Field in "${Line[@]}"; {
-				if [ "$Field" == '-' ]; then
-					break
-				elif [[ $Field == -* ]]; then
-					Field=${Field//\[*\]/}
-					printf '%s ' "${Field//,/}"
-				fi
+	while read; do
+		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+			Option=${REPLY%% - *}
+			for Arg in ${Option//,/}; {
+				Args+="${Arg##[^-]*} "
 			}
-		done <<< "$(dtp -h)"
-	}
+		fi
+	done <<< "$(dtp -h)"
 
-	COMPREPLY=($(compgen -W "$(GetArgs)" -- "$2"))
+	COMPREPLY=($(compgen -W "$Args" -- "$2"))
 }
 
 complete -F _dtp dtp

@@ -3,27 +3,26 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl/completions
 # Started On        - Mon 29 Jan 18:47:58 GMT 2018
-# Last Change       - Sat 15 Feb 00:27:28 GMT 2020
+# Last Change       - Sat 22 Jan 00:14:11 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # This is the bash completion script for wcdl.
 #------------------------------------------------------------------------------
 
-_wcdl(){
-	GetArgs(){
-		while read; do
-			if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
-				Option=${REPLY%% - *}
-				for Arg in ${Option//,/}; {
-					printf '%s ' "${Arg##[^-]*}"
-				}
-			fi
-		done <<< "$(wcdl -h)"
-		unset Option Arg
-	}
+_wcdl() {
+	local Option Args Arg
 
-	GetCats(){
+	while read; do
+		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+			Option=${REPLY%% - *}
+			for Arg in ${Option//,/}; {
+				Args+="${Arg##[^-]*} "
+			}
+		fi
+	done <<< "$(wcdl -h)"
+
+	GetCats() {
 		while read -a X; do
 			if [ "${X[0]}" -a "${X[0]}" != "CATEGORY" ]; then
 				printf "%s " "${X[0]}"
@@ -34,12 +33,14 @@ _wcdl(){
 	if [[ $3 =~ ^(--resolution|-r)$ ]]; then
 		COMPREPLY=($(compgen -W "$(wcdl --show-resolutions)" -- "$2"))
 	elif [[ "$2" == -* ]]; then
-		COMPREPLY=($(compgen -W "$(GetArgs)" -- "$2"))
+		COMPREPLY=($(compgen -W "$Args" -- "$2"))
 	elif [[ $3 =~ ^(--dest|-D)$ ]]; then
 		COMPREPLY=($(compgen -o default -- "$2"))
 	else
 		COMPREPLY=($(compgen -W "$(GetCats)" -- "$2"))
 	fi
+
+	unset -f GetCats
 }
 
 complete -F _wcdl wcdl

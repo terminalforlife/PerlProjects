@@ -3,14 +3,16 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-download-deps/completions
 # Started On        - Mon 11 Jan 16:14:29 GMT 2021
-# Last Change       - Mon 11 Jan 16:28:25 GMT 2021
+# Last Change       - Sat 22 Jan 00:11:03 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# This is the bash completion script for apt-download-deps.
+# This is the bash completion script for `apt-download-deps`.
 #------------------------------------------------------------------------------
 
-_aptdownloaddeps(){
+_aptdownloaddeps() {
+	local Option Arg Args Packages
+
 	while read; do
 		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
 			Option=${REPLY%% - *}
@@ -26,8 +28,6 @@ _aptdownloaddeps(){
 		Packages=`_xfunc dpkg _comp_dpkg_installed_packages`
 		COMPREPLY=(`compgen -W "$Packages" -- "$2"`)
 	fi
-
-	unset Option Arg Args Packages
 }
 
 complete -F _aptdownloaddeps apt-download-deps
