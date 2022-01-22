@@ -1,0 +1,69 @@
+#!/usr/bin/env perl
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/grand-total
+# Started On        - Sat 22 Jan 03:42:38 GMT 2022
+# Last Change       - Sat 22 Jan 04:03:29 GMT 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Output the total size of all connected drives, in human-readable format. This
+# assumes a sector size of 512 bytes, which most modern drives seem to use.
+# This uses SYSFS, so if you don't have access to that and 'block', you're SoL.
+#------------------------------------------------------------------------------
+
+use strict;
+use warnings;
+
+die('No arguments required') if scalar(@ARGV) > 0;
+
+sub Human($) {
+	my $Size = $_[0];
+	foreach my $Unit ('', qw{K M G T P E Z Y}) {
+		if ($Size < 1024) {
+			my $Result = sprintf('%.1f', $Size);
+			my $Len = length($Result);
+			if (substr($Result, $Len - 2, $Len) eq '.0') {
+				return(substr($Result, 0, $Len - 2) . "$Unit")
+			} else {
+				return("$Result$Unit")
+			}
+
+			last()
+		}
+
+		$Size = $Size / 1024
+	}
+}
+
+my $Sectors = 0;
+my $Target = '/sys/block';
+if (opendir(my $DH, $Target)) {
+	foreach my $Block (readdir($DH)) {
+		next() if $Block eq '.' or $Block eq '..';
+		next() unless -d "$Target/$Block";
+
+		if (opendir(my $SubDH, "$Target/$Block")) {
+			foreach my $File (readdir($SubDH)) {
+				next() unless $File eq 'size';
+
+				if (open(my $FH, '<', "$Target/$Block/$File")) {
+					chomp(my $Data = <$FH>);
+					$Sectors += $Data
+				} else {
+					die("$!")
+				}
+			}
+
+			closedir($SubDH) or die("$!")
+		} else {
+			die("$!")
+		}
+	}
+
+	closedir($DH) or die("$!")
+} else {
+	die("$!")
+}
+
+print(Human($Sectors * 512) . "\n")
