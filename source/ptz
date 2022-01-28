@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ptz
 # Started On        - Sat 18 May 21:21:35 BST 2019
-# Last Change       - Wed 10 Mar 21:12:08 GMT 2021
+# Last Change       - Fri 28 Jan 01:48:49 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -27,10 +27,9 @@ require Time::Piece;
 use v5.22.1;
 use strict;
 use warnings;
-use autodie;
 use Time::Piece;
 
-my $CurVer = '2021-03-10';
+my $CurVer = '2022-01-28';
 my $Progrm = 'ptz';
 
 sub Usage {
@@ -45,13 +44,13 @@ sub Usage {
 my $DoCommas = 1;
 
 while (defined($ARGV[0])) {
-	if ($ARGV[0] =~ /^(--help|-h|-\?)$/) {
+	if ($ARGV[0] =~ /^(--help|-h)$/) {
 		Usage(); exit 0
-	} elsif($ARGV[0] =~ /^(--version|-v)$/) {
+	} elsif ($ARGV[0] =~ /^(--version|-v)$/) {
 		print("$CurVer\n"); exit 0
-	} elsif($ARGV[0] =~ /^(--no-commas|-C)$/) {
+	} elsif ($ARGV[0] =~ /^(--no-commas|-C)$/) {
 		$DoCommas = 0
-	} elsif($ARGV[0] =~ /^-.*/) {
+	} elsif ($ARGV[0] =~ /^-/) {
 		die("Incorrect argument(s) specified")
 	} else {
 		last
@@ -60,26 +59,39 @@ while (defined($ARGV[0])) {
 	shift(@ARGV)
 }
 
-scalar(@ARGV) == 0 and die("Target date of YYYY-MM-DD is required");
+die("Target date of YYYY-MM-DD is required")
+	if scalar(@ARGV) == 0;
 
 my $Target = shift();
 
-sub CommaInt($) {
-	my $Int = $_[0];
+#----------------------------------------Begin Gathering and Displaying Seconds
 
-	my $Number = reverse($Int);
-    $Number =~ s/(\d{3})(?=\d)/$1,/ga;
-    return(reverse($Number))
+sub Commas($) {
+	my $Nr = '';
+	my $Count = 0;
+	foreach (split('', reverse($_[0]))) {
+		$Nr = $_ . $Nr;
+		if ($Count++ == 2) {
+			$Nr = ',' . $Nr;
+			$Count = 0
+		}
+	}
+
+	my $Len = length($Nr);
+	$Nr = substr($Nr, 1, $Len)
+		if substr($Nr, 0, 1) eq ',';
+
+	return($Nr)
 }
 
-$Target =~ /^\d{4}-\d{2}-\d{2}$/a or die("Invalid target date");
+die("Invalid target date") unless $Target =~ /^\d{4}-\d{2}-\d{2}$/a;
 
-# Fetch current time, then target time, in seconds since epoch.
 my $CurrentTime = localtime->epoch();
 my $TargetTime = Time::Piece->strptime($Target, '%Y-%m-%d')->epoch();
+my $Seconds = $TargetTime - $CurrentTime;
 
 if ($DoCommas) {
-	print(CommaInt($TargetTime - $CurrentTime) . "\n")
+	print(Commas($Seconds) . "\n")
 } else {
-	print($TargetTime - $CurrentTime . "\n")
+	print($Seconds . "\n")
 }
