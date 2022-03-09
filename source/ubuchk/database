@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Mon 15 Mar 21:49:23 GMT 2021
+# Last Change       - Wed  9 Mar 15:25:20 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -270,17 +270,21 @@ Disconnect your Internet & any critical storage devices, immediately perform a f
 .
 Anything which has been connected to the system should be assumed infected and unsafe, so be sure to scan them in a safe environment. Refer to the Interwebs (on a different machine, obviously) for thorough guides on how to analyse the data and determine if any damage has been done.
 :6990
-By default, `root` login via SSH is disabled, according to ubuntu18.com, however, it's best to err on the side of caution. Explicitly disable PermitRootLogin, by setting its value to `no` in the `/etc/ssh/sshd_config` file, or whichever file is appropriate to your setup.
-:6980
-The `root` user has access to everything; the keys of Kingdom, so naturally, allowing such an important, vital user to be accessible remotely, is almost always an unnecessary risk. It seems agreed world-wide that `root` access via SSH should be explicitly disabled from the get-go.
+According to OpenSSH's sshd_config(5) man page, `prohibit-password` is the default setting, prohibiting users to log in as `root` by "password and keyboard-interactive authentication".
 .
-If you still must obtain elevated privileges via SSH remote connections, which is certainly commonplace, then simply resort to a utility like sudo(8) or doas(1).
+However, you may wish to err on the side of caution. Explicitly disable PermitRootLogin, by setting its value to `no` in the `/etc/ssh/sshd_config` file, or whichever file is appropriate for your setup.
+.
+This alert remains on the off-chance it's relevant to someone's SSH implementation.
+:6980
+The `root` user has access to everything; the keys of the Kingdom, so naturally, allowing such a vital user to be accessible remotely is almost always an unnecessary risk. It seems agreed world-wide that `root` access via SSH should be explicitly disabled.
+.
+If you must obtain elevated privileges via SSH remote connections, which is certainly commonplace, then simply resort to a utility like sudo(8) or doas(1).
 .
 Refer also to alert #6990.
 :6991,6992
-To quote the ssh_config(5) man page: "Protocol 1 suffers from a number of cryptographic weaknesses and should not be used." It's available to "support legacy devices", so ensure you're using the 2nd protocol.
+To quote the ssh_config(5) man page: "Protocol 1 suffers from a number of cryptographic weaknesses and should not be used." It's available to "support legacy devices", so ensure you're using the 2nd (value `2`) protocol. However, it's worth noting that modern OpenSSH (and apparently PuTTY) only supports Protocol 1, presumably making this `Protocol` key superfluous.
 .
-Although the aforementioned man page states that the default value is `2`, it couldn't hurt to be cautious by explicitly specifying the 2nd protocol.
+This alert remains on the off-chance it's relevant to someone's SSH implementation.
 :1298
 You can activate the AppArmor service by running, if using SystemD `systemctl start apparmor`, or if using an older SysV init system, you can run `service apparmor start`.
 .
