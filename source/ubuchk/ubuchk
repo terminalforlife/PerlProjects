@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 22 Jan 15:00:21 GMT 2022
+# Last Change       - Wed  9 Mar 15:50:23 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -103,21 +103,20 @@ require Term::ReadKey;
 require Text::Wrap;
 require POSIX;
 
-use v5.26.1;
+use v5.10;
 use strict;
 use warnings;
 use autodie;
-use Term::ANSIColor 'color', 'colorvalid';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-22';
+my $CurVer = '2022-03-09';
 my $Progrm = 'ubuchk';
 my $ProgrmFancy = 'UbuChk';
 
 my $Domain = 'https://github.com/terminalforlife/PerlProjects';
 
-sub Usage {
+sub Usage() {
 	print(qq{Usage: $Progrm [OPTS]
 
 		  -h, --help               - Display this help information.
@@ -184,9 +183,9 @@ mkdir($MainDir) unless -d $MainDir;
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ /^(--help|-h|-\?)$/) {
 		Usage(); exit(0)
-	} elsif ($ARGV[0] =~ /^(--version|-v)$/) {
-		print("$CurVer\n"); exit(0)
-	} elsif ($ARGV[0] =~ /^(--config|-c)$/) {
+	} elsif ($ARGV[0] eq '--version' or $ARGV[0] eq '-v') {
+		say($CurVer); exit(0)
+	} elsif ($ARGV[0] eq '--config' or $ARGV[0] eq '-c') {
 		shift();
 
 		length($ARGV[0]) or Err(1, "OPT '$1' requires a file.");
@@ -196,13 +195,13 @@ while (defined($ARGV[0])) {
 		-d $DirName or Err(1, "Directory '$DirName' not found.");
 
 		$ConfigFile = $ARGV[0]
-	} elsif ($ARGV[0] =~ /^(--force-reset|-F)$/) {
+	} elsif ($ARGV[0] eq '--force-reset' or $ARGV[0] eq '-F') {
 		$ForceReset = 'true'
 	} elsif ($ARGV[0] eq '--force-run') {
 		$ForceRun = 'true'
 	} elsif ($ARGV[0] eq '--hush-ignored') {
 		$HushIgnored = 'true'
-	} elsif ($ARGV[0] =~ /^(--query|-Q)$/) {
+	} elsif ($ARGV[0] eq '--query' or $ARGV[0] eq '-Q') {
 		shift();
 
 		length($ARGV[0]) or Err(1, "OPT '$1' requires an alert ID.");
@@ -224,20 +223,20 @@ while (defined($ARGV[0])) {
 		}
 
 		exit(1) if $Failed
-	} elsif ($ARGV[0] =~ /^(--verbose|-V)$/) {
+	} elsif ($ARGV[0] eq '--verbose' or $ARGV[0] eq '-V') {
 		$Verbose = 'true'
 	} elsif ($ARGV[0] eq '--list-keys') {
 		$ListKeys = 'true'
-	} elsif ($ARGV[0] eq '--list-dbalert s') {
+	} elsif ($ARGV[0] eq '--list-dbalerts') {
 		$ListDbAlerts = 'true'
-	} elsif ($ARGV[0] =~ /^(--key|-k)$/) {
+	} elsif ($ARGV[0] eq '--key' or $ARGV[0] eq '-k') {
 		shift();
 
 		length($ARGV[1]) or Err(1, "OPT '$1' requires a key.");
 
 		my ($Key, $Value) = split('=', $ARGV[0]);
 		$KeyOpt{$Key} = $Value
-	} elsif ($ARGV[0] =~ substr($ARGV[0], 0, 1)) {
+	} elsif ($ARGV[0] =~ '^-') {
 		Err(1, "Incorrect option(s) specified.")
 	} else {
 		last
@@ -295,6 +294,8 @@ sub GetDirSize($) {
 
 	return($Size)
 }
+
+use Term::ANSIColor 'color', 'colorvalid';
 
 #---------------------------------------------------------------OS & LSB Checks
 
