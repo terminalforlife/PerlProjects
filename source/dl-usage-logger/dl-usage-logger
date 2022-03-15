@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-
+#cito M:755 O:0 G:0 T:/usr/local/bin/dl-usage-logger
 #------------------------------------------------------------------------------
-# Project Name      - Personal/PerlProjects/source/dl-usage-logger
+# Project Name      - Personal/PerlProjects/source/dl-usage-logger/dl-usage-logger
 # Started On        - Tue 15 Mar 01:58:14 GMT 2022
-# Last Change       - Tue 15 Mar 02:45:00 GMT 2022
+# Last Change       - Tue 15 Mar 03:15:33 GMT 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,11 +16,12 @@
 # To install for global use:
 #
 #   $ sudo install -o 0 -g 0 -m 755 dl-usage-logger /usr/local/bin
+#   $ sudo install -o 0 -g 0 -m 644 dlul.service /etc/systemd/system
 #
-# Execute this script from a script stored in '/lib/systemd/system-shutdown' to
-# have it run each time the system shuts down. This instruction is for SystemD
-# users only. This is admittedly not a perfect system, but it may suffice.
-# There is some commented code if you want to try a 24/7 server approach.
+# Be sure to install the service/unit file, then enable and start the service.
+# This way, this script will automatically execute when you shut the system
+# down. This is admittedly not a perfect system, but it may suffice. There is
+# some commented code if you want to try a 24/7 server approach.
 #
 # Don't write to the file it creates -- ever. This is because the file is not
 # locked during operation. Reading from the file is harmless, of course.

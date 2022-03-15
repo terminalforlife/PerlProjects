@@ -1,0 +1,22 @@
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/dl-usage-logger/dlul.service
+# Started On        - Tue 15 Mar 03:07:19 GMT 2022
+# Last Change       - Tue 15 Mar 03:12:13 GMT 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Service/Unit file for '/usr/local/bin/dl-usage-logger'.
+#------------------------------------------------------------------------------
+
+[Unit]
+Description=Log session download usage at system shutdown
+DefaultDependencies=no
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/dl-usage-logger
+TimeoutStartSec=0
+
+[Install]
+WantedBy=shutdown.target
