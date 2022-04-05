@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/local/bin/debttl
+#cito M:755 O:0 G:0 T:/usr/bin/debttl
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/debttl
 # Started On        - Tue  5 Apr 00:19:48 BST 2022
-# Last Change       - Tue  5 Apr 02:21:54 BST 2022
+# Last Change       - Tue  5 Apr 02:24:16 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ unless (-f $File) {
 		} elsif ($Filter eq 'ii_size') {
 			say(Human($II_TTL))
 		} elsif ($Filter eq 'rc_size') {
-			say(Human($II_TTL))
+			say(Human($RC_TTL))
 		} else {
 			say('Total Packages: ' . Commas(@II_Sizes));
 			say('Installed Size: ' . Human($II_TTL));
