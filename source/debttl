@@ -1,0 +1,153 @@
+#!/usr/bin/env perl
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/debttl
+# Started On        - Tue  5 Apr 00:19:48 BST 2022
+# Last Change       - Tue  5 Apr 02:11:58 BST 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Output the total size of installed Debian packages. This is a simple tool, -
+# but it's useful for Conky users and those who want to add this value to their
+# tiling window manager status bar, for example. Only PERL is required.
+#------------------------------------------------------------------------------
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#------------------------------------------------------------------------------
+
+use v5.10;
+use strict;
+use warnings;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2022-04-05';
+my $Progrm = 'debttl';
+
+sub Usage() {
+	print(qq{Usage: $Progrm [OPTS]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  -f, --filter TYPE        - Display only a specific value.
+
+		Valid TYPEs are 'ttl_pkgs', 'ii_size', and 'rc_size'.
+	} =~ tr/\t//dr)
+}
+
+sub Err($;$) {
+	printf(STDERR "Err: %s\n", $_[1]);
+	exit($_[0]) if $_[0] > 0
+}
+
+my $File = '/var/lib/dpkg/status';
+my $Divisor = 1024;
+
+my $Filter;
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		say($CurVer); exit(0)
+	} elsif ($ARGV[0] =~ '^(--filter|-f)$') {
+		unless (length($ARGV[1])) {
+			Err(1, "Option '$ARGV[0]' requires an argument.")
+		} elsif ($ARGV[1] =~ '^(ttl_pkgs|ii_size|rc_size)$') {
+			$Filter = $ARGV[1];
+			shift()
+		} else {
+			Err(1, "Option '$ARGV[0]' given invalid argument.")
+		}
+	} else {
+		Err(1, 'Incorrect option(s) specified.')
+	}
+
+	shift()
+}
+
+#-----------------------------------------------------------Primary Subroutines
+
+sub Commas($) {
+	my $Str = reverse($_[0]);
+	my $Out = $Str =~ s/(\d{3})/$1,/rg;
+	if (substr($Out, -1, 1) eq ',') {
+		my $Fixed = substr($Out, 0, -1);
+		return(scalar(reverse($Fixed)))
+	} else {
+		return(scalar(reverse($Out)))
+	}
+}
+
+sub Human($) {
+	my $Size = $_[0];
+	foreach my $Unit (qw{K M G T P E Y Z}) {
+		if ($Size < $Divisor) {
+			my $Float = sprintf('%.1f', $Size);
+			if (substr($Float, -2) eq '.0') {
+				return(substr($Float, 0, -2) . $Unit)
+			} else {
+				return($Float . $Unit)
+			}
+		}
+
+		$Size = $Size / $Divisor
+	}
+}
+
+#-----------------------------------------------------------Display Information
+
+unless (-f $File) {
+	Err(1, "File not found.")
+} elsif (not -r $File) {
+	Err(1, "File unreadable.")
+} else {
+	if (open(my $FH, '<', $File)) {
+		my $PackageTTL = 0;
+		my (@II_Sizes, @RC_Sizes);
+		while (<$FH>) {
+			chomp(my @Line = split(':'));
+
+			our $Status;
+			if ($Line[0] eq 'Package') {
+				$PackageTTL++;
+			} elsif ($Line[0] eq 'Status') {
+				$Status = substr($Line[1], 1);
+			} elsif ($Line[0] eq 'Installed-Size') {
+				if ($Status eq 'install ok installed') {
+					push(@II_Sizes, substr($Line[1], 1))
+				} elsif ($Status eq 'deinstall ok config-files') {
+					push(@RC_Sizes, substr($Line[1], 1))
+				}
+			}
+		}
+
+		close($FH) or Err(1, 'Failed to close file handle.');
+
+		our $II_TTL += $_ foreach @II_Sizes;
+		our $RC_TTL += $_ foreach @RC_Sizes;
+
+		if ($Filter eq 'ttl_pkgs') {
+			say(Commas(@II_Sizes))
+		} elsif ($Filter eq 'ii_size') {
+			say(Human($II_TTL))
+		} elsif ($Filter eq 'rc_size') {
+			say(Human($II_TTL))
+		} else {
+			say('Total Packages: ' . Commas(@II_Sizes));
+			say('Installed Size: ' . Human($II_TTL));
+			say(' Unpurged Size: ' . Human($RC_TTL))
+		}
+	} else {
+		Err(1, 'Failed to open file for reading.')
+	}
+}
