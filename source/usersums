@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/usersums
 # Started On        - Mon 25 Jan 21:02:07 GMT 2021
-# Last Change       - Mon 25 Jan 22:29:47 GMT 2021
+# Last Change       - Tue  5 Apr 02:13:03 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -11,42 +11,131 @@
 # format is the same as the standard md5sum(1) uses. The file is saved to HOME
 # as '.md5sums', unless otherwise specified.
 #
-# This will take a LONG time depending on the data to be processed.
+# Execution may take a few minutes.
 #
-# NOTE: Symlinks are not followed.
+# NOTE: Symlinks are not followed, and active mountpoints are ignored.
+#
+# Features:
+#
+# N/A
+#
+# Bugs:
+#
+# N/A
+#
+# Dependencies:
+#
+#   perl (>= 5.22.1-9)
+#   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
 require Digest::MD5;
-require File::Find;
+require Encode;
 
-use v5.26;
+use v5.10;
 use strict;
 use warnings;
-use autodie;
-use File::Find 'find';
 use Digest::MD5 'md5_hex';
-
-no warnings 'uninitialized', 'File::Find';
 
 my $Target = $ENV{'HOME'};
 my $Output = "$Target/.md5sums";
+my $MountInfo = '/proc/self/mountinfo';
 
-my @Files;
-sub DoFind {
-	my $Path = $File::Find::name;
-	return() if $Path eq $Output;
-	-f $Path and push(@Files, $Path)
-}
-
-my %FindOpts = (
-	'wanted' => \&DoFind,
-	'no_chdir' => 1,
-	'follow' => 0
+# These directories will be ignored.
+my @Excludes = (
+	"$Target/.cache",
+	"$Target/.thumbnails"
 );
 
-find(\%FindOpts, $Target);
+#--------------------------------Gather List of Mountpoints to Avoid Traversing
 
-open(my $SaveHandle, '>', $Output) or die();
+# Convert octal sequences to regular characters.
+# Alternatively: s/\\([[:digit:]]+)/chr(oct($1))/gre
+sub Convert($) {
+	my $Found = 0;
+	my $Result = '';
+	my $CurOctal = '';
+	foreach my $Char (split('', $_[0])) {
+		if ($Found) {
+			unless ($Char =~ /^[[:digit:]]$/) {
+				$Result = $Result . chr(oct($CurOctal));
+				$Result = $Result . $Char;
+
+				$CurOctal = '';
+				$Found = 0
+			} else {
+				$CurOctal = $CurOctal . $Char;
+			}
+		} elsif ($Char eq '\\') {
+			$Found = 1
+		} else {
+			$Result = $Result . $Char
+		}
+	}
+
+	return($Result)
+}
+
+my @Mounts;
+if (open(my $FH, '<', $MountInfo)) {
+	while (<$FH>) {
+		chomp(my $MountPoint = (split(' ', $_))[4]);
+		push(@Mounts, Convert($MountPoint))
+	}
+
+	close($FH) or die("$!");
+} else {
+	die("$!");
+}
+
+#----------------------------------------------Recursively Gather List of Files
+
+my @Files;
+sub Recurse {
+	if (opendir(my $DH, $_[0])) {
+		foreach my $File (readdir($DH)) {
+			next() if $File eq '.' or $File eq '..';
+
+			push(@Files, "$_[0]/$File")
+				if -f "$_[0]/$File";
+
+			next() unless -d "$_[0]/$File";
+			next() if grep(@Mounts);
+			next() if grep({$_ eq $File} @Excludes);
+			next() if -l "$_[0]/$File";
+
+			Recurse("$_[0]/$File")
+		}
+
+		closedir($DH) or die("$!")
+	} else {
+		warn("$!: $_[0]\n")
+	}
+}
+
+if (opendir(my $DH, $Target)) {
+	foreach my $File (readdir($DH)) {
+		next() if $File eq '.' or $File eq '..';
+
+		push(@Files, "$Target/$File")
+			if -f "$Target/$File";
+
+		next() unless -d "$Target/$File";
+		next() if grep(@Mounts);
+		next() if grep({$_ eq $File} @Excludes);
+		next() if -l "$Target/$File";
+
+		Recurse("$Target/$File")
+	}
+
+	closedir($DH) or die("$!")
+} else {
+	die("$!: $Target\n")
+}
+
+#--------------------------------------------Begin Gathering & Savings MD5 Sums
+
+open(my $SaveHandle, '>', $Output) or die("$!");
 
 while (1) {
 	print("Overwrite existing '$Output' file? [Y/N] ");
@@ -61,7 +150,7 @@ while (1) {
 			if (open(my $HashHandle, '<', $_)) {
 				$MD5->addfile($HashHandle);
 				$Hash = $MD5->hexdigest();
-				close($HashHandle)
+				close($HashHandle) or die("$!")
 			} else {
 				warn("Cannot open '$_' for reading")
 			}
@@ -69,7 +158,7 @@ while (1) {
 			printf($SaveHandle "%s  %s\n", $Hash, $_);
 		}
 
-		close($SaveHandle);
+		close($SaveHandle) or die("$!");
 		last()
 	} elsif ($Input =~ '^([Nn]|[Nn][Oo])$') {
 		print("Nothing to do -- quitting.\n");
