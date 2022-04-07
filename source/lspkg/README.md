@@ -2,9 +2,13 @@
 
 Designed to be easy to use and pleasant to view, LSPKG allows the user to provide a sorted list of all packages which are currently installed, including their short descriptions.
 
+![image](screenshots/Screenshot_2022-04-07_17:15:21.jpg)
+
 Optionally, the user can display the installed size of and according to each package, as well as the ability to filter the output in varying ways, such as by a given priority, listing only essential packages, or per a given REGEX string.
 
 By default, a summary is displayed, revealing the package count and, if sizes are shown, the total size of all installed packages. Furthermore, this size can be converted from human-readable format to only Kilobytes or Kibibytes. Size calculations can be changed to powers of 1000, instead of the default of 1024.
+
+![image](screenshots/Screenshot_2022-04-07_17:21:18.jpg)
 
 Originally written in BASH and using various external tools, LSPKG was on 2022-04-06 rewritten and vastly overhauled in PERL, providing cleaner and more efficient code with various new features and improved aesthetics.
 
