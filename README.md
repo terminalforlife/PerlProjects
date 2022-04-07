@@ -15,6 +15,7 @@
   * [i3-active](source/i3-active) - Output information about the active window in i3-wm.
   * [i3-workspaces](source/i3-workspaces) - Display information on i3-wm workspaces.
   * [lsbins](source/lsbins) - A descriptive, searchable overview of PATH executables.
+  * [lspkg](source/lspkg) - List, describe, and filter installed Debian packages.
   * [previewer](source/previewer) - CLI solution to printing Linux Mint package reviews.
   * [redshifter](source/redshifter) - Redshift wrapper offering extra functionality
   * [tudu](source/tudu) - Configurable developer tool to overview projects' todos.
