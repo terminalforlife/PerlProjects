@@ -1,13 +1,10 @@
 # Introduction
 
-With lsbins(1), you can list out all of the PATH (IE: '/bin' and '/usr/bin') executables in an `apt-cache search` style format, but it also allows for searching by name, optionally including the short description of each executable.
+With LSBins, you can list out all of the PATH (IE: '/bin' and '/usr/bin') executables in an `apt-cache search` style format, but it also allows for searching by name, optionally including the short description of each executable.
 
 # Installation Instructions
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is one of two options:
-
-  * Install via [LSBins's DEB package](https://github.com/terminalforlife/DEB-Packages/tree/master/lsbins) for Debian- and Ubuntu-based systems.
-  * Install via LSBins's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/lsbins/lsbins-installer).
+Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via LSBins's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/lsbins/lsbins-installer).
 
 For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
 
@@ -25,7 +22,7 @@ If you don't have sudo(8), just omit it from the command(s) above, and run them 
 
 # Removing LSBins
 
-If you've used a Debian package to install LSBins, refer to your package manager. However, if you've used the installer, then you can run the following to delete the files it creates:
+If you've used the installer, then you can run the following to delete the files it creates:
 
 ```
 sudo rm -v /usr/share/man/man1/lsbins.1.gz /usr/share/bash-completion/completions/lsbins /usr/bin/lsbins

@@ -31,10 +31,7 @@ Thank you for your interest and time.
 
 # Installation Instructions
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito), but it's unnecessarily involved, due the size of UbuChk. Therefore, your best bet is one of two options:
-
-  * Install via [UbuChk's DEB package](https://github.com/terminalforlife/DEB-Packages/tree/master/ubuchk) for Debian- and Ubuntu-based systems.
-  * Install via UbuChk's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/ubuchk/ubuchk-installer).
+Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via UbuChk's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/ubuchk/ubuchk-installer).
 
 For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
 
@@ -52,10 +49,10 @@ If you don't have sudo(8), just omit it from the command(s) above, and run them 
 
 # Removing UbuChk
 
-If you've used a Debian package to install UbuChk, refer to your package manager. However, if you've used the installer, then you can run the following to delete the files it creates:
+If you've used the installer, then you can run the following to delete the files it creates:
 
 ```
-sudo rm /usr/share/bash-completion/completions/ubuchk{,-db} /usr/share/man/man8/ubuchk.8.gz /usr/bin/ubuchk{,-db}; sudo rm -r /usr/share/ubuchk
+sudo rm -v /usr/share/bash-completion/completions/ubuchk /usr/share/bash-completion/completions/ubuchk-db /usr/share/man/man8/ubuchk.8.gz /usr/bin/ubuchk /usr/bin/ubuchk-db; sudo rm -vr /usr/share/ubuchk
 ```
 
 If you don't have sudo(8), you'll have to acquire root privileges by other means.

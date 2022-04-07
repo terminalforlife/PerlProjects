@@ -22,7 +22,7 @@ If you don't have sudo(8), just omit it from the command(s) above, and run them 
 
 # Removing i3 Workspaces
 
-If you've used a Debian package to install i3 Workspaces, refer to your package manager. However, if you've used the installer, then you can run the following to delete the files it creates:
+If you've used the installer, then you can run the following to delete the files it creates:
 
 ```
 sudo rm -v /usr/share/man/man1/i3-workspaces.1.gz /usr/share/bash-completion/completions/i3-workspaces /usr/bin/i3-workspaces

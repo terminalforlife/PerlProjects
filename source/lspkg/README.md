@@ -10,6 +10,29 @@ Originally written in BASH and using various external tools, LSPKG was on 2022-0
 
 Prior to this rewrite, LSPKG included a simple helper tool written in POSIX shell with very limited functionality, but which is now properly included as LSPKG's core functionality, without the need for a separate executable.
 
+Here's a brief overview by way of its usage output, as of 2022-04-07:
+
+```
+Usage: lspkg [OPTS] [REGEX]
+
+  -h, --help               - Display this help information.
+  -v, --version            - Output the version datestamp.
+  --si                     - Use powers of 1000 instead of 1024.
+  -C, --no-color           - Disable ANSI color escape sequences.
+  -N, --no-describe        - Omit package short descriptions.
+  -S, --no-summary         - Omit package count and total size.
+  -a, --show-arch          - Include package architectures.
+  -e, --essential          - List only Essential packages.
+  -i, --ignore-case        - Match both upper- and lower-case.
+  -k, --raw-size           - Show sizes in Kibibytes or Kilobytes.
+  -n, --name-only          - Match only the package names.
+  -p, --priority TYPE      - Filter packages by a given priority.
+  -r, --reverse            - Sort packages in descending order.
+  -s, --size               - Include size of each package.
+```
+
+LSPKG also supports BASH completion and comes with a man page.
+
 # Installation Instructions
 
 Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via LSPKG's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/lspkg/lspkg-installer).

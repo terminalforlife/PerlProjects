@@ -31,7 +31,7 @@ If you don't have sudo(8), just omit it from the command(s) above, and run them 
 
 # Uninstalling Redshifter
 
-If you've used a Debian package to install Redshifter, refer to your package manager. However, if you've used the installer, then you can run the following to delete the files it creates:
+If you've used the installer, then you can run the following to delete the files it creates:
 
 ```
 sudo rm -v /usr/bin/redshifter /usr/share/man/man1/redshifter.1.gz /usr/share/bash-completion/completions/redshifter

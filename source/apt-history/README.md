@@ -50,10 +50,7 @@ APT History also supports useful BASH completion and comes with a man page.
 
 # Installation Instructions
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito), but it'll be a pain if you wish to include the man page and BASH completion support.
-
-  * Install via [APT History's DEB package](https://github.com/terminalforlife/DEB-Packages/tree/master/apt-history) for Debian- and Ubuntu-based systems.
-  * Install via APT History's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/apt-history/apt-history-installer).
+Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via APT History's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/apt-history/apt-history-installer).
 
 For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
 
@@ -71,7 +68,7 @@ If you don't have sudo(8), just omit it from the command(s) above, and run them 
 
 # Removing APT History
 
-If you've used a Debian package to install APT History, refer to your package manager. However, if you've used the installer, then you can run the following to delete the files it creates:
+If you've used the installer, then you can run the following to delete the files it creates:
 
 ```
 sudo rm /usr/share/bash-completion/completions/apt-history /usr/share/man/man1/apt-history.1.gz /usr/bin/apt-history
@@ -84,8 +81,6 @@ If you don't have sudo(8), you'll have to acquire root privileges by other means
 * libterm-readkey-perl (>= 2.33-1build1)
 * libtext-wrapi18n-perl (>= 0.06-7.1)
 * perl (>= 5.22.1-9)
-
-If you're on an Ubuntu or similar system, you can use `sudo apt-get install -f` to get all of the remaining missing dependencies sorted, but **only** IF and AFTER you install the Debian package.
 
 # Want to Take Part?
 
