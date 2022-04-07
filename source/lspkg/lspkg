@@ -1,0 +1,286 @@
+#!/usr/bin/env perl
+#cito M:755 O:0 G:0 T:/usr/bin/lspkg
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/lspkg/lspkg
+# Started On        - Wed  6 Apr 20:09:09 BST 2022
+# Last Change       - Thu  7 Apr 15:26:24 BST 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# The lspkg(1) tool was originally written in BASH, but this is a PERL rewrite
+# with various new features, better performance, and cleaner code. The helper
+# tool lspkg-set(1)'s features are built directly into LSPKG, including LSPKG
+# features such as the display of descriptions, installed sizes, and filtering.
+#
+# Features:
+#
+#TODO: Add ability to match the description as well, and case ignoring flag.
+#TODO: Disable colors automatically if working non-interactively.
+#
+#      This is important because otherwise sort(1) will not work properly, by
+#      default. The `-C|--no-color` flag can be used, but still.
+#
+# Bugs:
+#
+#TODO: Without architecture, a single package size is shown despite duplicates.
+#
+# Dependencies:
+#
+#   perl (>= 5.10)
+#------------------------------------------------------------------------------
+
+use v5.10;
+use strict;
+use warnings;
+
+no warnings 'uninitialized';
+
+my $CurVer = '2022-04-07';
+my $Progrm = 'lspkg';
+
+sub Usage() {
+	print(qq{Usage: $Progrm [OPTS] [REGEX]
+
+		  -h, --help               - Display this help information.
+		  -v, --version            - Output the version datestamp.
+		  --si                     - Use powers of 1000 instead of 1024.
+		  -C, --no-color           - Disable ANSI color escape sequences.
+		  -N, --no-describe        - Omit package short descriptions.
+		  -T, --no-total           - Omit the total size of packages.
+		  -a, --show-arch          - Include package architectures.
+		  -e, --essential          - List only Essential packages.
+		  -i, --ignore-case        - Match both upper- and lower-case.
+		  -k, --raw-size           - Show sizes in Kibibytes or Kilobytes.
+		  -n, --name-only          - Match only the package names.
+		  -p, --priority TYPE      - Filter packages by a given priority.
+		  -r, --reverse            - Sort packages in descending order.
+		  -s, --size               - Include size of each package.
+	} =~ tr/\t//dr)
+}
+
+sub Err($;$) {
+	printf(STDERR "Err: %s\n", $_[1]);
+	exit($_[0]) if $_[0] > 0
+}
+
+my @ValidPriors = ('extra', 'important', 'optional', 'required');
+my $File = '/var/lib/dpkg/status';
+my $Divisor = 1024;
+
+my $RawSize = 0;
+my $Reverse = 0;
+my $DoArch = 0;
+my $DoEssential = 0;
+my $DoSize = 0;
+my $NoColor = 0;
+my $NoDescribe = 0;
+my $NoSummary = 0;
+my $NameOnly = 0;
+my $DoPriority;
+my $IgnoreCase = 0;
+
+my $C_Grey = "\e[37m";
+my $C_BoldGrey = "\e[1;37m";
+my $C_DimGrey = "\e[2;37m";
+my $C_Reset = "\e[0m";
+
+my ($DoEssentialArg, $DoPriorityArg);
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		say($CurVer); exit(0)
+	} elsif ($ARGV[0] eq '--si') {
+		$Divisor = 1000
+	} elsif ($ARGV[0] =~ '^(--arch|-a)$') {
+		$DoArch = 1
+	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+		$C_Grey = '';
+		$C_DimGrey = '';
+		$C_Reset = ''
+	} elsif ($ARGV[0] =~ '^(--no-describe|-N)$') {
+		$NoDescribe = 1
+	} elsif ($ARGV[0] =~ '^(--size|-s)$') {
+		$DoSize = 1
+	} elsif ($ARGV[0] =~ '^(--no-summary|-S)$') {
+		$NoSummary = 1
+	} elsif ($ARGV[0] =~ '^(--essential|-e)$') {
+		$DoEssentialArg = $ARGV[0];
+		$DoEssential = 1
+	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
+		$IgnoreCase = 1
+	} elsif ($ARGV[0] =~ '^(--raw-size|-k)$') {
+		$RawSize = 1
+	} elsif ($ARGV[0] =~ '^(--name-only|-n)$') {
+		$NameOnly = 1
+	} elsif ($ARGV[0] =~ '^(--priority|-p)$') {
+		$DoPriorityArg = $ARGV[0];
+		unless (defined($ARGV[1])) {
+			Err(1, "Option '$ARGV[0]' requires an argument.")
+		} elsif (not grep({$ARGV[1] eq $_} @ValidPriors)) {
+			Err(1, "Argument '$ARGV[1]' invalid package priority.")
+		} else {
+			$DoPriority = $ARGV[1];
+			shift()
+		}
+	} elsif ($ARGV[0] =~ '^(--reverse|-r)$') {
+		$Reverse = 1
+	} elsif ($ARGV[0] =~ '^-') {
+		Err(1, 'Incorrect option(s) specified.')
+	} else {
+		last
+	}
+
+	shift()
+}
+
+my $REGEX = $ARGV[0];
+
+Err(1, "Options '$DoPriorityArg' and '$DoEssentialArg' incompatible.")
+	if defined($DoPriority) and $DoEssential;
+
+#-----------------------------------------------------------Primary Subroutines
+
+sub Commas($) {
+	my $Str = reverse($_[0]);
+	my $Out = $Str =~ s/(\d{3})/$1,/rg;
+	if (substr($Out, -1, 1) eq ',') {
+		my $Fixed = substr($Out, 0, -1);
+		return(scalar(reverse($Fixed)))
+	} else {
+		return(scalar(reverse($Out)))
+	}
+}
+
+sub Human($) {
+	return(Commas(int($_[0])) . 'K') if $RawSize;
+
+	my $Size = $_[0];
+	foreach my $Unit (qw{K M G T P E Z Y}) {
+		if ($Size < $Divisor) {
+			my $Float = sprintf('%.1f', $Size);
+			if (substr($Float, -2) eq '.0') {
+				return(substr($Float, 0, -2) . $Unit)
+			} else {
+				return($Float . $Unit)
+			}
+		}
+
+		$Size = $Size / $Divisor
+	}
+}
+
+#-------------------------------------------------------------------Gather Data
+
+my ($Total, $LenMax, %Data);
+unless (-f $File) {
+	Err(1, "File '$File' not found.")
+} elsif (not -r $File) {
+	Err(1, "File '$File' unreadable.")
+} else {
+	if (open(my $FH, '<', $File)) {
+		my ($Package, $Essential, $Status, $Priority, $Size, $Arch, $MatchStr);
+
+		while (<$FH>) {
+			chomp(my @Line = split(': '));
+
+			if ($Line[0] eq 'Package') {
+				$Package = $Line[1]
+			} elsif ($Line[0] eq 'Essential') {
+				$Essential = $Line[1]
+			} elsif ($Line[0] eq 'Status') {
+				$Status = $Line[1]
+			} elsif ($Line[0] eq 'Priority') {
+				$Priority = $Line[1]
+			} elsif ($Line[0] eq 'Installed-Size') {
+				$Size = ($Line[1] * 1000) / $Divisor
+			} elsif ($Line[0] eq 'Architecture') {
+				$Arch = $Line[1]
+			} elsif ($Line[0] eq 'Description') {
+				next() unless $Status eq 'install ok installed';
+
+				# Because the 'Essential' line only tends to exist for packages
+				# which are essential, this has to be handled specially, -
+				# otherwise the value won't be reset with each package.
+				if ($DoEssential) {
+					if ($Essential eq 'yes') {
+						$Essential = '';
+					} else {
+						$Essential = '';
+						next()
+					}
+				}
+
+				if (defined($DoPriority)) {
+					next() if $Priority ne $DoPriority;
+				}
+
+				my $Human = Human($Size);
+				my $Len = length($Human);
+
+				my $Name;
+				if ($DoArch) {
+					$Name = "$Package:$Arch"
+				} else {
+					$Name = $Package
+				}
+
+				my $Description = ucfirst($Line[1]);
+
+				if ($NameOnly) {
+					$MatchStr = $Name
+				} else {
+					$MatchStr = "$Name - $Description"
+				}
+
+				if ($IgnoreCase) {
+					next() unless $MatchStr =~ m/$REGEX/i;
+				} else {
+					next() unless $MatchStr =~ m/$REGEX/;
+				}
+
+				$Data{$Name} = [$Human, $Description];
+
+				$LenMax = $Len if $Len > $LenMax;
+				$Total += $Size
+			}
+		}
+
+		close($FH) or die("$!")
+	} else {
+		die("$!")
+	}
+}
+
+my @Sorted;
+if ($Reverse) {
+	@Sorted = sort({$b cmp $a} keys(%Data))
+} else {
+	@Sorted = sort({$a cmp $b} keys(%Data))
+}
+
+#---------------------------------------------------------Begin Displaying Data
+
+foreach (@Sorted) {
+	my $Name = $_;
+	if ($DoArch) {
+		my ($Base, $Arch) = split(':');
+		$Name = "$Base$C_DimGrey:$Arch$C_Reset"
+	}
+
+	my $Size = '';
+	$Size = sprintf(
+		"$C_Grey%*s$C_Reset ", $LenMax, $Data{$_}->[0]
+	) if $DoSize;
+
+	my $Desc = "$C_Grey - $Data{$_}->[1]$C_Reset";
+	$Desc = '' if $NoDescribe;
+
+	say("$Size$Name$Desc")
+}
+
+if (keys(%Data) and not $NoSummary) {
+	say("\n${C_DimGrey}Total$C_Reset ${C_Grey}PKGs$C_Grey:$C_Reset " . Commas(@Sorted));
+	say("${C_DimGrey}Total$C_Reset ${C_Grey}Size$C_Grey:$C_Reset " . Human($Total))
+		if $DoSize
+}
