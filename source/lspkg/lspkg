@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lspkg/lspkg
 # Started On        - Wed  6 Apr 20:09:09 BST 2022
-# Last Change       - Thu  7 Apr 15:26:24 BST 2022
+# Last Change       - Thu  7 Apr 15:49:20 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ sub Usage() {
 		  --si                     - Use powers of 1000 instead of 1024.
 		  -C, --no-color           - Disable ANSI color escape sequences.
 		  -N, --no-describe        - Omit package short descriptions.
-		  -T, --no-total           - Omit the total size of packages.
+		  -S, --no-summary         - Omit package count and total size.
 		  -a, --show-arch          - Include package architectures.
 		  -e, --essential          - List only Essential packages.
 		  -i, --ignore-case        - Match both upper- and lower-case.
@@ -100,10 +100,10 @@ while (defined($ARGV[0])) {
 		$C_Reset = ''
 	} elsif ($ARGV[0] =~ '^(--no-describe|-N)$') {
 		$NoDescribe = 1
-	} elsif ($ARGV[0] =~ '^(--size|-s)$') {
-		$DoSize = 1
 	} elsif ($ARGV[0] =~ '^(--no-summary|-S)$') {
 		$NoSummary = 1
+	} elsif ($ARGV[0] =~ '^(--size|-s)$') {
+		$DoSize = 1
 	} elsif ($ARGV[0] =~ '^(--essential|-e)$') {
 		$DoEssentialArg = $ARGV[0];
 		$DoEssential = 1
