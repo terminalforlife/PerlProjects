@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#cito M:644 O:0 G:0 T:/usr/share/bash-completion/completions/lspkg
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/source/lspkg/completions
+# Started On        - Mon 29 Jan 18:47:58 GMT 2018
+# Last Change       - Thu  7 Apr 15:31:12 BST 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# This is the bash completion script for lspkg.
+#------------------------------------------------------------------------------
+
+_lspkg() {
+	local Option Arg Args Packages
+
+	while read; do
+		if [[ $REPLY =~ ^[[:space:]]{2} ]]; then
+			Option=${REPLY%% - *}
+			for Arg in ${Option//,/}; {
+				Args+="${Arg##[^-]*} "
+			}
+		fi
+	done <<< "$(lspkg -h)"
+
+	if [[ $3 == -p || $3 == --priority ]]; then
+		Priorities='extra important optional required'
+		COMPREPLY=(`compgen -W "$Priorities" -- "$2"`)
+	else
+		COMPREPLY=(`compgen -W "$Args" -- "$2"`)
+	fi
+}
+
+complete -F _lspkg lspkg
