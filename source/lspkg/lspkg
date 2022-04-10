@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lspkg/lspkg
 # Started On        - Wed  6 Apr 20:09:09 BST 2022
-# Last Change       - Sun 10 Apr 20:25:29 BST 2022
+# Last Change       - Sun 10 Apr 22:28:33 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -29,21 +29,22 @@
 #   perl (>= 5.10)
 #------------------------------------------------------------------------------
 
-use v5.10;
+use feature 'say';
 use strict;
 use warnings;
 
+use constant VERSION => '2022-04-10';
+use constant PROGRAM => 'lspkg';
+
 no warnings 'uninitialized';
 
-my $CurVer = '2022-04-10';
-my $Progrm = 'lspkg';
-
 sub Usage() {
-	print(qq{Usage: $Progrm [OPTS] [REGEX]
+	print(qq{Usage: ${\PROGRAM} [OPTS] [REGEX]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  --arch TYPE              - Filter by architecture TYPE.
+		  --file FILE              - Provide an alternative database.
 		  --si                     - Use powers of 1000 instead of 1024.
 		  -C, --no-color           - Disable ANSI color escape sequences.
 		  -N, --no-describe        - Omit package short descriptions.
@@ -60,7 +61,7 @@ sub Usage() {
 }
 
 sub Err($;$) {
-	printf(STDERR "Err: %s\n", $_[1]);
+	say(STDERR "Err: $_[1]");
 	exit($_[0]) if $_[0] > 0
 }
 
@@ -92,12 +93,19 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		say($CurVer); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] eq '--arch') {
 		unless (defined($ARGV[1])) {
 			Err(1, "Option '$ARGV[0]' requires an argument.")
 		} else {
 			$FilterArch = $ARGV[1];
+			shift()
+		}
+	} elsif ($ARGV[0] eq '--file') {
+		unless (defined($ARGV[1])) {
+			Err(1, "Option '$ARGV[0]' requires an argument.")
+		} else {
+			$File = $ARGV[1];
 			shift()
 		}
 	} elsif ($ARGV[0] eq '--si') {
@@ -138,7 +146,7 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^-') {
 		Err(1, 'Incorrect option(s) specified.')
 	} else {
-		last
+		last()
 	}
 
 	shift()
@@ -188,82 +196,78 @@ unless (-f $File) {
 } elsif (not -r $File) {
 	Err(1, "File '$File' unreadable.")
 } else {
-	if (open(my $FH, '<', $File)) {
-		my ($Package, $Essential, $Status, $Priority, $Size, $Arch, $MatchStr);
+	open(my $FH, '<', $File) or die("$!");
 
-		while (<$FH>) {
-			chomp(my @Line = split(': '));
+	my (
+		$Package, $Essential, $Status,
+		$Priority, $Size, $Arch, $MatchStr
+	);
 
-			if ($Line[0] eq 'Package') {
-				$Package = $Line[1]
-			} elsif ($Line[0] eq 'Essential') {
-				$Essential = $Line[1]
-			} elsif ($Line[0] eq 'Status') {
-				$Status = $Line[1]
-			} elsif ($Line[0] eq 'Priority') {
-				$Priority = $Line[1]
-			} elsif ($Line[0] eq 'Installed-Size') {
-				$Size = ($Line[1] * 1000) / $Divisor
-			} elsif ($Line[0] eq 'Architecture') {
-				$Arch = $Line[1]
-			} elsif ($Line[0] eq 'Description') {
-				next() unless $Status eq 'install ok installed';
+	while (<$FH>) {
+		chomp(my @Line = split(': '));
 
-				# Because the 'Essential' line only tends to exist for packages
-				# which are essential, this has to be handled specially, -
-				# otherwise the value won't be reset with each package.
-				if ($DoEssential) {
-					if ($Essential eq 'yes') {
-						$Essential = '';
-					} else {
-						$Essential = '';
-						next()
-					}
-				}
+		if ($Line[0] eq 'Package') {
+			$Package = $Line[1]
+		} elsif ($Line[0] eq 'Essential') {
+			$Essential = $Line[1]
+		} elsif ($Line[0] eq 'Status') {
+			$Status = $Line[1]
+		} elsif ($Line[0] eq 'Priority') {
+			$Priority = $Line[1]
+		} elsif ($Line[0] eq 'Installed-Size') {
+			$Size = ($Line[1] * 1000) / $Divisor
+		} elsif ($Line[0] eq 'Architecture') {
+			$Arch = $Line[1]
+		} elsif ($Line[0] eq 'Description') {
+			next() unless $Status eq 'install ok installed';
 
-				if (defined($DoPriority)) {
-					next() if $Priority ne $DoPriority;
-				}
-
-				if (defined($FilterArch)) {
-					next() if $Arch ne $FilterArch;
-				}
-
-				my $Human = Human($Size);
-				my $Len = length($Human);
-
-				my $Name;
-				if ($DoArch) {
-					$Name = "$Package:$Arch"
+			# Because the 'Essential' line only tends to exist for packages
+			# which are essential, this has to be handled specially, -
+			# otherwise the value won't be reset with each package.
+			if ($DoEssential) {
+				if ($Essential eq 'yes') {
+					$Essential = '';
 				} else {
-					$Name = $Package
+					$Essential = '';
+					next()
 				}
-
-				my $Description = ucfirst($Line[1]);
-
-				if ($NameOnly) {
-					$MatchStr = $Name
-				} else {
-					$MatchStr = "$Name - $Description"
-				}
-
-				if ($IgnoreCase) {
-					next() unless $MatchStr =~ m/$REGEX/i;
-				} else {
-					next() unless $MatchStr =~ m/$REGEX/;
-				}
-
-				$Data{$Name} = [$Human, $Description];
-
-				$LenMax = $Len if $Len > $LenMax;
-				$Total += $Size
 			}
-		}
 
-		close($FH) or die("$!")
-	} else {
-		die("$!")
+			next() if defined($DoPriority) and $Priority ne $DoPriority;
+			next() if defined($FilterArch) and $Arch ne $FilterArch;
+
+			my $Human = Human($Size);
+			my $Len = length($Human);
+
+			my $Name;
+			if ($DoArch) {
+				$Name = "$Package:$Arch"
+			} else {
+				$Name = $Package
+			}
+
+			my $Description = ucfirst($Line[1]);
+
+			if ($NameOnly) {
+				$MatchStr = $Name
+			} else {
+				$MatchStr = "$Name - $Description"
+			}
+
+			if ($IgnoreCase) {
+				next() unless $MatchStr =~ m/$REGEX/i;
+			} else {
+				next() unless $MatchStr =~ m/$REGEX/;
+			}
+
+			$Data{$Name} = [$Human, $Description];
+
+			$LenMax = $Len if $Len > $LenMax;
+			$Total += $Size
+		}
 	}
+
+	close($FH) or die("$!")
 }
 
 my @Sorted;
