@@ -22,6 +22,7 @@ Usage: lspkg [OPTS] [REGEX]
   -h, --help               - Display this help information.
   -v, --version            - Output the version datestamp.
   --arch TYPE              - Filter by architecture TYPE.
+  --file FILE              - Provide an alternative database.
   --si                     - Use powers of 1000 instead of 1024.
   -C, --no-color           - Disable ANSI color escape sequences.
   -N, --no-describe        - Omit package short descriptions.
