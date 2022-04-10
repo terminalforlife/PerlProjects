@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/debttl
 # Started On        - Tue  5 Apr 00:19:48 BST 2022
-# Last Change       - Tue  5 Apr 02:24:16 BST 2022
+# Last Change       - Sun 10 Apr 23:33:41 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,20 +21,20 @@
 #
 # Dependencies:
 #
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.10)
 #------------------------------------------------------------------------------
 
-use v5.10;
+use feature 'say';
 use strict;
 use warnings;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-04-05';
-my $Progrm = 'debttl';
+use constant VERSION => '2022-04-10';
+use constant PROGRAM => 'debttl';
 
 sub Usage() {
-	print(qq{Usage: $Progrm [OPTS]
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -44,12 +44,8 @@ sub Usage() {
 	} =~ tr/\t//dr)
 }
 
-sub Err($;$) {
-	printf(STDERR "Err: %s\n", $_[1]);
-	exit($_[0]) if $_[0] > 0
-}
+use constant FILE => '/var/lib/dpkg/status';
 
-my $File = '/var/lib/dpkg/status';
 my $Divisor = 1024;
 
 my $Filter;
@@ -58,18 +54,18 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		say($CurVer); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^(--filter|-f)$') {
 		unless (length($ARGV[1])) {
-			Err(1, "Option '$ARGV[0]' requires an argument.")
+			die("Err: Option '$ARGV[0]' requires an argument.\n")
 		} elsif ($ARGV[1] =~ '^(ttl_pkgs|ii_size|rc_size)$') {
 			$Filter = $ARGV[1];
 			shift()
 		} else {
-			Err(1, "Option '$ARGV[0]' given invalid argument.")
+			die("Err: Option '$ARGV[0]' given invalid argument.\n")
 		}
 	} else {
-		Err(1, 'Incorrect option(s) specified.')
+		die("Err: Incorrect option(s) specified.\n")
 	}
 
 	shift()
@@ -106,48 +102,45 @@ sub Human($) {
 
 #-----------------------------------------------------------Display Information
 
-unless (-f $File) {
-	Err(1, "File not found.")
-} elsif (not -r $File) {
-	Err(1, "File unreadable.")
-} else {
-	if (open(my $FH, '<', $File)) {
-		my $PackageTTL = 0;
-		my (@II_Sizes, @RC_Sizes);
-		while (<$FH>) {
-			chomp(my @Line = split(':'));
+unless (-f FILE) {
+	die("Err: File '${\FILE}' not found.\n")
+} elsif (not -r FILE) {
+	die("Err: File '${\FILE} unreadable.\n")
+}
 
-			our $Status;
-			if ($Line[0] eq 'Package') {
-				$PackageTTL++;
-			} elsif ($Line[0] eq 'Status') {
-				$Status = substr($Line[1], 1);
-			} elsif ($Line[0] eq 'Installed-Size') {
-				if ($Status eq 'install ok installed') {
-					push(@II_Sizes, substr($Line[1], 1))
-				} elsif ($Status eq 'deinstall ok config-files') {
-					push(@RC_Sizes, substr($Line[1], 1))
-				}
-			}
+open(my $FH, '<', FILE) or die("$!");
+
+my (@II_Sizes, @RC_Sizes, $PackageTTL);
+while (<$FH>) {
+	chomp(my @Line = split(':'));
+
+	our $Status;
+	if ($Line[0] eq 'Package') {
+		$PackageTTL++;
+	} elsif ($Line[0] eq 'Status') {
+		$Status = substr($Line[1], 1);
+	} elsif ($Line[0] eq 'Installed-Size') {
+		if ($Status eq 'install ok installed') {
+			push(@II_Sizes, substr($Line[1], 1))
+		} elsif ($Status eq 'deinstall ok config-files') {
+			push(@RC_Sizes, substr($Line[1], 1))
 		}
-
-		close($FH) or Err(1, 'Failed to close file handle.');
-
-		our $II_TTL += $_ foreach @II_Sizes;
-		our $RC_TTL += $_ foreach @RC_Sizes;
-
-		if ($Filter eq 'ttl_pkgs') {
-			say(Commas(@II_Sizes))
-		} elsif ($Filter eq 'ii_size') {
-			say(Human($II_TTL))
-		} elsif ($Filter eq 'rc_size') {
-			say(Human($RC_TTL))
-		} else {
-			say('Total Packages: ' . Commas(@II_Sizes));
-			say('Installed Size: ' . Human($II_TTL));
-			say(' Unpurged Size: ' . Human($RC_TTL))
-		}
-	} else {
-		Err(1, 'Failed to open file for reading.')
 	}
+}
+
+close($FH) or die("$!");
+
+map(our $II_TTL += $_, @II_Sizes);
+map(our $RC_TTL += $_, @RC_Sizes);
+
+if ($Filter eq 'ttl_pkgs') {
+	say(Commas(@II_Sizes))
+} elsif ($Filter eq 'ii_size') {
+	say(Human($II_TTL))
+} elsif ($Filter eq 'rc_size') {
+	say(Human($RC_TTL))
+} else {
+	say('Total Packages: ' . Commas(@II_Sizes));
+	say('Installed Size: ' . Human($II_TTL));
+	say(' Unpurged Size: ' . Human($RC_TTL))
 }
