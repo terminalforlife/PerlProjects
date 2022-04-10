@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dayborn
 # Started On        - Mon 10 Feb 23:49:15 GMT 2020
-# Last Change       - Mon  1 Feb 01:44:26 GMT 2021
+# Last Change       - Sun 10 Apr 03:02:49 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -16,85 +16,87 @@
 #
 # Dependencies:
 #
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.10)
 #------------------------------------------------------------------------------
 
 require Date::Format;
 require Time::Piece;
 
-use v5.22.1;
+use v5.10;
 use strict;
 use warnings;
-use autodie;
 use Date::Format 'time2str';
 use Time::Piece;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-02-01';
+my $CurVer = '2022-04-10';
 my $Progrm = 'dayborn';
 
-sub Usage{
-	print(qq{Usage: $Progrm [OPTS] [FILE]
+sub Usage() {
+	print(qq{Usage: $Progrm [OPTS] FILE_1 [FILE_2 ...]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 	} =~ tr/\t//dr)
 }
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$'){
-		Usage(1); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
-		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^-'){
-		die("Incorrect option(s) specified")
-	}else{
-		last
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		say($CurVer); exit(0)
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Err: Incorrect option(s) specified.\n")
+	} else {
+		last()
 	}
 
 	shift()
 }
 
-scalar(@ARGV) == 1 or die("File name required");
-scalar(@ARGV) > 1 and die("Only one file at a time is valid");
+die("Err: File name(s) required.\n") if @ARGV == 0;
 
--f $ARGV[0] or die("File '$ARGV[0]' not found");
--r $ARGV[0] or die("File '$ARGV[0]' unreadable");
--B $ARGV[0] and die("File '$ARGV[0]' is binary");
+foreach my $File (@ARGV) {
+	die("Err: File '$File' not found.\n") unless -f $File;
+	die("Err: File '$File' unreadable.\n") unless -r $File;
+	die("Err: File '$File' is binary.\n") if -B $File;
 
-open(my $FH, '<', $ARGV[0]);
+	if (open(my $FH, '<', $File)) {
+		my ($Start, $Now);
+		while (<$FH>){
+			next() unless /^# (Started|Last) /;
 
-my ($Start, $Now);
-while (<$FH>){
-	/^# (Started|Last) / or next;
+			chomp(my @Arr = split(' '));
 
-	chomp(my @Arr = split(' '));
+			# The following format (sans quotes) is expected:
+			#
+			#   '# Started On        - Mon 10 Feb 23:49:15 GMT 2020'
+			#
+			if ($Arr[1] eq 'Started') {
+				$Start = Time::Piece->strptime(
+					join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+				)->epoch()
+			}
 
-	# The following format (sans quotes) is expected:
-	#
-	#   '# Started On        - Mon 10 Feb 23:49:15 GMT 2020'
-	#
-	if ($Arr[1] eq 'Started') {
-		$Start = Time::Piece->strptime(
-			join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
-		)->epoch()
-	}
+			# The following format (sans quotes) is expected:
+			#
+			#   '# Last Change       - Tue 11 Feb 01:00:34 GMT 2020'
+			#
+			if ($Arr[1] eq 'Last') {
+				$Now = Time::Piece->strptime(
+					join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+				)->epoch()
+			}
+		}
 
-	# The following format (sans quotes) is expected:
-	#
-	#   '# Last Change       - Tue 11 Feb 01:00:34 GMT 2020'
-	#
-	if ($Arr[1] eq 'Last') {
-		$Now = Time::Piece->strptime(
-			join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
-		)->epoch()
+		close($FH) or die("$!");
+
+		my $Project = ($File =~ m{(?:.*/)?([^/].*)})[0];
+		my $DeltaDay = ($Now - $Start) / 60 / 60 / 24;
+
+		printf("Project '%s' was born %.2f day's ago.\n", $Project, $DeltaDay)
+	} else {
+		die("$!")
 	}
 }
-
-close($FH);
-
-my $Project = ($ARGV[0] =~ m{(?:.*/)?([^/].*)})[0];
-my $DeltaDay = ($Now - $Start) / 60 / 60 / 24;
-
-printf("Project '%s' was born %.2f day's ago.\n", $Project, $DeltaDay)
