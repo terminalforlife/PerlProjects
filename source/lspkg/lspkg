@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lspkg/lspkg
 # Started On        - Wed  6 Apr 20:09:09 BST 2022
-# Last Change       - Thu  7 Apr 15:49:20 BST 2022
+# Last Change       - Sun 10 Apr 20:25:29 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,6 +14,7 @@
 #
 # Features:
 #
+#TODO: Add flag for filtering by architecture.
 #TODO: Add ability to match the description as well, and case ignoring flag.
 #TODO: Disable colors automatically if working non-interactively.
 #
@@ -35,7 +36,7 @@ use warnings;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-04-07';
+my $CurVer = '2022-04-10';
 my $Progrm = 'lspkg';
 
 sub Usage() {
@@ -43,6 +44,7 @@ sub Usage() {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  --arch TYPE              - Filter by architecture TYPE.
 		  --si                     - Use powers of 1000 instead of 1024.
 		  -C, --no-color           - Disable ANSI color escape sequences.
 		  -N, --no-describe        - Omit package short descriptions.
@@ -84,15 +86,24 @@ my $C_BoldGrey = "\e[1;37m";
 my $C_DimGrey = "\e[2;37m";
 my $C_Reset = "\e[0m";
 
+my $FilterArch;
+
 my ($DoEssentialArg, $DoPriorityArg);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		say($CurVer); exit(0)
+	} elsif ($ARGV[0] eq '--arch') {
+		unless (defined($ARGV[1])) {
+			Err(1, "Option '$ARGV[0]' requires an argument.")
+		} else {
+			$FilterArch = $ARGV[1];
+			shift()
+		}
 	} elsif ($ARGV[0] eq '--si') {
 		$Divisor = 1000
-	} elsif ($ARGV[0] =~ '^(--arch|-a)$') {
+	} elsif ($ARGV[0] =~ '^(--show-arch|-a)$') {
 		$DoArch = 1
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
 		$C_Grey = '';
@@ -213,6 +224,10 @@ unless (-f $File) {
 
 				if (defined($DoPriority)) {
 					next() if $Priority ne $DoPriority;
+				}
+
+				if (defined($FilterArch)) {
+					next() if $Arch ne $FilterArch;
 				}
 
 				my $Human = Human($Size);
