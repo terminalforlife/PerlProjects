@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Wed 19 Jan 17:59:09 GMT 2022
+# Last Change       - Mon 11 Apr 00:58:04 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,21 +23,20 @@
 #
 # Dependencies:
 #
-#   perl (>= 5.22.1)
+#   perl (>= 5.10)
 #------------------------------------------------------------------------------
 
-use v5.22.1;
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-19';
-my $Progrm = 'dtp';
+use constant VERSION => '2022-04-11';
+use constant PROGRAM => 'dtp';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [DEV_1 [DEV_2] ...]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS] [DEV_1 [DEV_2] ...]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -51,14 +50,10 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
-sub Err($;$) {
-	printf(STDERR "ERROR: %s\n", $_[1]);
-	$_[0] and exit($_[0])
-}
+use constant HW_FILE => '/sys/class/hwmon';
+use constant BLOCK_DIRS => '/sys/block';
 
 my @ValidCols = qw{name state model rev rot size temp};
-my $HWMon = '/sys/class/hwmon';
-my $BlockDirs = '/sys/block';
 my $CustomRanges = 0;
 my $Notation = '°C';
 my $ShowHeader = 1;
@@ -89,7 +84,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] eq '--no-header') {
 		$ShowHeader = 0
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
@@ -100,13 +95,14 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--si|-H)$') {
 		$Powers = 1000
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
-		if ($Notation eq '') {
+		unless ($Notation) {
 			$Fahrenheit = 1
 		} else {
 			($Fahrenheit, $Notation) = (1, '°F')
 		}
 	} elsif ($ARGV[0] =~ '^(--output|-o)$') {
-		length($ARGV[1]) or Err(1, "OPT '$ARGV[0]' requires an argument.");
+		die("Err: OPT '$ARGV[0]' requires an argument.\n")
+			unless defined($ARGV[1]);
 
 		my $InvalidCols = 0;
 		foreach my $Col (split(',', $ARGV[1])) {
@@ -114,19 +110,19 @@ while (defined($ARGV[0])) {
 				push(@TargetCols, $Col)
 			} else {
 				$InvalidCols++;
-				Err(0, "Requested column '$Col' invalid.")
+				die("Err: Requested column '$Col' invalid.\n")
 			}
 		}
 
-		$InvalidCols > 0 and exit(1);
+		next(1) if $InvalidCols;
 
 		shift()
 	} elsif ($ARGV[0] =~ '^(--ranges|-r)$') {
 		if (length($ARGV[1])) {
 			if ($ARGV[1] =~ /^(\d+),(\d+),(\d+),(\d+)$/a) {
-				$4 < $3 and Err(1, "Value VH less than H, for '$ARGV[0]' OPT.");
-				$3 < $2 and Err(1, "Value H less than L, for '$ARGV[0]' OPT.");
-				$2 < $1 and Err(1, "Value L less than VL, for '$ARGV[0]' OPT.");
+				die("Err: Value VH less than H, for '$ARGV[0]' OPT.\n") if $4 < $3;
+				die("Err: Value H less than L, for '$ARGV[0]' OPT.\n") if $3 < $2;
+				die("Err: Value L less than VL, for '$ARGV[0]' OPT.\n") if $2 < $1;
 
 				$CustomRanges = 1;
 
@@ -136,26 +132,26 @@ while (defined($ARGV[0])) {
 					'C' => [$1, $2, $3, $4]
 				)
 			} else {
-				Err(1, "One or more invalid ranges.")
+				die("Err: One or more invalid ranges.\n")
 			}
 
 			shift()
 		} else {
-			Err(1, "OPT '$ARGV[0]' requires an argument.")
+			die("Err: OPT '$ARGV[0]' requires an argument.\n")
 		}
 	} elsif ($ARGV[0] =~ '^-') {
-		Err(1, 'Incorrect option(s) specified.')
+		die("Err: Incorrect option(s) specified.\n")
 	} else {
-		last
+		last()
 	}
 
 	shift()
 }
 
 if (not $ShowColor and $CustomRanges) {
-	Err(1, 'Color support required for custom ranges.')
+	die("Err: Color support required for custom ranges.\n")
 } elsif ($Unit eq 'B' and $Powers == 1000) {
-	Err(1, 'Powers of 1000 redundant if displaying bytes.')
+	die("Err: Powers of 1000 redundant if displaying bytes.\n")
 }
 
 my @Targets;
@@ -164,7 +160,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^/dev/(sd|fd|hd)[[:alpha:]]+$') {
 		push(@Targets, $ARGV[0])
 	} else {
-		Err(0, "DEV '$ARGV[0]' invalid.");
+		die("Err: DEV '$ARGV[0]' invalid.\n");
 		$TargetErr++
 	}
 
@@ -178,8 +174,8 @@ exit(1) if $TargetErr > 0;
 sub ReadFile($) {
 	my $File = $_[0];
 
-	-f $File or Err(1, "File '$File' missing.");
-	-r $File or Err(1, "File '$File' unreadable.");
+	-f $File or die("Err: File '$File' missing.\n");
+	-r $File or die("Err: File '$File' unreadable.\n");
 
 	open(my $FH, '<', $File) or die("$!");
 	chomp(my $Buffer = join("\n", <$FH>));
@@ -201,9 +197,9 @@ sub Width($;$) {
 
 sub Human($) {
 	my $Size = $_[0];
-	foreach ('', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y') {
+	foreach ('', qw{K M G T P E Z Y}) {
 		if ($Size < $Powers) {
-			my $Result = sprintf("%.1f", $Size);
+			my $Result = sprintf('%.1f', $Size);
 			my $Len = length($Result);
 			my $LastTwo = substr($Result, $Len - 2);
 			if ($LastTwo eq '.0') {
@@ -226,17 +222,17 @@ my $MaxWidthTemp = length('TEMP');
 my $MaxWidthModel = length('MODEL');
 my $MaxWidthBlock = length('NAME');
 my $MaxWidthState = length('STATE');
-foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
-	-d -r -x $Dir or next;
+foreach my $Dir (glob("${\HW_FILE}/hwmon[0-9]*")) {
+	next() unless -d -r -x $Dir;
 
 	my ($Model, $Temp, $State, $Rev, $Block) = ('') x 5;
 	foreach my $File (glob("$Dir/*")) {
-		-f -r $File or next;
+		next() unless -f -r $File;
 
 		if ($File =~ '/name$') {
 			if (ReadFile($File) eq 'drivetemp') {
 				foreach my $DevFile (glob("$Dir/device/*")) {
-					-f -r $DevFile or next;
+					next() unless -f -r $DevFile;
 
 					# Get some column values.
 					if ($DevFile =~ '/model$') {
@@ -264,23 +260,23 @@ foreach my $Dir (glob("$HWMon/hwmon[0-9]*")) {
 			}
 		} elsif ($File =~ '/temp1_input$') {
 			$Temp = ReadFile($File) =~ s/\d{3}$//ra;
-			$Fahrenheit and $Temp = int(($Temp * 1.8) + 32);
+			$Temp = int(($Temp * 1.8) + 32) if $Fahrenheit;
 			$MaxWidthTemp = Width("$Temp$Notation", $MaxWidthTemp);
 		} elsif (length($Model) and length($Temp)) {
-			($#Targets > -1 and not grep({$_ eq $Block} @Targets)) and next;
+			next() if ($#Targets > -1 and not grep({$_ eq $Block} @Targets));
 			$Drives{$Block} = [$State, $Rev, $Model, "$Temp$Notation"]
 		}
 	}
 }
 
 @Keys = keys(%Drives);
-scalar(@Keys) or Err(1, 'No storage devices found.');
+scalar(@Keys) or die("Err: No storage devices found.\n");
 
 my ($Sectors, $Size);
 my $MaxWidthSize = length('SIZE_?');
 foreach my $Key (@Keys) {
 	my $Base = ($Key =~ m{(?:.*/)([^/].*)})[0];
-	my $BlockDir = "$BlockDirs/$Base";
+	my $BlockDir = "${\BLOCK_DIRS}/$Base";
 
 	# Determine if it's a rotational drive.
 	if (-d "$BlockDir/queue") {
@@ -295,8 +291,8 @@ foreach my $Key (@Keys) {
 	# Determine drive's size, based on the hardware sector size.
 	my $SizeFile = "$BlockDir/size";
 	my $SectorFile = "$BlockDir/queue/hw_sector_size";
-	-f -r $SectorFile and $Sectors = ReadFile($SectorFile);
-	-f -r $SizeFile and $Size = ReadFile($SizeFile);
+	$Sectors = ReadFile($SectorFile) if -f -r $SectorFile;
+	$Size = ReadFile($SizeFile) if -f -r $SizeFile;
 	my $Size = Human($Size * $Sectors);
 
 	push(@{$Drives{$Key}}, $Size || '???');
@@ -308,9 +304,9 @@ foreach my $Key (@Keys) {
 #----------------------------------------------------Begin Displaying the Table
 
 # Display the header, sized dynamically.
-if ($ShowHeader and scalar(@Keys)) {
+if ($ShowHeader and @Keys) {
 	my $HeaderSize = "SIZE_$Unit";
-	$Unit eq 'B' and $HeaderSize = 'SIZE';
+	$HeaderSize = 'SIZE' if $Unit eq 'B';
 
 	if ($#TargetCols > -1) {
 		my @Data;
@@ -333,7 +329,7 @@ if ($ShowHeader and scalar(@Keys)) {
 			}
 		}
 
-		map(print($Colors{'grey'} . "$_ " . $Colors{'reset'}), @Data);
+		map(print("$Colors{'grey'}$_ $Colors{'reset'}"), @Data);
 		print("\n")
 	} else {
 		printf(
@@ -382,7 +378,7 @@ sub Display($;$;$) {
 
 sub Ranges($;$;$;$;$;$) {
 	my ($CurrentTemp, $VeryLow, $Low, $High, $VeryHigh, $Key) = @_;
-	my $CurrentTempRaw = $CurrentTemp =~ tr/01234567890//drc;
+	my $CurrentTempRaw = $CurrentTemp =~ tr/1234567890//drc;
 
 	if ($CurrentTempRaw > $VeryHigh) {
 		Display($Key, $CurrentTemp, 'red')
@@ -402,9 +398,15 @@ foreach my $Key (sort({$a cmp $b} @Keys)) {
 
 	if ($ShowColor) {
 		if ($Fahrenheit) {
-			Ranges($Temp, $Ranges{'F'}->[0], $Ranges{'F'}->[1], $Ranges{'F'}->[2], $Ranges{'F'}->[3], $Key)
+			Ranges(
+				$Temp, $Ranges{'F'}->[0], $Ranges{'F'}->[1],
+				$Ranges{'F'}->[2], $Ranges{'F'}->[3], $Key
+			)
 		} else {
-			Ranges($Temp, $Ranges{'C'}->[0], $Ranges{'C'}->[1], $Ranges{'C'}->[2], $Ranges{'C'}->[3], $Key)
+			Ranges(
+				$Temp, $Ranges{'C'}->[0], $Ranges{'C'}->[1],
+				$Ranges{'C'}->[2], $Ranges{'C'}->[3], $Key
+			)
 		}
 	} else {
 		Display($Key, $Temp, undef)
