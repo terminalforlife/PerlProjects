@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitbrov (Git Branch Overview)
 # Started On        - Sun  1 Dec 16:01:38 GMT 2019
-# Last Change       - Sat  1 Feb 00:31:18 GMT 2020
+# Last Change       - Sun 10 Apr 03:28:12 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -25,21 +25,24 @@
 #   libgit-repository-perl (>= 1.317-1)
 #------------------------------------------------------------------------------
 
+require Git::Repository;
+require Date::Format;
+
+use v5.10;
 use strict;
 use warnings;
 use autodie;
 use Git::Repository;
 use Date::Format 'strftime';
-use List::Util;
 
-sub Main{
+sub Main($) {
 	our $Repo;
 
-	sub GetBranches{
+	sub GetBranches() {
 		my @Branches;
 		my $MaxWidth = 0;
-		foreach ($Repo->run('branch', '-r')){
-			my $CurBranch = @{[split(' ', $_)]}[0];
+		foreach ($Repo->run('branch', '-r')) {
+			my $CurBranch = (split())[0];
 			my $Length = length($CurBranch);
 			$MaxWidth = $Length if $Length > $MaxWidth;
 
@@ -49,18 +52,17 @@ sub Main{
 		return($MaxWidth, @Branches)
 	}
 
-	sub GetLatest{ # Usage: GetLatest [BRANCH]
-		my(@SplitLine, $TSFormat, @CMD, $EMail, $LineCount);
+	sub GetLatest($) { # Usage: GetLatest [BRANCH]
+		my (@SplitLine, $TSFormat, @CMD, $EMail);
 		@CMD = ('rev-list', '--format="%ae"', '--timestamp', '--left-right');
 
-		$LineCount = 0;
-		foreach ($Repo->run(@CMD, $_[0])){
-			$LineCount++;
-			if ($LineCount == 1){
-				@SplitLine = split(' ', $_)
-			}elsif ($LineCount == 2){
+		my $LineCount;
+		foreach ($Repo->run(@CMD, $_[0])) {
+			if (++$LineCount == 1) {
+				@SplitLine = split()
+			} elsif ($LineCount == 2) {
 				$EMail = $_;
-				last # <-- Just need first two lines.
+				last()
 			}
 		}
 
@@ -69,27 +71,25 @@ sub Main{
 	}
 
 	# User can specify the location(s), rather than the default CWD.
-	$ARGV[0] = './' if not defined($ARGV[0]);
+	$ARGV[0] = './' unless defined($ARGV[0]);
 
 	my $First = 1;
 	foreach my $CurArg (@ARGV){
-		if (not $First){
+		unless ($First) {
 			print("\n")
-		}else{
+		} else {
 			undef($First)
 		}
 
 		$Repo = Git::Repository->new(work_tree => $CurArg);
 
 		my $CurArgBase = "'" . $CurArg =~ s/^.*\///dr . "'";
-		$CurArgBase = "the current" if length($CurArgBase) == 2;
-		printf("Branches for %s repository:\n\n", $CurArgBase);
 
 		# Pre-process branches to get max width.
 		my @BranchList = GetBranches();
 		my $BranchMaxLen = shift(@BranchList);
 
-		foreach (@BranchList){
+		foreach (@BranchList) {
 			my @HashData = GetLatest($_);
 
 			my $EMail = substr($HashData[0], 1, length($HashData[0]) - 2);
@@ -97,16 +97,16 @@ sub Main{
 			my @TimeStamp = split(' ', strftime("%Y-%m-%d %T", @LocalTime));
 
 			printf(
-				"  %-*s  %-*s  %s  %s\n",
-				$BranchMaxLen, $_, 0, $EMail, $TimeStamp[0], $TimeStamp[1]
+				"%-*s %-*s %s %s\n", $BranchMaxLen, $_,
+				0, $EMail, $TimeStamp[0], $TimeStamp[1]
 			)
 		}
 	}
 }
 
 # By default use the CWD.
-if (scalar(@ARGV) == 0){
+unless (scalar(@ARGV)) {
 	Main('./')
-}else{
+} else {
 	Main(@ARGV)
 }
