@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/battery-monitor
 # Started On        - Mon 27 Jan 02:54:42 GMT 2020
-# Last Change       - Sun 10 Apr 02:09:42 BST 2022
+# Last Change       - Sun 10 Apr 22:58:20 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,15 +24,15 @@
 
 require Gtk2::Notify;
 
-use v5.10;
+use feature 'say';
 use strict;
 use warnings;
 use Gtk2::Notify '-init', 'battery_monitor';
 
 no warnings 'uninitialized';
 
-my $LidFile = '/proc/acpi/button/lid/LID0/state';
-my $ChassisFile = '/sys/devices/virtual/dmi/id/chassis_type';
+use constant LID_FILE => '/proc/acpi/button/lid/LID0/state';
+use constant CHASSIS_FILE => '/sys/devices/virtual/dmi/id/chassis_type';
 
 sub ReadFile($) {
 	open(my $FH, '<', $_[0]) or die("$!");
@@ -68,11 +68,11 @@ foreach my $CurDep ('upower', 'systemctl') {
 
 exit(1) if $MissingDeps;
 
-my $Chassis = ReadFile($ChassisFile);
+my $Chassis = ReadFile(CHASSIS_FILE);
 die("Err: Probably not a laptop.\n")
 	unless $Chassis == 9;
 
-my $Lid = ReadFile($ChassisFile);
+my $Lid = ReadFile(LID_FILE);
 die("Err: Detected closed lid.\n")
 	if split($Lid) eq 'open';
 
