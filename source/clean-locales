@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/clean-locales
 # Started On        - Thu  9 May 21:32:57 BST 2019
-# Last Change       - Sun 10 Apr 02:23:55 BST 2022
+# Last Change       - Sun 10 Apr 22:52:59 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,18 +23,18 @@
 
 require File::Path;
 
-use v5.10;
+use feature 'say';
 use strict;
 use warnings;
 use File::Path 'remove_tree';
 
-my $CurVer = "2022-04-10";
-my $Progrm = 'clean-locales';
+use constant PROGRAM => '2022-04-10';
+use constant VERSION => 'clean-locales';
 
 my $LocDir = '/usr/share/locale';
 
 sub Usage() {
-	print(qq{Usage: $Progrm [OPTS]
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -53,7 +53,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		say($CurVer); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^(--dir|-d)$') {
 		shift(); $LocDir = $ARGV[0]
 	} else {
@@ -88,4 +88,4 @@ foreach (glob("$LocDir/*")) {
 	DelIt($_) unless /^$LocDir\/(en_.*|locale\.alias)$/
 }
 
-exit(1) if $ErrCount > 0
+exit(1) if $ErrCount

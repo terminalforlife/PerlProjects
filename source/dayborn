@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dayborn
 # Started On        - Mon 10 Feb 23:49:15 GMT 2020
-# Last Change       - Sun 10 Apr 03:02:49 BST 2022
+# Last Change       - Sun 10 Apr 22:54:58 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,7 +22,7 @@
 require Date::Format;
 require Time::Piece;
 
-use v5.10;
+use feature 'say';
 use strict;
 use warnings;
 use Date::Format 'time2str';
@@ -30,11 +30,11 @@ use Time::Piece;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-04-10';
-my $Progrm = 'dayborn';
+use constant VERSION => '2022-04-10';
+use constant PROGRAM => 'dayborn';
 
 sub Usage() {
-	print(qq{Usage: $Progrm [OPTS] FILE_1 [FILE_2 ...]
+	print(qq{Usage: ${\PROGRAM} [OPTS] FILE_1 [FILE_2 ...]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -45,7 +45,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		say($CurVer); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Err: Incorrect option(s) specified.\n")
 	} else {
