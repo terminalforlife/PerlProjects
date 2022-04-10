@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/notify-upgrade
 # Started On        - Wed 15 Jan 00:45:46 GMT 2020
-# Last Change       - Mon 18 Jan 22:58:52 GMT 2021
+# Last Change       - Sun 10 Apr 23:23:43 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,50 +14,51 @@
 #
 #  apt (>= 1.2.32)
 #  libgtk2-notify-perl (>= 0.05-4build2)
-#  perl (>= 5.22.1-9)
+#  perl (>= 5.10)
 #------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-01-18';
-my $Progrm = 'notify-upgrade';
+use constant VERSION => '2022-04-10';
+use constant PROGRAM => 'notify-upgrade';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 
-		  Per the provided cron job, the check occurs every hour.
+		  Per the provided cron job, the check occurs every hour. An exit
+		  status of 2 indicates that there were no package updates found.
 	} =~ tr/\t//dr)
 }
 
+use constant FILE => '/usr/bin/apt-get';
+
 while (defined($ARGV[0])) {
-	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
-		Usage(1); exit(0)
+	if ($ARGV[0] =~ '^(--help|-h)$') {
+		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
 	} else {
-		die("Incorrect option(s) specified")
+		die("Err: Incorrect option(s) specified.\n")
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
--x '/usr/bin/apt-get' or die("File '/usr/bin/apt-get' missing");
+die("Err: File '${\FILE}' missing or inaccessible.\n")
+	unless -f -x FILE;
 
 my (%Stats, $Total);
+foreach (`${\FILE} -s dist-upgrade`) {
+	next unless /^\d+ to upgrade,/;
 
-# Works with Ubuntu 18.04. The output from apt-get(8) changed slightly since
-# 16.04 so this probably won't work in anything older than 18.04.
-foreach (`apt-get -s dist-upgrade`) {
-	next unless /^[0-9]+ to upgrade,/;
-
-	my @Arr = split(' ', $_);
+	my @Arr = split();
 
 	%Stats = (
 		'Category' => {
@@ -70,17 +71,18 @@ foreach (`apt-get -s dist-upgrade`) {
 		'Total' => $Total
 	);
 
-	last
+	last()
 }
 
 my $Category = $Stats{'Category'};
-$Total += $_ foreach values(%$Category);
+map({$Total += $_} values(%$Category));
 
-if ($Total > 0) {
-	use Gtk2::Notify '-init', 'Notify-Upgrade';
+# There are no updates if this is executed.
+exit(2) unless $Total;
 
-	my $Message = "Detected $Total available package change(s).";
-	my $Noti = Gtk2::Notify->new("Notify Upgrade $Message");
-	$Noti->set_urgency('normal');
-	$Noti->show()
-}
+use Gtk2::Notify '-init', 'Notify-Upgrade';
+
+my $Message = "Detected $Total available package change(s).";
+my $Noti = Gtk2::Notify->new("Notify Upgrade $Message");
+$Noti->set_urgency('normal');
+$Noti->show()
