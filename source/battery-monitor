@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/battery-monitor
 # Started On        - Mon 27 Jan 02:54:42 GMT 2020
-# Last Change       - Mon 22 Mar 01:38:24 GMT 2021
+# Last Change       - Sun 10 Apr 02:09:42 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,10 +24,9 @@
 
 require Gtk2::Notify;
 
-use v5.26.1;
+use v5.10;
 use strict;
 use warnings;
-use autodie;
 use Gtk2::Notify '-init', 'battery_monitor';
 
 no warnings 'uninitialized';
@@ -35,60 +34,67 @@ no warnings 'uninitialized';
 my $LidFile = '/proc/acpi/button/lid/LID0/state';
 my $ChassisFile = '/sys/devices/virtual/dmi/id/chassis_type';
 
-sub Notify{
+sub ReadFile($) {
+	open(my $FH, '<', $_[0]) or die("$!");
+	chomp(my $Data = split("\n", <$FH>));
+	close($FH) or die("$!");
+
+	return($Data)
+}
+
+sub Notify($) {
 	my $Noti = Gtk2::Notify->new($_[0]);
 	$Noti->set_urgency('critical');
 	$Noti->show()
 }
 
 my @Files;
-foreach my $Dir (split(':', $ENV{'PATH'})) {
-	-d -r -x "$Dir" or next;
+foreach my $Dir (split(':', $ENV{PATH})) {
+	next() unless -d -r -x $Dir;
 
 	foreach my $File (glob("$Dir/*")) {
 		my $Base = ($File =~ m{(?:.*/)([^/].*)})[0];
-		-f -r -x $File and push(@Files, $File);
+		push(@Files, $Base) if -f -x $File
 	}
 }
 
-while (){
-	my $MissingDeps = 0;
-	foreach my $CurDep ('upower', 'systemctl') {
-		unless (grep({$_ eq $CurDep} @Files)) {
-			die("Dependency '$CurDep' not met");
-			$MissingDeps++
-		}
+my $MissingDeps;
+foreach my $CurDep ('upower', 'systemctl') {
+	unless (grep({$_ eq $CurDep} @Files)) {
+		warn("Err: Dependency '$CurDep' not met.\n");
+		$MissingDeps++
 	}
+}
 
-	if (open(my $FH, '<', $ChassisFile)){
-		chomp(my $Chassis = <$FH>);
-		close($FH);
+exit(1) if $MissingDeps;
 
-		$Chassis == 9 or die("Probably not a laptop")
-	}elsif (open($FH, '<', $LidFile)){
-		chomp(my $Lid = <$FH>);
-		close($FH);
+my $Chassis = ReadFile($ChassisFile);
+die("Err: Probably not a laptop.\n")
+	unless $Chassis == 9;
 
-		split(' ', $Lid) eq 'open' and die("Detected closed lid")
-	}
+my $Lid = ReadFile($ChassisFile);
+die("Err: Detected closed lid.\n")
+	if split($Lid) eq 'open';
 
-	my $CurStep;
+while (1) {
 	foreach (`upower --dump`){
-		chomp(my @Arr = split(' ', $_));
-		next unless $Arr[0] eq 'percentage:';
+		chomp(my @Arr = split());
+		next() unless $Arr[0] eq 'percentage:';
 
 		my $PRemains = substr($Arr[1], 0, length($Arr[1]) - 1);
 
-		if ($PRemains < 2){
+		if ($PRemains < 2) {
 			Notify("Initiating emergency shutdown in 7s.");
 			sleep(7) and system('systemctl poweroff')
+		} elsif ($PRemains < 3) {
+			Notify("Battery critical -- shutdown now!")
+		} elsif ($PRemains < 5) {
+			Notify("Battery very low.")
+		} elsif ($PRemains < 10) {
+			Notify("Battery low.")
 		}
 
-		Notify("Battery critical -- shutdown now!") if $PRemains < 3;
-		Notify("Battery very low.") if $PRemains < 5;
-		Notify("Battery low.") if $PRemains < 10;
-
-		last
+		last()
 	}
 
 	sleep(30)
