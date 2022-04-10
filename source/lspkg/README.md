@@ -14,13 +14,14 @@ Originally written in BASH and using various external tools, LSPKG was on 2022-0
 
 Prior to this rewrite, LSPKG included a simple helper tool written in POSIX shell with very limited functionality, but which is now properly included as LSPKG's core functionality, without the need for a separate executable.
 
-Here's a brief overview by way of its usage output, as of 2022-04-07:
+Here's a brief overview by way of its usage output, as of 2022-04-10:
 
 ```
 Usage: lspkg [OPTS] [REGEX]
 
   -h, --help               - Display this help information.
   -v, --version            - Output the version datestamp.
+  --arch TYPE              - Filter by architecture TYPE.
   --si                     - Use powers of 1000 instead of 1024.
   -C, --no-color           - Disable ANSI color escape sequences.
   -N, --no-describe        - Omit package short descriptions.
