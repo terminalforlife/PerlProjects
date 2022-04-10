@@ -14,7 +14,6 @@
 #
 # Features:
 #
-#TODO: Add flag for filtering by architecture.
 #TODO: Add ability to match the description as well, and case ignoring flag.
 #TODO: Disable colors automatically if working non-interactively.
 #
