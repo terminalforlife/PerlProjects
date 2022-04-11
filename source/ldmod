@@ -3,30 +3,30 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ldmod
 # Started On        - Sat 11 Jan 14:33:58 GMT 2020
-# Last Change       - Mon  1 Feb 01:42:56 GMT 2021
+# Last Change       - Mon 11 Apr 01:38:36 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Perl rewrite of and expansion on an old TFL shell function called `lsmodd()`.
-# LDMOD stands for 'List and Describe Modules'.
+# LDMod stands for 'List and Describe Modules'.
 #
 # Dependencies:
 #
 #   kmod (>= 22-1)
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.10)
 #------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-18';
-my $Progrm = 'ldmod';
+use constant VERSION => '2022-04-11';
+use constant PROGRAM => 'ldmod';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [REGEX]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS] [REGEX]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -38,22 +38,23 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
-my $ProcMod = '/proc/modules';
+use constant PROC_MOD => '/proc/modules';
+
 my ($DoCase, $ShowAll, $LiveOnly);
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say($CurVer); exit(0)
 	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
 		$DoCase = 'i'
 	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
-		$ShowAll = 'true'
+		$ShowAll = 1
 	} elsif ($ARGV[0] =~ '^-') {
-		die("Incorrect option(s) specified")
+		die("Err: Incorrect option(s) specified.\n")
 	} else {
-		last
+		last()
 	}
 
 	shift()
@@ -61,45 +62,45 @@ while (defined($ARGV[0])) {
 
 my $RegexStr = $ARGV[0] if defined($ARGV[0]);
 
-if (scalar(@ARGV) > 1) {
-	die("Too many arguments -- see: $Progrm -h")
-} elsif ($DoCase eq 'i' and scalar(@ARGV) == 0) {
+if (@ARGV) {
+	die("Too many arguments -- see: ${\PROGRAM} -h")
+} elsif ($DoCase eq 'i' and not @ARGV) {
 	die("Option '--ignore-case|-i' used, but no REGEX provided.")
-} elsif (not -f -r $ProcMod) {
-	die(1, "File '$ProcMod' missing or inaccessible.")
+} elsif (not -f -r PROC_MOD) {
+	die(1, "File '${\PROC_MOD}' missing or inaccessible.")
 }
 
-sub FetchMods {
-	open(my $FH, '<', $_[0]);
+sub FetchMods($) {
+	open(my $FH, '<', $_[0]) or die("$!");
 
 	my @Mods;
 	while (<$FH>) {
-		chomp(my @LineArr = split(' ', $_));
+		chomp(my @LineArr = split());
 
 		push(@Mods, $LineArr[0])
 	}
 
-	close($FH);
+	close($FH) or die("$!");
 
 	return(@Mods);
 }
 
-foreach (sort(FetchMods($ProcMod))) {
+foreach (sort({$a cmp $b} FetchMods($ProcMod))) {
 	# Look for user-provided REGEX in line, if one is given.
-	if (length($RegexStr) > 0) {
+	if (defined($RegexStr)) {
 		if ($DoCase eq 'i') {
-			next unless grep(m/$RegexStr/i, $_)
+			next() unless grep(m/$RegexStr/i, $_)
 		} else {
-			next unless grep(m/$RegexStr/, $_)
+			next() unless grep(m/$RegexStr/, $_)
 		}
 	}
 
 	# This is hopefully just a temporary measure.
 	chomp(my $Desc = `modinfo -d "$_" 2> /dev/null` || '?');
 
-	if ($ShowAll eq 'true') {
-		printf("%s - %s\n", $_, $Desc)
+	if ($ShowAll) {
+		say("$_ - $Desc")
 	} else {
-		printf("%s - %s\n", $_, $Desc) unless $Desc eq '?'
+		say("$_ - $Desc") unless $Desc eq '?'
 	}
 }
