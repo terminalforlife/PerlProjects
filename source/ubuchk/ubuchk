@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 21:33:40 BST 2022
+# Last Change       - Tue 12 Apr 00:47:26 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,11 +21,9 @@
 #      For example, in Shell: find / -xdev \( -nouser -o -nogroup \)
 #
 #TODO: Check for module `pam_namespace` for user's own `/tmp` and `/var/tmp`.
-#TODO: Add file permissions and ownership section (not just directories).
 #TODO: Add SSH permission and ownership checks for contents of ~/.ssh.
 #TODO: Add `AllowUsers` check to `SSHServer` key.
 #TODO: Add `kernel.exec-shield` parameter; recommend value of `1`.
-#TODO: Add a voltage check for the CMOS battery.
 #TODO: Add check for CPU governor when using a laptop and regular PC.
 #TODO: Add check for X amount of space taken up in Trash.
 #TODO: Add check for fan speeds; alert when low/off.
@@ -83,7 +81,6 @@
 #TODO: Mismatch between temperatures shown from UbuChk and sensors(1).
 #TODO: Not checking for invalid keys specified with `--key|-k` option.
 #TODO: Not checking for valid `Color_*` and `Char_*` keys.
-#TODO: Potentially, `UnwantedPKGs` are not being detected, despite existing.
 #TODO: Queries, when auto-shown, showing duplicates. (correct, but unintended)
 #
 #      Not sure if this is still applicable, as I've yet to notice this since.
@@ -111,7 +108,7 @@ use Text::Wrap 'wrap';
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-11';
+use constant VERSION => '2022-04-12';
 use constant PROGRAM => 'ubuchk';
 use constant PROGRAM_FANCY => 'UbuChk';
 
@@ -153,10 +150,11 @@ use constant MEMINFO_FILE => '/proc/meminfo';
 use constant RTC_FILE => '/proc/driver/rtc';
 use constant PASSWD_FILE => '/etc/passwd';
 use constant FAILLOG_FILE => '/var/log/faillog';
-use constant CPU_GOV_DIR => '/sys/devices/system/cpu/cpufreq';
+use constant CPU_GOV_DIR => '/sys/devices/system/cpu';
 use constant OS_REL_FILE => '/etc/os-release';
 use constant CPU_VULN_DIR => '/sys/devices/system/cpu/vulnerabilities';
 use constant DPKG_STATUS_FILE => '/var/lib/dpkg/status';
+use constant PROC_MODS_FILE => '/proc/modules';
 
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
@@ -202,11 +200,13 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--config|-c)$') {
 		shift();
 
-		length($ARGV[0]) or die("Err: OPT '$1' requires a file.\n");
+		die("Err: OPT '$1' requires a file.\n")
+			unless defined($ARGV[0]);
 
 		# Not checking for a valid file, because UbuChk can generate its own.
 		my $DirName = ($ARGV[0] =~ m{(.*[^/])?(?:/.*)})[0];
-		-d $DirName or die("Err: Directory '$DirName' not found.\n");
+		die("Err: Directory '$DirName' not found.\n")
+			unless -d $DirName;
 
 		$ConfigFile = $ARGV[0]
 	} elsif ($ARGV[0] =~ '^(--force-reset|-F)$') {
@@ -218,15 +218,19 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--query|-Q)$') {
 		shift();
 
-		length($ARGV[0]) or die("Err: OPT '$1' requires an alert ID.\n");
-		$ARGV[0] =~ '^[[:digit:]]{4}$' or die("Err: Invalid alert ID.\n");
+		die("Err: OPT '$1' requires an alert ID.\n")
+			unless defined($ARGV[0]);
+
+		die("Err: Invalid alert ID.\n")
+			unless $ARGV[0] =~ '^[[:digit:]]{4}$';
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
 	} elsif ($ARGV[0] =~ /^(--skip=)(.*)$/) {
 		@SkipIDs = split(',', $2);
 
-		scalar(@SkipIDs) or die("Err: OPT '$1' requires at least one ID.\n");
+		die("Err: OPT '$1' requires at least one ID.\n")
+			unless @SkipIDs;
 
 		my $Failed = 0;
 		foreach my $ID (@SkipIDs) {
@@ -246,21 +250,25 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--key|-k)$') {
 		shift();
 
-		length($ARGV[1]) or die("Err: OPT '$1' requires a key.\n");
+		die("Err: OPT '$1' requires a key.\n")
+			unless defined($ARGV[0]);
 
 		my ($Key, $Value) = split('=', $ARGV[0]);
 		$KeyOpt{$Key} = $Value
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Err: Incorrect option(s) specified.\n")
 	} else {
-		last
+		last()
 	}
 
 	shift()
 }
 
--w $MainDir or die("Err: Directory '$MainDir' unwritable.\n");
--x $MainDir or die("Err: Directory '$MainDir' unexectuable.\n");
+die("Err: Directory '$MainDir' unwritable.\n")
+	unless -w $MainDir;
+
+die("Err: Directory '$MainDir' unexectuable.\n")
+	unless -x $MainDir;
 
 #-----------------------------------------------------------Primary Subroutines
 
@@ -315,10 +323,10 @@ sub SlurpFile($) {
 sub DepChk {
 	my @Files;
 	foreach my $Dir (split(':', $ENV{'PATH'})) {
-		-d -r -x $Dir or next;
+		-d -r -x $Dir or next();
 
 		foreach my $File (glob("$Dir/*")) {
-			-f -r -x $File or next;
+			-f -r -x $File or next();
 
 			my $Base = ($File =~ m{(?:.*/)([^/].*)})[0];
 			push(@Files, $Base)
@@ -337,21 +345,19 @@ sub GetDirSize($) {
 	my $Dir = $_[0];
 	my (@Dirs, $Size);
 	foreach (glob("$Dir/{*,.*}")) {
-		next if m{/(\.\.|\.)$};
-		next if -l; # <-- Avoid infinite loop.
+		next() if m{/(\.\.|\.)$};
+		next() if -l; # <-- Avoid link recursion.
 
 		push(@Dirs, $_) if -d -r -x;
-
 		$Size += -s if -f
 	}
 
 	foreach (@Dirs) {
 		foreach (glob("$_/{*,.*}")) {
 			next if m{/(\.\.|\.)$};
-			next if -l; # <-- Avoid infinite loop.
+			next if -l; # <-- Avoid link recursion.
 
 			push(@Dirs, $_) if -d -x;
-
 			$Size += -s if -f
 		}
 	}
@@ -364,27 +370,45 @@ sub Boolean($) {
 		unless $_[0] =~ '^(true|false)$'
 }
 
+sub Suffix($) { # Usage: [INT]
+	my $Num = $_[0] + 1;
+	return("${Num}st") if $Num =~ '1$';
+	return("${Num}nd") if $Num =~ '2$';
+	return("${Num}rd") if $Num =~ '3$';
+	return("${Num}th")
+}
+
+# Taken directly from the TFL module. (2020-02-29)
+sub CelsFahr($;$) {
+	if ($_[0] eq 'F') {
+		return(int(($_[1] * 9/5) + 32))
+	} elsif ($_[0] eq 'C') {
+		return($_[1])
+	}
+}
+
 #---------------------------------------------------------------OS & LSB Checks
 
 unless ($ForceRun eq 'true') {
-	die("Err: Unrecognised OS.\n") unless $^O eq 'linux';
+	die("Err: Unrecognised OS.\n")
+		unless $^O eq 'linux';
 
 	if (-f -r OS_REL_FILE) {
-		if (open(my $FH, '<', OS_REL_FILE)) {
-			my $Found = 0;
-			while (my $Line = <$FH>) {
-				chomp(my ($Key, $Value) = split('=', $Line));
+		open(my $FH, '<', OS_REL_FILE) or die("$!");
 
-				$Key eq 'ID' and grep({$_ eq 'ubuntu'} @SupportedLSBs)
-					and $Found = 1
+		my $Found = 0;
+		while (my $Line = <$FH>) {
+			chomp(my ($Key, $Value) = split('=', $Line));
+
+			if ($Key eq 'ID') {
+				grep({$_ eq 'ubuntu'} @SupportedLSBs);
+				$Found = 1
 			}
-
-			close($FH);
-
-			$Found or die("Err: Unsupported LSB.\n")
-		} else {
-			die("$!")
 		}
+
+		close($FH) or die("$!");
+
+		$Found or die("Err: Unsupported LSB.\n")
 	} else {
 		die("Err: Unrecognised LSB.\n")
 	}
@@ -401,9 +425,8 @@ if (-f -r DATABASE) {
 	close($FH) or die("$!")
 } else {
 	# Only error out here if queries are NOT completely disabled.
-	unless ($AutoQuery ne 'true' and $Query ne 'true') {
-		die("Err: File '${\DATABASE}' missing or unreadable.\n")
-	}
+	die("Err: File '${\DATABASE}' missing or unreadable.\n")
+		unless $AutoQuery ne 'true' and $Query ne 'true'
 }
 
 #-----------------------------------------------------Miscellaneous Subroutines
@@ -418,49 +441,49 @@ sub QueryAlert($;$) {
 		chomp();
 
 		if (/^:[[:digit:],]+$/) {
-			last if $Found;
+			last() if $Found;
 
 			my @CurIDs = split(',', substr($_, 1));
 			foreach (@CurIDs) {
-				next unless $_ == $HelpAlertID;
+				next() unless $_ == $HelpAlertID;
 
 				$Found = 1;
-				last
+				last()
 			}
 		} elsif ($Found) {
 			push(@Body, $_)
 		}
 	}
 
-	$Found or die("Err: Alert '$HelpAlertID' not found.\n");
+	die("Err: Alert '$HelpAlertID' not found.\n")
+		unless $Found;
 
 	$Text::Wrap::columns = (GetTerminalSize())[0] - 2;
 
-	say("Alert #$HelpAlertID:") unless length($_[1]);
+	say("Alert #$HelpAlertID:")
+		unless length($_[1]);
 
 	print("\n");
 	foreach (@Body) {
 		# Ensures paragraphing works properly. The database must have a
 		# single period (`.`) on an otherwise empty line, for this to work.
-		print(
-			' ' x $QueryIndent .
-			$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') . "\n"
-		) and next if $_ eq '.';
+		if ($_ eq '.') {
+			say(
+				' ' x $QueryIndent . $ColorHash{'Color_QueryMargin'} .
+				"$Syms{'Char_Margin'} " . color('reset')
+			);
+
+			next()
+		}
 
 		say(
-			' ' x $QueryIndent .
-			"$ColorHash{'Color_QueryMargin'}$Syms{'Char_Margin'}" .
-			color('reset')
-		) and next if $_ eq '.';
-
-		print(
 			wrap(
-				' ' x $QueryIndent .
-				$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') .
+				' ' x $QueryIndent . $ColorHash{'Color_QueryMargin'} .
+				"$Syms{'Char_Margin'} " . color('reset') .
 				$ColorHash{'Color_QueryText'}, ' ' x $QueryIndent .
-				$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') .
-				$ColorHash{'Color_QueryText'},
-				$ColorHash{'Color_QueryText'} . $_ . color('reset') . "\n"
+				$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " .
+				color('reset') . $ColorHash{'Color_QueryText'},
+				$ColorHash{'Color_QueryText'} . $_ . color('reset')
 			)
 		);
 	}
@@ -484,13 +507,13 @@ sub Alert($;$;$) {
 			$_[0], $_[1]
 		);
 
-		printf(
-			$ColorHash{'Color_AlertRecommend'} . ' ' x 8 .
-			"%s\n" . color('reset'), $_[2] . color('reset')
+		say(
+			$ColorHash{'Color_AlertRecommend'} .
+			' ' x 8 . $_[2] . color('reset')
 		) if $Recommend eq 'true';
 
+		# Don't want to keep showing the same query.
 		if ($AutoQuery eq 'true') {
-			# Don't want to keep showing the same query.
 			unless (grep({$_ eq $_[0]} @ShownAlerts)) {
 				QueryAlert(0, $_[0]);
 				push(@ShownAlerts, $_[0]);
@@ -513,18 +536,22 @@ sub ParseDpkgStatus($) {
 		my ($Package, $Arch, $Status, @Packages);
 		while (<$FH>) {
 			chomp();
-			next unless length($_);
+			next() unless length($_);
 
 			my ($Key, $Value) = split(':');
 
-			if ($Key eq 'Package') {
-				$Package = $Value =~ tr/ //dr;
-			} elsif ($Key eq 'Status') {
-				$Status = $Value =~ tr/ //dr;
-			} elsif ($Key eq 'Architecture') {
-				$Arch = $Value =~ tr/ //dr;
+			# Need to `if`, else out of string errors.
+			$Value = substr($Value, 1)
+				if length($Value);
 
-				next unless $Status eq $_[0];
+			if ($Key eq 'Package') {
+				$Package = $Value
+			} elsif ($Key eq 'Status') {
+				$Status = $Value
+			} elsif ($Key eq 'Architecture') {
+				$Arch = $Value;
+
+				next() unless $Status eq $_[0];
 
 				push(@Packages, "$Package:$Arch")
 			}
@@ -543,14 +570,15 @@ sub ParseDpkgStatus($) {
 if ($ListKeys eq 'true') {
 	my @Keys;
 	while (<DATA>) {
-		next if /^(#|$)/;
+		next() if substr($_, 0, 1) eq '#';
+		next() unless length();
+
 		my @Line = split('=');
 		push(@Keys, $Line[0])
 	}
 
-	my $Old;
 	foreach (sort(@Keys)) {
-		say($_) unless $Old eq $_;
+		say($_) unless our $Old eq $_;
 		$Old = $_
 	}
 
@@ -558,13 +586,23 @@ if ($ListKeys eq 'true') {
 } elsif ($ListDbAlerts eq 'true') {
 	open(my $FH, '<', DATABASE) or die("$!");
 
+	# Fetch IDs from ':' lines.
+	my @IDs;
 	while (<$FH>) {
 		chomp();
-		next unless substr($_, 0, 1) eq ':';
-		say() foreach split(' ', tr/:,/ /r)
+
+		next() unless substr($_, 0, 1) eq ':';
+
+		push(@IDs, split(',', substr($_, 1)));
 	}
 
 	close($FH) or die("$!");
+
+	# Display unique IDs.
+	foreach my $ID (sort({$a <=> $b} @IDs)) {
+		say($ID) unless our $Old eq $ID;
+		$Old = $ID
+	}
 
 	exit(0)
 }
@@ -588,17 +626,22 @@ if (-f -r -T $ConfigFile) {
 	open(my $FH, '<', $ConfigFile) or die("$!");
 
 	while (<$FH>) {
-		chomp(my ($Key, $Value) = split('='));
-		next if /^(#|$)/;
+		chomp();
+
+		next() if substr($_, 0, 1) eq '#';
+		next() unless length();
+
+		my ($Key, $Value) = split('=');
 
 		# If the current key was provided to the `--key|-k` option, then
 		# override the user's configuration file for this key.
 		$Value = $KeyOpt{$Key} if grep({$_ eq $Key} keys(%KeyOpt));
 
 		if ($Key =~ '^Color_.*') {
-			colorvalid($Value) or die("Err: Invalid color '$Value' detected.\n");
+			die("Err: Invalid color '$Value' detected.\n")
+				unless colorvalid($Value);
 
-			next if $ANSIColors eq 'false';
+			next() if $ANSIColors eq 'false';
 
 			$ColorHash{$Key} = color($Value =~ tr/'"//dr)
 		} elsif ($Key eq 'ANSIColors') {
@@ -607,8 +650,8 @@ if (-f -r -T $ConfigFile) {
 		} elsif ($Key =~ '^Char_.*') {
 			if (length($Value) > 1) {
 				die("Err: Invalid 'Char_*' value detected.\n")
-			} elsif (length($Value) == 0) {
-				next
+			} elsif (not length($Value)) {
+				next()
 			} else {
 				$Syms{$Key} = $Value =~ tr/'"//dr
 			}
@@ -626,8 +669,8 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$PurgeChk = $Value
 		} elsif ($Key eq 'HardAPT') {
-			$Value =~ '^([01]|true|false)$'
-				or die("Err: Invalid boolean '$Value' detected.\n");
+			die("Err: Invalid boolean '$Value' detected.\n")
+				unless $Value =~ '^([01]|true|false)$';
 
 			$HardAPT = $Value
 		} elsif ($Key eq 'SSHDConfig') {
@@ -668,20 +711,20 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$AutoQuery = $Value
 		} elsif ($Key eq 'QueryIndent') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				# Default value and its bounds are mentioned in the config.
-				$Value > 0 and $Value <= 9 or die("Err: Key '$Key' out of bounds.\n");
+				die("Err: Key '$Key' out of bounds.\n")
+					unless $Value > 0 and $Value <= 9;
 
 				$QueryIndent = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'DSLimit') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				# Default value and its bounds are mentioned in the config.
-				unless ($Value >= 10 and $Value <= 100) {
-					die("Err: Key '$Key' out of bounds.\n")
-				}
+				die("Err: Key '$Key' out of bounds.\n")
+					unless $Value >= 10 and $Value <= 100;
 
 				$DSLimit = $Value
 			} else {
@@ -696,20 +739,18 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$Laptop = $Value
 		} elsif ($Key eq 'BatCrit') {
-			if ($Value =~ /^[[:digit:]]+$/) {
-				unless ($Value > 0 and $Value <= 99) {
-					die("Err: Key '$Key' out of bounds.\n")
-				}
+			if ($Value =~ /^\d+$/) {
+				die("Err: Key '$Key' out of bounds.\n")
+					unless $Value > 0 and $Value <= 99;
 
 				$BatCrit = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'BatLow') {
-			if ($Value =~ /^[[:digit:]]+$/) {
-				unless ($Value > 0 and $Value <= 99) {
-					die("Err: Key '$Key' out of bounds.\n")
-				}
+			if ($Value =~ /^\d+$/) {
+				die("Err: Key '$Key' out of bounds.\n")
+					unless $Value > 0 and $Value <= 99;
 
 				$BatLow = $Value
 			} else {
@@ -727,13 +768,13 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$CPUTemp = $Value
 		} elsif ($Key eq 'CoreTempCrit') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				$CoreTempCrit = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'TempScale') {
-			if ($Value =~ /^[C|F]$/) {
+			if ($Value eq 'C' or $Value eq 'F') {
 				$TempScale = $Value
 			} else {
 				die("Err: Key '$Key' must be either 'F' or 'C'.\n");
@@ -742,7 +783,7 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$AptCache = $Value
 		} elsif ($Key eq 'AptCacheMBLimit') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				$AptCacheMBLimit = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer in MB.\n");
@@ -759,7 +800,7 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$HomeCache = $Value
 		} elsif ($Key eq 'HomeCacheMBLimit') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				$HomeCacheMBLimit = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer.\n");
@@ -768,7 +809,7 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$Thumbnails = $Value
 		} elsif ($Key eq 'ThumbsMBLimit') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				$ThumbsMBLimit = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer.\n");
@@ -785,7 +826,7 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$Swaps = $Value
 		} elsif ($Key eq 'MBMaxSwap') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				$MBMaxSwap = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer.\n");
@@ -794,7 +835,7 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$RAM = $Value
 		} elsif ($Key eq 'MBMaxRAM') {
-			if ($Value =~ /^[[:digit:]]+$/) {
+			if ($Value =~ /^\d+$/) {
 				$MBMaxRAM = $Value
 			} else {
 				die("Err: Key '$Key' requires an integer.\n");
@@ -821,7 +862,7 @@ if (-f -r -T $ConfigFile) {
 			Boolean($Value);
 			$SymsFileMode = $Value
 		} elsif ($Key eq 'CPUGovernor') {
-			if (length($CPUGovernor) > 0 and not grep($Value, @ValidGovs)) {
+			if (length($CPUGovernor) and not grep($Value, @ValidGovs)) {
 				die("Err: CPU governor '$CPUGovernor' not recognised.\n")
 			}
 
@@ -838,9 +879,8 @@ if (-f -r -T $ConfigFile) {
 	exit(1) if $InvalidKeyCount > 0;
 
 	# Because this would otherwise make no sense.
-	if ($Laptop eq 'true' and $BatCrit >= $BatLow) {
-		die("Err: Key conflict with 'BatCrit' and 'BatLow'.\n")
-	}
+	die("Err: Key conflict with 'BatCrit' and 'BatLow'.\n")
+		if $Laptop eq 'true' and $BatCrit >= $BatLow
 } else {
 	# Store contents into buffer, sans initial and now-unneeded Cito line.
 	my @Buffer = <DATA>;
@@ -848,23 +888,27 @@ if (-f -r -T $ConfigFile) {
 
 	# Write to new user's-own config file.
 	open(my $FH, '>', $ConfigFile) or die("$!");
+
 	say($FH "# User configuration file for ${\PROGRAM_FANCY} (>= ${\VERSION})");
 	say($FH "# Refer to ${\PROGRAM}(8) to learn about these settings.\n");
 	print($FH @Corrected);
+
 	close($FH) or die("$!");
 
 	say("Configuration file generated -- please reload ${\PROGRAM_FANCY}.");
+
 	exit(0)
 }
 
-if (@SkipIDs > 0) {
+if (@SkipIDs) {
 	foreach (@SkipIDs) {
-		/^[[:digit:]]{4}$/ or die("Err: Invalid alert ID.\n")
+		die("Err: Invalid alert ID.\n")
+			unless /^[[:digit:]]{4}$/
 	}
 }
 
-@Installed = sort(ParseDpkgStatus('installokinstalled'))
-	if @UnwantedPKGs > 0;
+@Installed = sort(ParseDpkgStatus('install ok installed'))
+	if @UnwantedPKGs;
 
 @NotPurged = sort(ParseDpkgStatus('deinstallokconfig-files'))
 	if $PurgeChk eq 'true';
@@ -911,7 +955,7 @@ if ($KernParams eq 'true') {
 		($AlertID, $GoodValue, $Path) = split(':');
 		$ShowKey = $Path =~ tr/\//./r =~ s/\.proc\.sys\.//r;
 
-		next if grep({$_ eq $ShowKey} @SkipKP);
+		next() if grep({$_ eq $ShowKey} @SkipKP);
 
 		Info("Checking '$ShowKey' parameter.");
 
@@ -919,10 +963,10 @@ if ($KernParams eq 'true') {
 			unless (-r $Path) {
 				# Some parameters are more locked down than others.
 				warn("Err: Denied access to '$ShowKey' parameter.\n");
-				next
+				next()
 			} elsif (-B -s $Path) {
 				warn("Err: Unable to determine '$ShowKey' parameter.\n");
-				next
+				next()
 			}
 
 			open(my $FH, '<', $Path) or die("$!");
@@ -931,7 +975,7 @@ if ($KernParams eq 'true') {
 		} else {
 			Info("Parameter '$ShowKey' unavailable.");
 
-			next
+			next()
 		}
 
 		Info("Parameter '$ShowKey' is '$Value'.");
@@ -949,7 +993,7 @@ if ($KernParams eq 'true') {
 #--------------------------------------------------PATH Permissions & Ownership
 
 if ($PathPerms eq 'true') {
-	if (length($ENV{'PATH'}) > 0) {
+	if (length($ENV{'PATH'})) {
 		my @AlertPerms;
 		foreach (split(':', $ENV{'PATH'})) {
 			Info("Looking in '$_' directory.");
@@ -1016,9 +1060,11 @@ if ($PurgeChk eq 'true') {
 		"Suggested action is to purge the package."
 	) foreach @NotPurged;
 
-	Info('No packages were found unpurged.') if @NotPurged == 0
+	Info('No packages were found unpurged.')
+		unless @NotPurged
 } else {
-	Info("Ignoring any unpurged packages.") unless $HushIgnored eq 'true'
+	Info("Ignoring any unpurged packages.")
+		unless $HushIgnored eq 'true'
 }
 
 #-----------------------------------------------------------APT Security Tweaks
@@ -1028,7 +1074,9 @@ if ($HardAPT eq 'true') {
 		my %Settings;
 		foreach (`apt-config dump --format '%f=%v%n' 2> /dev/null`) {
 			chomp();
-			next if /^(#|$)/;
+
+			next() if substr($_, 0, 1) eq '#';
+			next() unless length();
 
 			my ($Key, $Value) = split('=');
 			$Value = $Value =~ tr/"';//dr;
@@ -1040,7 +1088,6 @@ if ($HardAPT eq 'true') {
 			$Settings{$Key} = $Value
 		}
 
-		my ($Word, $Integer);
 		foreach ( # [TARGET_VALUE] [KEY]
 			'6135|6131|Recommended|false|APT::Get::AllowUnauthenticated',
 			'6136|6132|Recommended|false|Acquire::http::AllowRedirect',
@@ -1049,11 +1096,12 @@ if ($HardAPT eq 'true') {
 		) {
 			my ($AlertID1, $AlertID2, $RecSug, $Target, $Key) = split('\|');
 
-			next if grep({$_ eq $Key} @SkipAPT);
+			next() if grep({$_ eq $Key} @SkipAPT);
 
-			$Word = 'enabled' if $Settings{$Key} eq 'true';
+			my $Word = 'enabled' if $Settings{$Key} eq 'true';
 			$Word = 'disabled' if $Settings{$Key} eq 'false';
-			$Integer = 0 if $Target eq 'false';
+
+			my $Integer = 0 if $Target eq 'false';
 			$Integer = 1 if $Target eq 'true';
 
 			unless (exists($Settings{$Key})) {
@@ -1085,8 +1133,11 @@ if ($SSHClient eq 'true') {
 	my $SSHDir = "$ENV{HOME}/.ssh";
 
 	if (-d $SSHDir) {
-		-r $SSHDir or die("Err: Directory '$SSHDir' unreadable.\n");
-		-x $SSHDir or die("Err: Directory '$SSHDir' denies execution.\n");
+		die("Err: Directory '$SSHDir' unreadable.\n")
+			unless -r $SSHDir;
+
+		die("Err: Directory '$SSHDir' unexecutable.\n")
+			unless -x $SSHDir;
 
 		my ($Mode, $Owner, $Group) = (stat($SSHDir))[2,4,5];
 		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
@@ -1119,10 +1170,11 @@ if ($SSHClient eq 'true') {
 
 if ($SSHServer eq 'true') {
 	if (-f $SSHDConfig) {
-		-r $SSHDConfig or die("Err: File '$SSHDConfig' unreadable.\n");
+		die("Err: File '$SSHDConfig' unreadable.\n")
+			unless -r $SSHDConfig;
 
 		# Without the `-s` flag, zero-size files get flagged as binary.
-		-B -s $SSHDConfig and die("Err: File '$SSHDConfig' is binary.\n");
+		die("Err: File '$SSHDConfig' is binary.\n") if -B -s $SSHDConfig;
 
 		FileChk($SSHDConfig);
 		open(my $FH, '<', $SSHDConfig) or die("$!");
@@ -1130,7 +1182,9 @@ if ($SSHServer eq 'true') {
 		my %Settings;
 		while (<$FH>) {
 			chomp();
-			next if /(^#|^$)/;
+
+			next() if substr($_, 0, 1) eq '#';
+			next() unless length();
 
 			my ($Key, $Value) = split(' ');
 
@@ -1150,7 +1204,7 @@ if ($SSHServer eq 'true') {
 		) {
 			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 
-			next if grep({$_ eq $Key} @SkipAPT);
+			next() if grep({$_ eq $Key} @SkipAPT);
 
 			unless (exists($Settings{$Key})) {
 				Alert(
@@ -1174,7 +1228,7 @@ if ($SSHServer eq 'true') {
 				"SSH daemon key 'Port' may not be assigned.",
 				"Recommended action is NOT to assign it '22'."
 			)
-		} elsif ($Settings{'Port'} eq 22) {
+		} elsif ($Settings{'Port'} == 22) {
 			Alert(
 				6542,
 				"SSH daemon key 'Port' assigned '$Settings{Port}'.",
@@ -1191,7 +1245,7 @@ if ($SSHServer eq 'true') {
 
 #---------------------------------------------------------Packages Best Avoided
 
-if (@UnwantedPKGs > 0) {
+if (@UnwantedPKGs) {
 	foreach my $CurPKG (@UnwantedPKGs) {
 		Info("Looking for '$CurPKG' package.");
 
@@ -1199,7 +1253,7 @@ if (@UnwantedPKGs > 0) {
 			5656,
 			"Package(s) matching '$CurPKG' installed.",
 			"Suggested consideration of uninstallation."
-		) if grep({($_ =~ "(.*)(?::.*)")[0] eq $CurPKG} @Installed)
+		) if grep({($_ =~ m{(.*)(?::.*)})[0] eq $CurPKG} @Installed)
 	}
 } else {
 	Info("Ignoring any unwanted packages.") unless $HushIgnored eq 'true'
@@ -1217,7 +1271,10 @@ if ($SystemD eq 'true') {
 		my %Settings;
 		while (<$FH>) {
 			chomp();
-			next if /(^#|^$|^\[Manager\]$)/;
+
+			next() if substr($_, 0, 1) eq '#';
+			next() if $_ eq '[Manager]';
+			next() unless length();
 
 			my ($Key, $Value) = split('=');
 
@@ -1236,7 +1293,7 @@ if ($SystemD eq 'true') {
 		) {
 			my ($AlertID1, $AlertID2, $Target, $Key) = split('\|');
 
-			next if grep({$_ eq $Key} @SkipSysD);
+			next() if grep({$_ eq $Key} @SkipSysD);
 
 			unless (exists($Settings{$Key})) {
 				Alert(
@@ -1262,11 +1319,9 @@ if ($SystemD eq 'true') {
 #----------------------------------------------------------------Kernel Modules
 
 if ($KernMods eq 'true') {
-	my $ProcMods = '/proc/modules';
-
-	if (-f $ProcMods) {
-		FileChk($ProcMods);
-		open(my $FH, '<', $ProcMods) or die("$!");
+	if (-f PROC_MODS_FILE) {
+		FileChk(PROC_MODS_FILE);
+		open(my $FH, '<', PROC_MODS_FILE) or die("$!");
 
 		my @Modules;
 		while (<$FH>) {
@@ -1327,26 +1382,22 @@ if ($DiskSpace eq 'true') {
 		FileChk(MOUNT_FILE);
 		open(my $FH, '<', MOUNT_FILE) or die("$!");
 
-		my (@MountPoints, $Base, $Used, $Free, $Size, $Mount, $Perc);
 		while (<$FH>) {
-			chomp(my @Arr = split(' '));
+			chomp(my @Arr = split());
 
 			# Using this REGEX over just '^/' avoids statfs errors.
 			if ($Arr[0] =~ '^/dev/(sd|hd|fd)[[:alpha:]]+[[:digit:]]+$') {
 				# Avoids `not a directory` error, for EFI setups.
-				next if $Arr[1] eq '/boot/efi';
-
-				# Avoids other `not a directory` error instances.
-				next unless -d $Arr[0];
+				next() if $Arr[1] eq '/boot/efi';
+				next() unless -b $Arr[0];
 
 				Info("Looking at '$Arr[0]' partition.");
 
-				$Mount = $Arr[1] =~ s/\\040/ /gr;
-				($Used, $Free) = (df($Mount))[2,3] or next;
-				$Used = $Used * 1024;
-				$Free = $Free * 1024;
-				$Size = $Free + $Used;
-				$Perc = int(($Used / $Size) * 100);
+				our $Mount = $Arr[1] =~ s/\\040/ /gr;
+				our ($Used, $Free) = (df($Mount))[2,3] or next();
+				($Used, $Free) = ($Used * 1024, $Free * 1024);
+				our $Size = $Free + $Used;
+				our $Perc = int(($Used / $Size) * 100);
 
 				if ($Perc >= $DSLimit) {
 					Alert(4612,
@@ -1410,10 +1461,6 @@ if ($DirPerms eq 'true') {
 #-----------------------------------------------------------------Laptop Checks
 
 if ($Laptop eq 'true') {
-	#my $BaseDir = '/sys/class/power_supply';
-	#my $AdapTypeFile = "$BaseDir/ADP1/type";
-	#my $AdapOnlineFile = "$BaseDir/ADP1/online";
-
 	my $AdapOnline;
 	if (-f PS_TYPE_FILE) {
 		FileChk(PS_TYPE_FILE);
@@ -1510,7 +1557,7 @@ if ($ProcVuln eq 'true') {
 			unless -x CPU_VULN_DIR;
 
 		foreach (glob(CPU_VULN_DIR . '/*')) {
-			next unless -f;
+			next() unless -f;
 
 			my $Vuln = ($_ =~ m{(?:.*/)(.*)})[0];
 
@@ -1560,7 +1607,7 @@ if ($MountHome eq 'true') {
 			# Using this REGEX over just '^/' avoids statfs errors.
 			if ($Arr[1] eq '/home') {
 				($Device, $Options) = @Arr[0,3];
-				last
+				last()
 			}
 		}
 
@@ -1581,7 +1628,7 @@ if ($MountHome eq 'true') {
 
 				if (grep({$_ eq $Option} @SkipMountOpts)) {
 					Info("Module '$Option' found but ignored.");
-					next # <-- Skipping the below alert.
+					next() # <-- Skipping the below alert.
 				}
 
 				if (grep({$_ eq $Option} @OptArr)) {
@@ -1617,13 +1664,16 @@ if ($CPUTemp eq 'true') {
 	}
 
 	if (defined($Dir)) {
-		-r $Dir or die("Err: Directory '$Dir' unreadable.\n");
-		-x $Dir or die("Err: Directory '$Dir' denies execution.\n");
+		die("Err: Directory '$Dir' unreadable.\n")
+			unless -r $Dir;
+
+		die("Err: Directory '$Dir' unexecutable.\n")
+			unless -x $Dir;
 
 		# Gather a hash of (only) the core temperatures.
 		my (%TempData, $Temp);
 		foreach (glob("$Dir/temp*")) {
-			next unless -f and m{/temp[[:digit:]]+_(input|label)$};
+			next() unless -f and m{/temp[[:digit:]]+_(input|label)$};
 
 			FileChk($_);
 			open(my $FH, '<', $_) or die("$!");
@@ -1639,36 +1689,22 @@ if ($CPUTemp eq 'true') {
 			}
 		}
 
-		# Ensure we have the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
-		sub Suffix { # Usage: [INT]
-			my $Num = $_[0] + 1;
-			return("${Num}st") if $Num =~ '1$';
-			return("${Num}nd") if $Num =~ '2$';
-			return("${Num}rd") if $Num =~ '3$';
-			return("${Num}th")
-		}
-
-		# Taken directly from the TFL module. (2020-02-29)
-		sub CelsFahr {
-			if ($_[0] eq 'F') {
-				return(int(($_[1] * 9/5) + 32))
-			} elsif ($_[0] eq 'C') {
-				return($_[1])
-			}
-		}
-
 		# Begin checking on each of the core temperatures, per the above hash.
-		foreach (sort(keys(%TempData))) {
-			next unless /^Core [[:digit:]]+$/;
+		foreach (sort({$a cmp $b} keys(%TempData))) {
+			next() unless /^Core [[:digit:]]+$/;
 
 			# Initially, this value is in Celsius (unconfirmed).
 			my $TempInt = CelsFahr(
-				$TempScale, substr($TempData{$_}, 0, length($TempData{$_}) - 3)
+				$TempScale, substr($TempData{$_},
+				0, length($TempData{$_}) - 3)
 			);
 
 			my $TempStr = "$TempInt°$TempScale";
 			my $CoreInt = (m{(?:.* )(.*)})[0];
+
+			# Ensure the right suffix for 1'st', 2'nd', 3'rd', and N'th'.
 			my $CoreStr = Suffix($CoreInt);
+
 			if ($TempInt >= $CoreTempCrit) {
 				Alert(
 					6237,
@@ -1706,7 +1742,7 @@ if ($AptCache eq 'true') {
 		if ($Size > 0) {
 			my $Human = Human($Size);
 			if ($Size / 1024 / 1024 >= $AptCacheMBLimit) {
-				if (DepChk('sudo') == 0) {
+				unless (DepChk('sudo')) {
 					Alert(
 						9708,
 						"Found $FileCount cached Debian packages, totalling $Human.",
@@ -1776,7 +1812,8 @@ if ($LightDM eq 'true') {
 		Info("Missing prerequisites -- skipping 'LightDM' key.")
 	}
 } else {
-	Info("Ignoring any LightDM configurations.") unless $HushIgnored eq 'true'
+	Info("Ignoring any LightDM configurations.")
+		unless $HushIgnored eq 'true'
 }
 
 #----------------------------------------------------------RootKits, Worms, etc
@@ -1787,23 +1824,27 @@ if ($LightDM eq 'true') {
 #
 # Also inspired by various checks made by rkhunter(8).
 if ($RootKits eq 'true') {
-	-f RK_DATABASE or die("Err: File '${\RK_DATABASE}' not found.\n");
-	-r RK_DATABASE or die("Err: File '${\RK_DATABASE}' unreadable.\n");
+	die("Err: File '${\RK_DATABASE}' not found.\n")
+		unless -f RK_DATABASE;
+
+	die("Err: File '${\RK_DATABASE}' unreadable.\n")
+		unless -r RK_DATABASE;
 
 	open(my $FH, '<', RK_DATABASE) or die("$!");
 	my @DBData = <$FH>;
 	close($FH) or die("$!");
 
-	my ($AlertID, $Name);
 	foreach my $Line (@DBData) {
+		my ($AlertID, $Name);
+
 		chomp($Line);
 
-		next if $Line =~ '^#';
+		next() if $Line =~ '^#';
 		if ($Line =~ '^:') {
 			($AlertID, $Name) = (split(':', $Line))[1..2];
 			Info("Searching: $Name");
 		} elsif (length($Line) > 0) {
-			next unless -e $Line =~ tr/_/ /r;
+			next() unless -e $Line =~ tr/_/ /r;
 
 			Alert(
 				$AlertID,
@@ -1821,7 +1862,7 @@ if ($RootKits eq 'true') {
 if ($HomeCache eq 'true') {
 	if (-d USER_CACHE_DIR) {
 		my $Size = GetDirSize(USER_CACHE_DIR);
-		if ($Size > 0) {
+		if ($Size) {
 			my $SizeMB = int($Size / (1024 * 1024));
 			my $Human = Human($Size);
 			if ($SizeMB >= $HomeCacheMBLimit) {
@@ -1848,7 +1889,7 @@ if ($HomeCache eq 'true') {
 if ($Thumbnails eq 'true') {
 	if (-d USER_THUMB_DIR) {
 		my $Size = GetDirSize(USER_THUMB_DIR);
-		if ($Size > 0) {
+		if ($Size) {
 			my $SizeMB = int($Size / 1024 / 1024);
 			my $Human = Human($Size);
 			if ($SizeMB >= $ThumbsMBLimit) {
@@ -1880,7 +1921,7 @@ if ($DpkgConf eq 'true') {
 		my ($FoundNoDebSig, $FoundLog);
 		while (<$FH>) {
 			chomp();
-			next if /^(#|$)/;
+			next() if /^(#|$)/;
 
 			$FoundNoDebSig = 'true' if /^no-debsig($|[[:space:]]+.*)/;
 			$FoundLog = 'true' if /^log /;
@@ -1928,7 +1969,7 @@ if ($Swaps eq 'true') {
 			chomp();
 
 			# Skip header.
-			next if $. == 1;
+			next() if $. == 1;
 
 			my ($File, $Type, $Size, $Used, $Priority) = split(' ');
 			my $HumSize = Human($Size * 1024);
@@ -1976,9 +2017,9 @@ if ($Swaps eq 'true') {
 			$SwapCount++
 		}
 
-		if ($SwapCount > 1) {
+		if ($SwapCount) {
 			Info("System has $SwapCount active swap areas.")
-		} elsif ($SwapCount == 0) {
+		} elsif (not $SwapCount) {
 			Alert(
 				8760,
 				"Detected no assigned swap space on the system.",
@@ -2069,7 +2110,7 @@ if ($CMOS eq 'true') {
 		close($FH) or die("$!");
 
 		if ($BatStatus eq 'okay') {
-			Info("CMOS battery appears to be okay.")
+			Info("CMOS battery appears to be OK.")
 		} else {
 			Alert(
 				1118,
@@ -2259,18 +2300,21 @@ if ($SymsFileMode eq 'true') {
 
 #----------------------------------------------Check CPU Governor Is As Desired
 
-if (length($CPUGovernor) > 0) {
+# Tested and working with 1 CPU on 5.17.2 of Linux.
+if (length($CPUGovernor)) {
 	my (%Governors, $FoundFile);
 	foreach my $Dir (glob(CPU_GOV_DIR . '/*')) {
-		-d $Dir or next;
+		next() unless -d $Dir;
 
-		foreach my $File (CPU_GOV_DIR . '/scaling_governor') {
+		foreach my $File ("$Dir/cpufreq/scaling_governor") {
+			next() unless -f $File;
+
 			$FoundFile = 'true';
 
 			open(my $FH, '<', $File) or die("$!");
 
 			chomp(my $Data = <$FH>);
-			my $Core = ($Dir =~ m{.*/policy([[:digit:]]+)})[0] + 1;
+			my $Core = ($Dir =~ m{(?:^.*/cpu)(\d+$)})[0];
 			$Governors{$Core} = $Data;
 
 			close($FH) or die("$!")
@@ -2278,7 +2322,7 @@ if (length($CPUGovernor) > 0) {
 	}
 
 	if ($FoundFile eq 'true') {
-		foreach (sort({$a > $b} keys(%Governors))) {
+		foreach (sort({$a <=> $b} keys(%Governors))) {
 			Info("CPU Core #$_ using '$Governors{$_}' governor.");
 
 			unless ($Governors{$_} eq $CPUGovernor) {
@@ -2303,7 +2347,7 @@ if ($ShowTTL eq 'true') {
 		$ColorHash{'Color_AlertTTLText'} . "Alerted " . color('reset') .
 		$ColorHash{'Color_AlertTTL'} . "$AlertCount" . color('reset') .
 		$ColorHash{'Color_AlertTTLText'} . " time(s).\n" . color('reset')
-	) if $AlertCount > 0;
+	) if $AlertCount;
 } else {
 	Info("Omitting display of total number of alerts.")
 		unless $HushIgnored eq 'true'
