@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 19:49:46 BST 2022
+# Last Change       - Mon 11 Apr 20:00:28 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -132,11 +132,6 @@ sub Usage() {
 	} =~ tr/\t//dr)
 }
 
-sub Err($;$) {
-	printf(STDERR "ERROR: %s\n", $_[1]);
-	$_[0] > 0 and exit($_[0])
-}
-
 use constant SYMS_FILE => '/proc/kallsyms';
 use constant USER_ID => $<;
 use constant GROUP_ID => (split(' ', $())[0];
@@ -201,11 +196,11 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] eq '--config' or $ARGV[0] eq '-c') {
 		shift();
 
-		length($ARGV[0]) or Err(1, "OPT '$1' requires a file.");
+		length($ARGV[0]) or die("Err: OPT '$1' requires a file.\n");
 
 		# Not checking for a valid file, because UbuChk can generate its own.
 		my $DirName = ($ARGV[0] =~ m{(.*[^/])?(?:/.*)})[0];
-		-d $DirName or Err(1, "Directory '$DirName' not found.");
+		-d $DirName or die("Err: Directory '$DirName' not found.\n");
 
 		$ConfigFile = $ARGV[0]
 	} elsif ($ARGV[0] eq '--force-reset' or $ARGV[0] eq '-F') {
@@ -217,20 +212,20 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] eq '--query' or $ARGV[0] eq '-Q') {
 		shift();
 
-		length($ARGV[0]) or Err(1, "OPT '$1' requires an alert ID.");
-		$ARGV[0] =~ '^[[:digit:]]{4}$' or Err(1, 'Invalid alert ID.');
+		length($ARGV[0]) or die("Err: OPT '$1' requires an alert ID.\n");
+		$ARGV[0] =~ '^[[:digit:]]{4}$' or die("Err: Invalid alert ID.\n");
 
 		$Query = 'true';
 		$HelpAlertID = $ARGV[0]
 	} elsif ($ARGV[0] =~ /^(--skip=)(.*)$/) {
 		@SkipIDs = split(',', $2);
 
-		scalar(@SkipIDs) or Err(1, "OPT '$1' requires at least one ID.");
+		scalar(@SkipIDs) or die("Err: OPT '$1' requires at least one ID.\n");
 
 		my $Failed = 0;
 		foreach my $ID (@SkipIDs) {
 			unless (/^[[:digit:]]{4}$/) {
-				Err(0, "Alert ID '$ID' invalid.");
+				warn("Err: Alert ID '$ID' invalid.\n");
 				$Failed++
 			}
 		}
@@ -245,12 +240,12 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] eq '--key' or $ARGV[0] eq '-k') {
 		shift();
 
-		length($ARGV[1]) or Err(1, "OPT '$1' requires a key.");
+		length($ARGV[1]) or die("Err: OPT '$1' requires a key.\n");
 
 		my ($Key, $Value) = split('=', $ARGV[0]);
 		$KeyOpt{$Key} = $Value
 	} elsif ($ARGV[0] =~ '^-') {
-		Err(1, "Incorrect option(s) specified.")
+		die("Err: Incorrect option(s) specified.\n")
 	} else {
 		last
 	}
@@ -258,8 +253,8 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
--w $MainDir or Err(1, "Directory '$MainDir' unwritable.");
--x $MainDir or Err(1, "Directory '$MainDir' unexectuable.");
+-w $MainDir or die("Err: Directory '$MainDir' unwritable.\n");
+-x $MainDir or die("Err: Directory '$MainDir' unexectuable.\n");
 
 sub DepChk {
 	my @Files;
@@ -321,12 +316,12 @@ unless ($ForceRun eq 'true') {
 				my $OS = substr(<$FH>, 0, 5);
 				close($FH);
 
-				$OS eq 'Linux' or Err(1, 'Unsupported OS.')
+				$OS eq 'Linux' or die("Err: Unsupported OS.\n")
 			} else {
 				die("$!")
 			}
 		} else {
-			Err(1, 'Unrecognised OS.')
+			die("Err: Unrecognised OS.\n")
 		}
 	}
 
@@ -343,12 +338,12 @@ unless ($ForceRun eq 'true') {
 
 			close($FH);
 
-			$Found or Err(1, 'Unsupported LSB.')
+			$Found or die("Err: Unsupported LSB.\n")
 		} else {
 			die("$!")
 		}
 	} else {
-		Err(1, 'Unrecognised LSB.')
+		die("Err: Unrecognised LSB.\n")
 	}
 }
 
@@ -385,9 +380,9 @@ sub Info($) {
 sub FileChk($) {
 	my $Errs = 0;
 	unless (-r $_[0]) {
-		Err(0, "File '$_[0]' unreadable."); $Errs++
+		warn("Err: File '$_[0]' unreadable.\n"); $Errs++
 	} elsif (-B -s $_[0]) {
-		Err(0, "File '$_[0]' is binary."); $Errs++
+		warn("Err: File '$_[0]' is binary.\n"); $Errs++
 	}
 
 	exit(1) if $Errs;
@@ -409,7 +404,7 @@ if (-f DATABASE) {
 } else {
 	# Only error out here if queries are NOT completely disabled.
 	unless ($AutoQuery ne 'true' and $Query ne 'true') {
-		Err(1, "File '${\DATABASE}' not found.")
+		die("Err: File '${\DATABASE}' not found.\n")
 	}
 }
 
@@ -440,7 +435,7 @@ sub QueryAlert($;$) {
 		}
 	}
 
-	$Found or Err(1, "Alert '$HelpAlertID' not found.");
+	$Found or die("Err: Alert '$HelpAlertID' not found.\n");
 
 	$Text::Wrap::columns = (GetTerminalSize())[0] - 2;
 
@@ -509,7 +504,7 @@ sub ParseDpkgStatus($) {
 	my $DpkgStatus = '/var/lib/dpkg/status';
 
 	unless (-f $DpkgStatus) {
-		Err(0, "File '$DpkgStatus' not found.")
+		warn("Err: File '$DpkgStatus' not found.\n")
 	} else {
 		FileChk($DpkgStatus);
 		open(my $FH, '<', $DpkgStatus) or die("$!");
@@ -585,7 +580,7 @@ if ($Verbose eq 'true' and -f DEFAULT_CONFIG_FILE) {
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
 
 sub Boolean {
-	$_[0] =~ '^(true|false)$' or Err(1, "Invalid boolean '$_[0]' detected.")
+	$_[0] =~ '^(true|false)$' or die("Err: Invalid boolean '$_[0]' detected.\n")
 }
 
 if (-f -r -T $ConfigFile) {
@@ -602,7 +597,7 @@ if (-f -r -T $ConfigFile) {
 		$Value = $KeyOpt{$Key} if grep({$_ eq $Key} keys(%KeyOpt));
 
 		if ($Key =~ '^Color_.*') {
-			colorvalid($Value) or Err(1, "Invalid color '$Value' detected.");
+			colorvalid($Value) or die("Err: Invalid color '$Value' detected.\n");
 
 			next if $ANSIColors eq 'false';
 
@@ -612,7 +607,7 @@ if (-f -r -T $ConfigFile) {
 			$ANSIColors = $Value
 		} elsif ($Key =~ '^Char_.*') {
 			if (length($Value) > 1) {
-				Err(1, "Invalid 'Char_*' value detected.")
+				die("Err: Invalid 'Char_*' value detected.\n")
 			} elsif (length($Value) == 0) {
 				next
 			} else {
@@ -633,7 +628,7 @@ if (-f -r -T $ConfigFile) {
 			$PurgeChk = $Value
 		} elsif ($Key eq 'HardAPT') {
 			$Value =~ '^([01]|true|false)$'
-				or Err(1, "Invalid boolean '$Value' detected.");
+				or die("Err: Invalid boolean '$Value' detected.\n");
 
 			$HardAPT = $Value
 		} elsif ($Key eq 'SSHDConfig') {
@@ -676,22 +671,22 @@ if (-f -r -T $ConfigFile) {
 		} elsif ($Key eq 'QueryIndent') {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				# Default value and its bounds are mentioned in the config.
-				$Value > 0 and $Value <= 9 or Err(1, "Key '$Key' out of bounds.");
+				$Value > 0 and $Value <= 9 or die("Err: Key '$Key' out of bounds.\n");
 
 				$QueryIndent = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'DSLimit') {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				# Default value and its bounds are mentioned in the config.
 				unless ($Value >= 10 and $Value <= 100) {
-					Err(1, "Key '$Key' out of bounds.")
+					die("Err: Key '$Key' out of bounds.\n")
 				}
 
 				$DSLimit = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'DirPerms') {
 			Boolean($Value);
@@ -704,22 +699,22 @@ if (-f -r -T $ConfigFile) {
 		} elsif ($Key eq 'BatCrit') {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				unless ($Value > 0 and $Value <= 99) {
-					Err(1, "Key '$Key' out of bounds.")
+					die("Err: Key '$Key' out of bounds.\n")
 				}
 
 				$BatCrit = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'BatLow') {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				unless ($Value > 0 and $Value <= 99) {
-					Err(1, "Key '$Key' out of bounds.")
+					die("Err: Key '$Key' out of bounds.\n")
 				}
 
 				$BatLow = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'ProcVuln') {
 			Boolean($Value);
@@ -736,13 +731,13 @@ if (-f -r -T $ConfigFile) {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				$CoreTempCrit = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'TempScale') {
 			if ($Value =~ /^[C|F]$/) {
 				$TempScale = $Value
 			} else {
-				Err(1, "Key '$Key' must be either 'F' or 'C'.");
+				die("Err: Key '$Key' must be either 'F' or 'C'.\n");
 			}
 		} elsif ($Key eq 'AptCache') {
 			Boolean($Value);
@@ -751,7 +746,7 @@ if (-f -r -T $ConfigFile) {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				$AptCacheMBLimit = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer in MB.");
+				die("Err: Key '$Key' requires an integer in MB.\n");
 			}
 		} elsif ($Key eq 'LightDM') {
 			Boolean($Value);
@@ -768,7 +763,7 @@ if (-f -r -T $ConfigFile) {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				$HomeCacheMBLimit = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'Thumbnails') {
 			Boolean($Value);
@@ -777,7 +772,7 @@ if (-f -r -T $ConfigFile) {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				$ThumbsMBLimit = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'DpkgConf') {
 			Boolean($Value);
@@ -794,7 +789,7 @@ if (-f -r -T $ConfigFile) {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				$MBMaxSwap = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'RAM') {
 			Boolean($Value);
@@ -803,7 +798,7 @@ if (-f -r -T $ConfigFile) {
 			if ($Value =~ /^[[:digit:]]+$/) {
 				$MBMaxRAM = $Value
 			} else {
-				Err(1, "Key '$Key' requires an integer.");
+				die("Err: Key '$Key' requires an integer.\n");
 			}
 		} elsif ($Key eq 'CMOS') {
 			Boolean($Value);
@@ -828,12 +823,12 @@ if (-f -r -T $ConfigFile) {
 			$SymsFileMode = $Value
 		} elsif ($Key eq 'CPUGovernor') {
 			if (length($CPUGovernor) > 0 and not grep($Value, @ValidGovs)) {
-				Err(1, "CPU governor '$CPUGovernor' not recognised.")
+				die("Err: CPU governor '$CPUGovernor' not recognised.\n")
 			}
 
 			$CPUGovernor = $Value
 		} else {
-			Err(0, "Key '$Key' unknown.");
+			warn("Err: Key '$Key' unknown.\n");
 
 			$InvalidKeyCount++
 		}
@@ -845,7 +840,7 @@ if (-f -r -T $ConfigFile) {
 
 	# Because this would otherwise make no sense.
 	if ($Laptop eq 'true' and $BatCrit >= $BatLow) {
-		Err(1, "Key conflict with 'BatCrit' and 'BatLow'.")
+		die("Err: Key conflict with 'BatCrit' and 'BatLow'.\n")
 	}
 } else {
 	# Store contents into buffer, sans initial and now-unneeded Cito line.
@@ -865,7 +860,7 @@ if (-f -r -T $ConfigFile) {
 
 if (@SkipIDs > 0) {
 	foreach (@SkipIDs) {
-		/^[[:digit:]]{4}$/ or Err(1, "Invalid alert ID.")
+		/^[[:digit:]]{4}$/ or die("Err: Invalid alert ID.\n")
 	}
 }
 
@@ -924,10 +919,10 @@ if ($KernParams eq 'true') {
 		if (-f $Path) {
 			unless (-r $Path) {
 				# Some parameters are more locked down than others.
-				Err(0, "Denied access to '$ShowKey' parameter.");
+				warn("Err: Denied access to '$ShowKey' parameter.\n");
 				next
 			} elsif (-B -s $Path) {
-				Err(0, "Unable to determine '$ShowKey' parameter.");
+				warn("Err: Unable to determine '$ShowKey' parameter.\n");
 				next
 			}
 
@@ -1091,8 +1086,8 @@ if ($SSHClient eq 'true') {
 	my $SSHDir = "$ENV{HOME}/.ssh";
 
 	if (-d $SSHDir) {
-		-r $SSHDir or Err(1, "Directory '$SSHDir' unreadable.");
-		-x $SSHDir or Err(1, "Directory '$SSHDir' denies execution.");
+		-r $SSHDir or die("Err: Directory '$SSHDir' unreadable.\n");
+		-x $SSHDir or die("Err: Directory '$SSHDir' denies execution.\n");
 
 		my ($Mode, $Owner, $Group) = (stat($SSHDir))[2,4,5];
 		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
@@ -1125,10 +1120,10 @@ if ($SSHClient eq 'true') {
 
 if ($SSHServer eq 'true') {
 	if (-f $SSHDConfig) {
-		-r $SSHDConfig or Err(1, "File '$SSHDConfig' unreadable.");
+		-r $SSHDConfig or die("Err: File '$SSHDConfig' unreadable.\n");
 
 		# Without the `-s` flag, zero-size files get flagged as binary.
-		-B -s $SSHDConfig and Err(1, "File '$SSHDConfig' is binary.");
+		-B -s $SSHDConfig and die("Err: File '$SSHDConfig' is binary.\n");
 
 		FileChk($SSHDConfig);
 		open(my $FH, '<', $SSHDConfig);
@@ -1509,8 +1504,8 @@ if ($Laptop eq 'true') {
 
 if ($ProcVuln eq 'true') {
 	if (-d $VulnDir) {
-		-r $VulnDir or Err(1, "Directory '$VulnDir' unreadable.");
-		-x $VulnDir or Err(1, "Unable to open '$VulnDir' directory.");
+		-r $VulnDir or die("Err: Directory '$VulnDir' unreadable.\n");
+		-x $VulnDir or die("Err: Unable to open '$VulnDir' directory.\n");
 
 		foreach (glob("$VulnDir/*")) {
 			next unless -f;
@@ -1620,8 +1615,8 @@ if ($CPUTemp eq 'true') {
 	}
 
 	if (defined($Dir)) {
-		-r $Dir or Err(1, "Directory '$Dir' unreadable.");
-		-x $Dir or Err(1, "Directory '$Dir' denies execution.");
+		-r $Dir or die("Err: Directory '$Dir' unreadable.\n");
+		-x $Dir or die("Err: Directory '$Dir' denies execution.\n");
 
 		# Gather a hash of (only) the core temperatures.
 		my (%TempData, $Temp);
@@ -1792,8 +1787,8 @@ if ($LightDM eq 'true') {
 #
 # Also inspired by various checks made by rkhunter(8).
 if ($RootKits eq 'true') {
-	-f RK_DATABASE or Err(1, "File '${\RK_DATABASE}' not found.");
-	-r RK_DATABASE or Err(1, "File '${\RK_DATABASE}' unreadable.");
+	-f RK_DATABASE or die("Err: File '${\RK_DATABASE}' not found.\n");
+	-r RK_DATABASE or die("Err: File '${\RK_DATABASE}' unreadable.\n");
 
 	open(my $FH, '<', RK_DATABASE);
 	my @DBData = <$FH>;
