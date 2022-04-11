@@ -3,31 +3,32 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/kernelchk
 # Started On        - Sun  5 May 13:15:29 BST 2019
-# Last Change       - Fri 13 Nov 15:17:39 GMT 2020
+# Last Change       - Mon 11 Apr 01:52:14 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
-# Simpler Perl rewrite of the old shell kernelchk program also by TFL.
+# Simpler Perl rewrite of the old shell kernelchk program also by TFL. This
+# just checks for a kernel change, notifying the user accordingly. It might be
+# handy if you're paranoid about security, but it's usefulness is arguable.
 #
 # Dependencies:
 #
 #    libgtk2-notify-perl (>= 0.05-4build2)
+#    perl (>= 5.10)
 #------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 use Gtk2::Notify -init, 'kernelchk';
 
 no warnings 'uninitialized';
 
-my $CurVer = "2020-11-13";
-my $Progrm = 'kernelchk';
+use constant VERSION => '2022-04-11';
+use constant PROGRAM => 'kernelchk';
 
-my $ProcFile = '/proc/version';
-
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -42,58 +43,59 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
+use constant PROC_FILE => '/proc/version';
+use constant MAIN_DIR => "$ENV{HOME}/.config/" . PROGRAM;
+use constant SAVED_FILE => MAIN_DIR . '/saved';
+
 my ($Notify, $BeQuiet, $Set);
 
 while ($ARGV[0]) {
-	if ($ARGV[0] =~ /^(--help|-h|-\?)$/) {
-		Usage; exit(0)
+	if ($ARGV[0] =~ /^(--help|-h)$/) {
+		Usage(); exit(0)
 	} elsif($ARGV[0] =~ /^(--version|-v)$/) {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
 	} elsif($ARGV[0] =~ /^(--quiet|-q)$/) {
-		$BeQuiet = 'true'
+		$BeQuiet = 1
 	} elsif($ARGV[0] =~ /^(--notify|-N)$/) {
-		$Notify = 'true'
+		$Notify = 1
 	} elsif($ARGV[0] =~ /^(--set|-s)$/) {
-		$Set = 'true'
+		$Set = 1
 	} else {
-		die("Incorrect argument(s) specified")
+		die("Err: Incorrect argument(s) specified.\n")
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
-sub CheckFile {
-	-f $_[0] or die("File '$_[0]' not found");
-	-r $_[0] or die("Read access to '$_[0]' denied")
+sub CheckFile($) {
+	die("Err: File '$_[0]' not found.\n") unless -f $_[0];
+	die("Err: Read access to '$_[0]' denied.\n") unless -r $_[0]
 }
 
-my $MainDir = "$ENV{HOME}/.config/$Progrm";
--d $MainDir or mkdir($MainDir);
-
-my $SavedFile = "$MainDir/saved";
+mkdir(MAIN_DIR) unless -d MAIN_DIR;
 
 # Get current version.
-CheckFile($ProcFile);
-open(my $FH, '<', $ProcFile);
+CheckFile(PROC_FILE);
+open(my $FH, '<', PROC_FILE) or die("$!");
 my $Current = @{[split(' ', <$FH>)]}[2];
-close($FH);
+close($FH) or die("$!");
 
 if ($Set eq 'true') {
-	open(my $FH, '>', $SavedFile);
+	open(my $FH, '>', SAVED_FILE) or die("$!");
 	print($FH $Current);
-	close($FH);
+	close($FH) or die("$!");
 
 	exit(0)
 }
 
 # Get saved version.
-CheckFile($SavedFile);
-open($FH, '<', $SavedFile);
+CheckFile(SAVED_FILE);
+open($FH, '<', SAVED_FILE) or die("$!");
 chomp(my $Saved = <$FH>);
-close($FH);
+close($FH) or die("$!");
 
 printf("%-14s%-s\n%-14s%-s\n", 'CURRENT:', $Current, 'SAVED:', $Saved)
-	unless $BeQuiet eq 'true';
+	unless $BeQuiet;
 
 exit(0) if $Current eq $Saved;
 
