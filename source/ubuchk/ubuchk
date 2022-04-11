@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 20:52:54 BST 2022
+# Last Change       - Mon 11 Apr 21:01:42 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -101,12 +101,14 @@ require Filesys::DiskSpace;
 require Term::ANSIColor;
 require Term::ReadKey;
 require Text::Wrap;
-require POSIX;
 
 use feature 'say';
 use strict;
 use warnings;
 use autodie;
+use Term::ANSIColor 'color', 'colorvalid';
+use Term::ReadKey 'GetTerminalSize';
+use Text::Wrap 'wrap';
 
 no warnings 'uninitialized';
 
@@ -258,7 +260,45 @@ while (defined($ARGV[0])) {
 
 #-----------------------------------------------------------Primary Subroutines
 
+# Usage: Info(<STRING>)
+sub Info($) {
+	say($_[0]) if $Verbose eq 'true'
+}
+
+# Usage: Human(<BYTES>)
+sub Human($) {
+	my $Size = $_[0];
+	foreach ('', qw{K M G T P E Z Y}) {
+		if ($Size < $HumanDivisor) {
+			my $Result = sprintf("%.1f", $Size);
+			my $Len = length($Result);
+			my $LastTwo = substr($Result, $Len - 2);
+			if ($LastTwo eq '.0') {
+				return(substr($Result, 0, $Len - 2) . $_)
+			} else {
+				return($Result . $_)
+			}
+		}
+
+		$Size = $Size / $HumanDivisor
+	}
+}
+
+# Usage: FileChk(<FILE>)
+sub FileChk($) {
+	my $Errs = 0;
+	unless (-r $_[0]) {
+		$Errs++; warn("Err: File '$_[0]' unreadable.\n")
+	} elsif (-B -s $_[0]) {
+		$Errs++; warn("Err: File '$_[0]' is binary.\n")
+	}
+
+	exit(1) if $Errs
+}
+
 sub SlurpFile($) {
+	FileChk($_[0]);
+
 	open(my $FH, '<', $_[0]) or die("$!");
 
 	local $/ = undef();
@@ -315,8 +355,6 @@ sub GetDirSize($) {
 	return($Size)
 }
 
-use Term::ANSIColor 'color', 'colorvalid';
-
 #---------------------------------------------------------------OS & LSB Checks
 
 unless ($ForceRun eq 'true') {
@@ -349,42 +387,6 @@ my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
 
 #-----------------------------------------------------Miscellaneous Subroutines
 
-# Usage: Human(<BYTES>)
-sub Human($) {
-	my $Size = $_[0];
-	foreach ('', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y') {
-		if ($Size < $HumanDivisor) {
-			my $Result = sprintf("%.1f", $Size);
-			my $Len = length($Result);
-			my $LastTwo = substr($Result, $Len - 2);
-			if ($LastTwo eq '.0') {
-				return(substr($Result, 0, $Len - 2) . $_)
-			} else {
-				return($Result . $_)
-			}
-		}
-
-		$Size = $Size / $HumanDivisor
-	}
-}
-
-# Usage: Info(<STRING>)
-sub Info($) {
-	say($_[0]) if $Verbose eq 'true'
-}
-
-# Usage: FileChk(<FILE>)
-sub FileChk($) {
-	my $Errs = 0;
-	unless (-r $_[0]) {
-		warn("Err: File '$_[0]' unreadable.\n"); $Errs++
-	} elsif (-B -s $_[0]) {
-		warn("Err: File '$_[0]' is binary.\n"); $Errs++
-	}
-
-	exit(1) if $Errs;
-}
-
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
 # alert is shown. Not sure why; something about changing a read-only variable.
 # This is usually not ideal, but at least when there are many alerts, the file
@@ -407,9 +409,6 @@ if (-f DATABASE) {
 
 # Usage: QueryAlert(<>, <ALERT_ID>)
 sub QueryAlert($;$) {
-	use Term::ReadKey 'GetTerminalSize';
-	use Text::Wrap 'wrap';
-
 	$HelpAlertID = $_[1] unless length($HelpAlertID);
 
 	my @Body;
@@ -1652,9 +1651,7 @@ if ($CPUTemp eq 'true') {
 		# Taken directly from the TFL module. (2020-02-29)
 		sub CelsFahr {
 			if ($_[0] eq 'F') {
-				use POSIX 'ceil';
-
-				return(ceil(($_[1] * 9/5) + 32))
+				return(int(($_[1] * 9/5) + 32))
 			} elsif ($_[0] eq 'C') {
 				return($_[1])
 			}
@@ -1825,9 +1822,7 @@ if ($HomeCache eq 'true') {
 	if (-d USER_CACHE_DIR) {
 		my $Size = GetDirSize(USER_CACHE_DIR);
 		if ($Size > 0) {
-			use POSIX 'ceil';
-
-			my $SizeMB = ceil($Size / (1024 * 1024));
+			my $SizeMB = int($Size / (1024 * 1024));
 			my $Human = Human($Size);
 			if ($SizeMB >= $HomeCacheMBLimit) {
 				Alert(
@@ -1854,9 +1849,7 @@ if ($Thumbnails eq 'true') {
 	if (-d USER_THUMB_DIR) {
 		my $Size = GetDirSize(USER_THUMB_DIR);
 		if ($Size > 0) {
-			use POSIX 'ceil';
-
-			my $SizeMB = ceil($Size / 1024 / 1024);
+			my $SizeMB = int($Size / 1024 / 1024);
 			my $Human = Human($Size);
 			if ($SizeMB >= $ThumbsMBLimit) {
 				Alert(
@@ -1927,8 +1920,6 @@ if ($DpkgConf eq 'true') {
 
 if ($Swaps eq 'true') {
 	if (-f SWAPS_FILE) {
-		use POSIX 'ceil';
-
 		FileChk(SWAPS_FILE);
 		open(my $FH, '<', SWAPS_FILE);
 
@@ -1942,7 +1933,7 @@ if ($Swaps eq 'true') {
 			my ($File, $Type, $Size, $Used, $Priority) = split(' ');
 			my $HumSize = Human($Size * 1024);
 			my $HumUsed = Human($Used * 1024);
-			my $MRemains = ceil(($Size - $Used) / 1024);
+			my $MRemains = int(($Size - $Used) / 1024);
 
 			if ($Type eq 'file') {
 				my ($Mode, $Owner, $Group) = (stat($File))[2,4,5];
@@ -2007,8 +1998,6 @@ if ($Swaps eq 'true') {
 
 if ($RAM eq 'true') {
 	if (-f MEMINFO_FILE) {
-		use POSIX 'ceil';
-
 		FileChk(MEMINFO_FILE);
 		open(my $FH, '<', MEMINFO_FILE);
 
@@ -2045,7 +2034,7 @@ if ($RAM eq 'true') {
 		my $BUsed = ($BTotal - $BFree) - ($BBuf + $BCache + $BSRec);
 
 		# As the free(1) utility shows by default.
-		my $MUsed = ceil($BUsed / (1024 * 1024));
+		my $MUsed = int($BUsed / (1024 * 1024));
 		my $HumUsed = Human($BUsed);
 
 		if ($MUsed <= $MBMaxRAM) {
