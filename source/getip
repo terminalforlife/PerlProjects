@@ -3,7 +3,7 @@
 #--------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/getip
 # Started On        - Wed  8 May 14:35:49 BST 2019
-# Last Change       - Fri 19 Feb 01:15:48 GMT 2021
+# Last Change       - Mon 11 Apr 01:31:37 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #--------------------------------------------------------------------------
@@ -25,18 +25,17 @@
 require HTTP::Tiny;
 require Net::Address::IP::Local;
 
-use 5.22.1;
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2021-02-19';
-my $Progrm = 'getip';
+use constant VERSION => '2022-04-11';
+use constant PROGRAM => 'getip';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -46,44 +45,50 @@ sub Usage {
 	} =~ tr/\t//dr)
 }
 
-my $Internal = 'true';
-my $External = 'true';
-my $IntExtDetected = 0;
+my ($Internal, $External) = (1, 1);
 my $IntStr = 'Internal IP: ';
 my $ExtStr = 'External IP: ';
 
+my ($IntExtDetected, $InternalArg, $ExternalArg);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^(--internal|-i)$') {
-		$IntExtDetected++; $Internal = 'true'; $External = 'false'
+		$InternalArg = $ARGV[0];
+
+		$IntExtDetected++;
+		($Internal, $External) = (1, 0)
 	} elsif ($ARGV[0] =~ '^(--external|-e)$') {
-		$IntExtDetected++; $Internal = 'false'; $External = 'true'
+		$ExternalArg = $ARGV[0];
+
+		$IntExtDetected++;
+		($Internal, $External) = (0, 1)
 	} elsif ($ARGV[0] =~ '^(--ip-only|-I)$') {
-		$IntStr = ''; $ExtStr = ''
+		($IntStr, $ExtStr) = ''
 	} else {
-		die("Incorrect option(s) specified")
+		die("Err: Incorrect option(s) specified.\n")
 	}
 
 	shift()
 }
 
-$IntExtDetected == 2 and die("Either '--internal|-i' or '--external|-e'");
+die("Err: Either '$InternalArg' or '$ExternalArg'.\n")
+	if $IntExtDetected == 2;
 
-if ($Internal eq 'true') {
+if ($Internal) {
 	use Net::Address::IP::Local;
 
 	my $Data = Net::Address::IP::Local->public();
 	if ($Data =~ '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]') {
-		print($IntStr . $Data . "\n")
+		say("$IntStr$Data")
 	} else {
-		die('Invalid internal IP address detected')
+		die("Err: Invalid internal IP address detected.\n")
 	}
 }
 
-if ($External eq 'true') {
+if ($External) {
 	use HTTP::Tiny;
 
 	my $Tiny = HTTP::Tiny->new();
@@ -91,11 +96,11 @@ if ($External eq 'true') {
 	if ($Response->{'success'}) {
 		my $Data = $Response->{'content'};
 		if ($Data =~ '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]') {
-			print($ExtStr . $Response->{'content'} . "\n")
+			say("$ExtStr$Response->{'content'}")
 		} else {
-			die('Invalid external IP address detected')
+			die("Err: Invalid external IP address detected.\n")
 		}
 	} else {
-		die('Unable to determine external IP address')
+		die("Err: Unable to determine external IP address.\n")
 	}
 }
