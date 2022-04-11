@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 21:08:25 BST 2022
+# Last Change       - Mon 11 Apr 21:19:50 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -164,10 +164,10 @@ my (
 	@UnwantedPKGs, $ForceRun, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
 	$SSHDConfig, $Verbose, $UFW, $SystemD, $KernMods, @CustomKMs,
 	@SkipKMs, @SkipIDs, $AlertCount, $Recommend, $SSHClient, $ProcVuln,
-	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, @DBData,
-	$DirPerms, @SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow,
-	$MountHome, @SkipMountOpts, $CPUTemp, $CoreTempCrit, $FailedLogins,
-	$TempScale, $AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @IgnoreFiles,
+	$DiskSpace, @ShownAlerts, $AutoQuery, $QueryIndent, $DSLimit, $DirPerms,
+	@SkipSysD, $Laptop, @Installed, @NotPurged, $BatCrit, $BatLow, $MountHome,
+	@SkipMountOpts, $CPUTemp, $CoreTempCrit, $FailedLogins, $TempScale,
+	$AptCache, $AptCacheMBLimit, $LightDM, $RootKits, @IgnoreFiles,
 	$HomeCache, $HomeCacheMBLimit, $Thumbnails, $ThumbsMBLimit, $DpkgConf,
 	@SkipDpkgOpts, $Swaps, $MBMaxSwap, $RAM, $MBMaxRAM, $CMOS, $ListKeys,
 	$ListDbAlerts, $ChkPasswd, %KeyOpt, $ID0NonRoots, $AppArmor, %ColorHash,
@@ -384,27 +384,25 @@ unless ($ForceRun eq 'true') {
 	}
 }
 
-#-----------------------------------------------------Miscellaneous Subroutines
+#-----------------------------------------------------------Read Query Database
 
 # Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
 # alert is shown. Not sure why; something about changing a read-only variable.
 # This is usually not ideal, but at least when there are many alerts, the file
 # won't constantly be opened and processed.
-if (-f DATABASE) {
-	FileChk(DATABASE);
-
-	if (open(my $FH, '<', DATABASE)) {
-		@DBData = <$FH>;
-		close($FH);
-	} else {
-		warn("$!")
-	}
+my @DBData;
+if (-f -r DATABASE) {
+	open(my $FH, '<', DATABASE) or die("$!");
+	@DBData = <$FH>;
+	close($FH) or die("$!")
 } else {
 	# Only error out here if queries are NOT completely disabled.
 	unless ($AutoQuery ne 'true' and $Query ne 'true') {
-		die("Err: File '${\DATABASE}' not found.\n")
+		die("Err: File '${\DATABASE}' missing or unreadable.\n")
 	}
 }
+
+#-----------------------------------------------------Miscellaneous Subroutines
 
 # Usage: QueryAlert(<>, <ALERT_ID>)
 sub QueryAlert($;$) {
