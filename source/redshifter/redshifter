@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/redshifter
 # Started On        - Fri 19 Apr 23:05:28 BST 2019
-# Last Change       - Thu 13 Jan 21:15:23 GMT 2022
+# Last Change       - Mon 11 Apr 01:13:15 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -13,18 +13,17 @@
 #   redshift (>= 1.10-5)
 #------------------------------------------------------------------------------
 
-use v5.22.1;
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = "2022-01-13";
-my $Progrm = 'redshifter';
+use constant VERSION => '2022-04-11';
+use constant PROGRAM => 'redshifter';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS] ACTION
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS] ACTION
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -43,24 +42,25 @@ sub Usage {
 my $Buffer = "$ENV{HOME}/.config/rs-gamma";
 my $ConfigDir = ($Buffer =~ m{(.*)?(?:/.*)})[0];
 
-@ARGV == 0 and die("Argument(s) required");
+die("Err: Argument(s) required.\n") unless @ARGV;
 
 my ($Temp, $GammasNow);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
-		Usage(1); exit(0)
+		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^(--file|-f)$') {
 		shift();
 
-		-d $ARGV[0] and die("Option '--file|-f' given a directory");
+		die("Err: Option '--file|-f' given a directory.\n")
+			if -d $ARGV[0];
 
 		$Buffer = $ARGV[0]
 	} elsif ($ARGV[0] =~ '^-') {
-		die("Incorrect option(s) specified")
+		die("Err: Incorrect option(s) specified.\n")
 	} else {
-		last
+		last()
 	}
 
 	shift()
@@ -68,59 +68,61 @@ while (defined($ARGV[0])) {
 
 my @Bins;
 foreach my $Dir (split(':', $ENV{PATH})) {
-	-d $Dir or next;
-	opendir(my $DH, $Dir);
+	next() unless -d -x $Dir;
+
+	opendir(my $DH, $Dir) or die("$!");
 	push(@Bins, readdir($DH));
-	closedir($DH)
+	closedir($DH) or die("$!")
 }
 
-grep({$_ eq 'redshift'} @Bins) or die("Dependency 'redshift' not found");
+die("Err: Dependency 'redshift' not found.\n")
+	unless grep({$_ eq 'redshift'} @Bins);
 
 # Usage: GetSetValue([<|>], [GAMMA_INT])
 sub GetSetValue($;$) {
 	if (-f $Buffer) {
-		-r $Buffer or die("File '$Buffer' lacks read access");
-		-w $Buffer or die("File '$Buffer' lacks write access");
+		die("Err: File '$Buffer' lacks read access.\n")
+			unless -r $Buffer;
+
+		die("Err: File '$Buffer' lacks write access.\n")
+			unless -w $Buffer;
 	}
 
-	open(my $FH, $_[0], $Buffer);
+	open(my $FH, $_[0], $Buffer) or die("$!");
 
-	print($FH "$_[1]\n") if $_[0] eq '>';
+	say($FH $_[1]) if $_[0] eq '>';
 	chomp($GammasNow = <$FH>) if $_[0] eq '<';
 
-	close($FH)
+	close($FH) or die("$!")
 }
 
 # Usage: ChkVal([ACTION], [VALUE])
 sub ChkVal($;$) {
-	$_[1] =~ /^\d+$/a or die("Action '$_[0]' needs an integer");
+	die("Err: Action '$_[0]' needs an integer.\n")
+		unless $_[1] =~ /^\d+$/a;
 
 	if ($_[0] eq 'raise') {
 		$Temp = $GammasNow + $_[1];
 		if ($Temp > 25000) {
 			$Temp = 25000;
-			warn('Maximum gamma available is 25000')
+			warn("Err: Maximum gamma available is 25000.\n")
 		}
 	} elsif ($_[0] eq 'lower') {
 		$Temp = $GammasNow - $_[1];
 		if ($Temp < 1000) {
 			$Temp = 1000;
-			warn('Minimum gamma available is 1000')
+			warn("Err: Minimum gamma available is 1000.\n")
 		}
 	}
 }
 
 # Just in-case the user doesn't yet have a `.config` directory.
--d $ConfigDir or mkdir($ConfigDir);
+mkdir($ConfigDir) unless -d $ConfigDir;
 
-if (-f $Buffer) {
-	GetSetValue('<')
-}else{
-	GetSetValue('>', 6500)
-}
+-f $Buffer ? GetSetValue('<') : GetSetValue('>', 6500);
 
 # Parse ACTIONS.
-while (defined($ARGV[0])){
+while (defined($ARGV[0])) {
 	if ($ARGV[0] eq 'set') {
 		shift();
 
@@ -149,7 +151,7 @@ while (defined($ARGV[0])){
 	} elsif ($ARGV[0] eq 'show') {
 		print("$GammasNow\n")
 	} else {
-		die("Incorrect action(s) specified")
+		die("Err: Incorrect action(s) specified.\n")
 	}
 
 	shift()
