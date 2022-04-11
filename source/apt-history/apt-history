@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Thu 13 Jan 20:28:44 GMT 2022
+# Last Change       - Mon 11 Apr 02:25:27 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,7 +21,7 @@
 #
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.10)
 #------------------------------------------------------------------------------
 
 require Term::ANSIColor;
@@ -30,18 +30,17 @@ require Text::Wrap;
 require Time::Piece;
 require APTHistory;
 
-use v5.22.1;
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-13';
-my $Progrm = 'apt-history';
+use constant VERSION => '2022-04-11';
+use constant PROGRAM => 'apt-history';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -79,41 +78,41 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^(--history|-H)$') {
 		shift();
 
-		if (length($ARGV[0]) == 0) {
-			die("Alternative 'history.log' FILE not provided")
+		unless (length($ARGV[0])) {
+			die("Err: Alternative 'history.log' FILE not provided.\n")
 		} else {
 			$HistFile = $ARGV[0]
 		}
 	} elsif ($ARGV[0] =~ '^(--package|-p)$') {
 		shift();
 
-		if (length($ARGV[0]) == 0) {
-			die("Filter package PKG not provided")
+		if (length($ARGV[0])) {
+			die("Err: Filter package PKG not provided.\n")
 		} else {
-			$ARGV[0] =~ /:.*$/ and $FilterWithArch = 1;
+			$FilterWithArch = 1 if $ARGV[0] =~ /:.*$/;
 			$FilterPKG = $ARGV[0]
 		}
 	} elsif ($ARGV[0] =~ '^(--display|-D)$') {
 		shift();
 
-		if (length($ARGV[0]) == 0) {
-			die("Package display STYLE not provided")
+		unless (length($ARGV[0])) {
+			die("Err: Package display STYLE not provided.\n")
 		} elsif ($ARGV[0] !~ '^(OneLine|Wrapped)$') {
-			die("Invalid package display STYLE provided")
+			die("Err: Invalid package display STYLE provided.\n")
 		} else {
 			$PKGStyle = $ARGV[0]
 		}
 	} elsif ($ARGV[0] =~ '^(--action|-A)$') {
 		shift();
 
-		if (length($ARGV[0]) == 0) {
-			die("No execution action TYPE provided")
+		unless (length($ARGV[0])) {
+			die("Err: No execution action TYPE provided.\n")
 		} elsif ($ARGV[0] !~ '^(Install|Remove|Upgrade|Purge)$') {
-			die("Invalid execution action TYPE provided")
+			die("Err: Invalid execution action TYPE provided.\n")
 		} else {
 			$OnlyAction = $ARGV[0]
 		}
@@ -121,7 +120,7 @@ while (defined($ARGV[0])) {
 		shift();
 
 		unless (length($ARGV[0])) {
-			die("No USER specified for filtering")
+			die("Err: No USER specified for filtering.\n")
 		} else {
 			$ArgFilterUser = $1;
 			$FilterUser = $ARGV[0]
@@ -131,44 +130,45 @@ while (defined($ARGV[0])) {
 
 		$ArgFilterUID = $1;
 		unless (length($ARGV[0])) {
-			die('No UID specified for filtering')
+			die("Err: No UID specified for filtering.\n")
 		} elsif ($ARGV[0] !~ '^[0-9]*$') {
-			die('Invalid UID provided')
+			die("Err: Invalid UID provided\n")
 		} else {
 			$FilterUID = $ARGV[0]
 		}
 	} elsif ($ARGV[0] =~ '^(--reverse|-r)$') {
-		$DoReverse = 'True'
+		$DoReverse = 1
 	} elsif ($ARGV[0] =~ '^--no-color-status$') {
-		$NoColorStatus = 'True'
+		$NoColorStatus = 1
 	} elsif ($ARGV[0] =~ '^(--command|-c)$') {
-		$DoCommand = 'True'
+		$DoCommand = 1
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
-		$NoColor = 'True'
+		$NoColor = 1
 	} elsif ($ARGV[0] eq '--margin') {
 		unless (length($ARGV[1])) {
-			die("OPT '$ARGV[0]' requires an argument")
+			die("Err: OPT '$ARGV[0]' requires an argument.\n")
 		} elsif ($ARGV[1] !~ /^\d+$/a) {
-			die("Invalid argument for '$ARGV[0]' OPT")
+			die("Err: Invalid argument for '$ARGV[0]' OPT.\n")
 		} else {
 			# To maintain sane and readable output, but gives the user some
 			# control over a preferred margin, such as 4 or 8; 4 is default.
-			$ARGV[1] > 8 and die("Argument for '$ARGV[0]' OPT out of range");
+			die("Err: Argument for '$ARGV[0]' OPT out of range.\n")
+				if $ARGV[1] > 8;
 
 			$Margin = $ARGV[1];
 			shift()
 		}
 	} elsif ($ARGV[0] =~ '^-') {
-		die("Incorrect option(s) specified")
+		die("Err: Incorrect option(s) specified.\n")
 	} else {
-		last
+		last()
 	}
 
 	shift()
 }
 
 if (length($FilterUID) and length($FilterUser)) {
-	die("OPTs '$ArgFilterUID' and '$ArgFilterUser' specified")
+	die("Err: OPTs '$ArgFilterUID' and '$ArgFilterUser' specified.\n")
 }
 
 #-------------------------------------------------Gather History & Package Data
@@ -185,7 +185,7 @@ use Term::ReadKey 'GetTerminalSize';
 use Text::Wrap 'wrap';
 use Time::Piece;
 
-unless ($NoColor eq 'True') {
+unless ($NoColor) {
 	$C_Action = color('bright_yellow');
 	$C_Arch = color('bright_black');
 	$C_Command = color('bright_black');
@@ -195,7 +195,7 @@ unless ($NoColor eq 'True') {
 }
 
 my @SortedKeys;
-if ($DoReverse eq 'True') {
+if ($DoReverse) {
 	@SortedKeys = sort({$a cmp $b} keys(%History))
 } else {
 	@SortedKeys = sort({$b cmp $a} keys(%History))
@@ -203,28 +203,28 @@ if ($DoReverse eq 'True') {
 
 # This is normal, when the logs rotate, but the user might think something was
 # wrong; came across this myself and was really confused!
-unless (scalar(@SortedKeys)) {
-	print(STDERR "No APT log entries found -- nothing to do.\n");
+unless (@SortedKeys) {
+	say(STDERR 'No APT log entries found -- nothing to do.');
 	exit(0) # <-- Cleaner; no need to keep going if we're here.
 }
 
 $Text::Wrap::columns = (GetTerminalSize())[0] - 1;
 
-my $Count = 0;
+my $Count;
 foreach my $Key (@SortedKeys) {
 	my $FancyDateTime = Time::Piece->strptime(
 		"$History{$Key}{'Date'} $History{$Key}{'Time'}", '%Y-%m-%d %H:%M:%S'
 		#     Using just '%X' doesn't seem to work in Pop! OS 20.04. --^
 	);
 
-	if (length($FilterUser) > 0) {
-		$FilterUser eq $History{$Key}{'ReqByUser'} or next
-	} elsif (length($FilterUID) > 0) {
-		$FilterUID eq $History{$Key}{'ReqByUID'} or next
+	if (length($FilterUser)) {
+		$FilterUser eq $History{$Key}{'ReqByUser'} or next()
+	} elsif (length($FilterUID)) {
+		$FilterUID eq $History{$Key}{'ReqByUID'} or next()
 	}
 
-	if (length($OnlyAction) > 0) {
-		$OnlyAction eq $History{$Key}{'Action'} or next
+	if (length($OnlyAction)) {
+		$OnlyAction eq $History{$Key}{'Action'} or next()
 	}
 
 	# For pretty-printing the correct verb.
@@ -246,9 +246,8 @@ foreach my $Key (@SortedKeys) {
 
 			# If package is not currently installed, change its color to red.
 			unless ($NoColor eq 'True' or $NoColorStatus eq 'True') {
-				unless (grep({$_ eq $PKG} @InstalledPKGs)) {
-					$Name = "$C_Name$Name$C_Reset"
-				}
+				$Name = "$C_Name$Name$C_Reset"
+					unless grep({$_ eq $PKG} @InstalledPKGs)
 			}
 
 			$Arch = "$C_Arch:$Arch$C_Reset";
@@ -257,11 +256,11 @@ foreach my $Key (@SortedKeys) {
 	}
 
 	# Need to strip ANSI escape sequences otherwise grep() is borked.
-	if (length($FilterPKG) > 0) {
+	if (length($FilterPKG)) {
 		if ($FilterWithArch) {
-			grep({colorstrip($_) =~ /^$FilterPKG$/} @Packages) or next
+			next() unless grep({colorstrip($_) =~ /^$FilterPKG$/} @Packages)
 		} else {
-			grep({colorstrip($_) =~ /^$FilterPKG:.*$/} @Packages) or next
+			next() unless grep({colorstrip($_) =~ /^$FilterPKG:.*$/} @Packages)
 		}
 	}
 
@@ -273,14 +272,14 @@ foreach my $Key (@SortedKeys) {
 	# this, to discover if nothing was found under the filters used or not.
 	$Count++;
 
-	print("$C_FancyDateTime$FancyDateTime$C_Reset\n\n");
+	say("$C_FancyDateTime$FancyDateTime$C_Reset\n");
 
-	if ($DoCommand eq 'True') {
+	if ($DoCommand) {
 		# To denote that it's a newline, as it would be on the command-line.
 		$Text::Wrap::separator = " \\\n";
 
 		my $Command = "$C_Command$History{$Key}{Command}$C_Reset\n\n";
-		printf("%s\n", wrap($Pad, $Pad, $Command));
+		say(wrap($Pad, $Pad, $Command));
 
 		# Restore it to a standard newline, for the rest of apt-history.
 		$Text::Wrap::separator = "\n"
@@ -294,12 +293,12 @@ foreach my $Key (@SortedKeys) {
 			$ActionString
 		)
 	} else {
-		printf("%sSystem %s the following:\n", $Pad, $ActionString);
+		say("${Pad}System $ActionString the following:");
 	}
 
 	print("\n");
 	if ($PKGStyle eq 'OneLine') { # <-- Default.
-		map(print("$Pad$_\n"), @Packages)
+		map(say("$Pad$_"), @Packages)
 	} elsif ($PKGStyle eq 'Wrapped') {
 		print(wrap("$Pad", "$Pad", join(' ', @Packages)) . "\n")
 	}
@@ -307,4 +306,4 @@ foreach my $Key (@SortedKeys) {
 	print("\n")
 }
 
-$Count or print(STDERR "No APT log entries found with given filters.\n");
+say(STDERR 'No APT log entries found with given filters.') unless $Count;
