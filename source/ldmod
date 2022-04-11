@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ldmod
 # Started On        - Sat 11 Jan 14:33:58 GMT 2020
-# Last Change       - Mon 11 Apr 01:38:36 BST 2022
+# Last Change       - Mon 11 Apr 02:33:07 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		say($CurVer); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
 		$DoCase = 'i'
 	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
@@ -85,7 +85,7 @@ sub FetchMods($) {
 	return(@Mods);
 }
 
-foreach (sort({$a cmp $b} FetchMods($ProcMod))) {
+foreach (sort({$a cmp $b} FetchMods(PROC_MOD))) {
 	# Look for user-provided REGEX in line, if one is given.
 	if (defined($RegexStr)) {
 		if ($DoCase eq 'i') {
