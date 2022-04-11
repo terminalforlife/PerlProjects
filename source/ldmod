@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ldmod
 # Started On        - Sat 11 Jan 14:33:58 GMT 2020
-# Last Change       - Mon 11 Apr 02:33:07 BST 2022
+# Last Change       - Mon 11 Apr 02:39:53 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ while (defined($ARGV[0])) {
 
 my $RegexStr = $ARGV[0] if defined($ARGV[0]);
 
-if (@ARGV) {
+if (@ARGV > 1) {
 	die("Too many arguments -- see: ${\PROGRAM} -h")
 } elsif ($DoCase eq 'i' and not @ARGV) {
 	die("Option '--ignore-case|-i' used, but no REGEX provided.")
