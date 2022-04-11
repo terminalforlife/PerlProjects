@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 20:00:28 BST 2022
+# Last Change       - Mon 11 Apr 20:07:15 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -373,7 +373,7 @@ sub Human($) {
 
 # Usage: Info(<STRING>)
 sub Info($) {
-	print("$_[0]\n") if $Verbose eq 'true'
+	say($_[0]) if $Verbose eq 'true'
 }
 
 # Usage: FileChk(<FILE>)
@@ -439,7 +439,7 @@ sub QueryAlert($;$) {
 
 	$Text::Wrap::columns = (GetTerminalSize())[0] - 2;
 
-	print("Alert #$HelpAlertID:\n") unless length($_[1]);
+	say("Alert #$HelpAlertID:") unless length($_[1]);
 
 	print("\n");
 	foreach (@Body) {
@@ -450,6 +450,12 @@ sub QueryAlert($;$) {
 			$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') . "\n"
 		) and next if $_ eq '.';
 
+		say(
+			' ' x $QueryIndent .
+			"$ColorHash{'Color_QueryMargin'}$Syms{'Char_Margin'}" .
+			color('reset')
+		) and next if $_ eq '.';
+
 		print(
 			wrap(
 				' ' x $QueryIndent .
@@ -457,7 +463,7 @@ sub QueryAlert($;$) {
 				$ColorHash{'Color_QueryText'}, ' ' x $QueryIndent .
 				$ColorHash{'Color_QueryMargin'} . "$Syms{'Char_Margin'} " . color('reset') .
 				$ColorHash{'Color_QueryText'},
-				$ColorHash{'Color_QueryText'} . "$_" . color('reset') . "\n"
+				$ColorHash{'Color_QueryText'} . $_ . color('reset') . "\n"
 			)
 		);
 	}
@@ -549,7 +555,7 @@ if ($ListKeys eq 'true') {
 
 	my $Old;
 	foreach (sort(@Keys)) {
-		print("$_\n") unless $Old eq $_;
+		say($_) unless $Old eq $_;
 		$Old = $_
 	}
 
@@ -560,7 +566,7 @@ if ($ListKeys eq 'true') {
 	while (<$FH>) {
 		chomp();
 		next unless substr($_, 0, 1) eq ':';
-		print("$_\n") foreach split(' ', tr/:,/ /r)
+		say() foreach split(' ', tr/:,/ /r)
 	}
 
 	close($FH);
@@ -574,7 +580,7 @@ if ($ListKeys eq 'true') {
 # this would be taken care of by the installer, but just in-case, check. Might
 # avoid any confusion by the user, plus it's just cleaner.
 if ($Verbose eq 'true' and -f DEFAULT_CONFIG_FILE) {
-	print("NOTE: Found '${\DEFAULT_CONFIG_FILE}' -- see: man ${\PROGRAM}\n");
+	say("NOTE: Found '${\DEFAULT_CONFIG_FILE}' -- see: man ${\PROGRAM}");
 }
 
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
@@ -849,12 +855,12 @@ if (-f -r -T $ConfigFile) {
 
 	# Write to new user's-own config file.
 	open(my $FH, '>', $ConfigFile);
-	print($FH "# User configuration file for ${\PROGRAM_FANCY} (>= ${\VERSION})\n");
-	print($FH "# Refer to ${\PROGRAM}(8) to learn about these settings.\n\n");
+	say($FH "# User configuration file for ${\PROGRAM_FANCY} (>= ${\VERSION})");
+	say($FH "# Refer to ${\PROGRAM}(8) to learn about these settings.\n");
 	print($FH @Corrected);
 	close($FH);
 
-	print("Configuration file generated -- please reload ${\PROGRAM_FANCY}.\n");
+	say("Configuration file generated -- please reload ${\PROGRAM_FANCY}.");
 	exit(0)
 }
 
