@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Mon 11 Apr 02:25:27 BST 2022
+# Last Change       - Mon 11 Apr 02:37:07 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] =~ '^(--package|-p)$') {
 		shift();
 
-		if (length($ARGV[0])) {
+		unless (length($ARGV[0])) {
 			die("Err: Filter package PKG not provided.\n")
 		} else {
 			$FilterWithArch = 1 if $ARGV[0] =~ /:.*$/;
@@ -218,13 +218,13 @@ foreach my $Key (@SortedKeys) {
 	);
 
 	if (length($FilterUser)) {
-		$FilterUser eq $History{$Key}{'ReqByUser'} or next()
+		next() unless $FilterUser eq $History{$Key}{'ReqByUser'}
 	} elsif (length($FilterUID)) {
-		$FilterUID eq $History{$Key}{'ReqByUID'} or next()
+		next() unless $FilterUID eq $History{$Key}{'ReqByUID'}
 	}
 
 	if (length($OnlyAction)) {
-		$OnlyAction eq $History{$Key}{'Action'} or next()
+		next() unless $OnlyAction eq $History{$Key}{'Action'}
 	}
 
 	# For pretty-printing the correct verb.
