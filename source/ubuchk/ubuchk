@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 21:19:50 BST 2022
+# Last Change       - Mon 11 Apr 21:33:40 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -105,7 +105,6 @@ require Text::Wrap;
 use feature 'say';
 use strict;
 use warnings;
-use autodie;
 use Term::ANSIColor 'color', 'colorvalid';
 use Term::ReadKey 'GetTerminalSize';
 use Text::Wrap 'wrap';
@@ -191,7 +190,9 @@ my $ConfigFile = "$MainDir/config";
 # Used with human-readable sizes.
 my $HumanDivisor = 1024;
 
-mkdir($MainDir) unless -d $MainDir;
+unless (-d $MainDir) {
+	mkdir($MainDir) or die("$!")
+}
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ /^(--help|-h)$/) {
@@ -358,6 +359,11 @@ sub GetDirSize($) {
 	return($Size)
 }
 
+sub Boolean($) {
+	die("Err: Invalid boolean '$_[0]' detected.\n")
+		unless $_[0] =~ '^(true|false)$'
+}
+
 #---------------------------------------------------------------OS & LSB Checks
 
 unless ($ForceRun eq 'true') {
@@ -386,10 +392,8 @@ unless ($ForceRun eq 'true') {
 
 #-----------------------------------------------------------Read Query Database
 
-# Moving this here fixes bug when `AutoQuery` is on and a kernel parameter
+# Needs to be here; it fixes bug when `AutoQuery` is on and a kernel parameter
 # alert is shown. Not sure why; something about changing a read-only variable.
-# This is usually not ideal, but at least when there are many alerts, the file
-# won't constantly be opened and processed.
 my @DBData;
 if (-f -r DATABASE) {
 	open(my $FH, '<', DATABASE) or die("$!");
@@ -526,7 +530,7 @@ sub ParseDpkgStatus($) {
 			}
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		Info("Finished with '${\DPKG_STATUS_FILE}' file.");
 
@@ -560,7 +564,7 @@ if ($ListKeys eq 'true') {
 		say() foreach split(' ', tr/:,/ /r)
 	}
 
-	close($FH);
+	close($FH) or die("$!");
 
 	exit(0)
 }
@@ -574,10 +578,8 @@ if ($Verbose eq 'true' and -f DEFAULT_CONFIG_FILE) {
 	say("NOTE: Found '${\DEFAULT_CONFIG_FILE}' -- see: man ${\PROGRAM}");
 }
 
-unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
-
-sub Boolean {
-	$_[0] =~ '^(true|false)$' or die("Err: Invalid boolean '$_[0]' detected.\n")
+if ($ForceReset eq 'true' and -f $ConfigFile) {
+	unlink($ConfigFile) or die("$!")
 }
 
 if (-f -r -T $ConfigFile) {
@@ -831,7 +833,7 @@ if (-f -r -T $ConfigFile) {
 		}
 	}
 
-	close($FH);
+	close($FH) or die("$!");
 
 	exit(1) if $InvalidKeyCount > 0;
 
@@ -845,11 +847,11 @@ if (-f -r -T $ConfigFile) {
 	my @Corrected = @Buffer[1..@Buffer];
 
 	# Write to new user's-own config file.
-	open(my $FH, '>', $ConfigFile);
+	open(my $FH, '>', $ConfigFile) or die("$!");
 	say($FH "# User configuration file for ${\PROGRAM_FANCY} (>= ${\VERSION})");
 	say($FH "# Refer to ${\PROGRAM}(8) to learn about these settings.\n");
 	print($FH @Corrected);
-	close($FH);
+	close($FH) or die("$!");
 
 	say("Configuration file generated -- please reload ${\PROGRAM_FANCY}.");
 	exit(0)
@@ -923,9 +925,9 @@ if ($KernParams eq 'true') {
 				next
 			}
 
-			open(my $FH, '<', $Path);
+			open(my $FH, '<', $Path) or die("$!");
 			chomp($Value = <$FH>);
-			close($FH)
+			close($FH) or die("$!")
 		} else {
 			Info("Parameter '$ShowKey' unavailable.");
 
@@ -1123,7 +1125,7 @@ if ($SSHServer eq 'true') {
 		-B -s $SSHDConfig and die("Err: File '$SSHDConfig' is binary.\n");
 
 		FileChk($SSHDConfig);
-		open(my $FH, '<', $SSHDConfig);
+		open(my $FH, '<', $SSHDConfig) or die("$!");
 
 		my %Settings;
 		while (<$FH>) {
@@ -1137,7 +1139,7 @@ if ($SSHServer eq 'true') {
 			$Settings{$Key} = $Value
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		foreach ( # [ALERT_ID_1] [ALERT_ID_2] [TARGET_VALUE] [KEY]
 			'6990|6980|no|PermitRootLogin',
@@ -1210,7 +1212,7 @@ if ($SystemD eq 'true') {
 
 	if (-f $SDConfig) {
 		FileChk($SDConfig);
-		open(my $FH, '<', $SDConfig);
+		open(my $FH, '<', $SDConfig) or die("$!");
 
 		my %Settings;
 		while (<$FH>) {
@@ -1224,7 +1226,7 @@ if ($SystemD eq 'true') {
 			$Settings{$Key} = $Value
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		foreach ( # [TARGET_VALUE] [KEY]
 			'1411|1415|1024|DefaultLimitNPROC',
@@ -1264,7 +1266,7 @@ if ($KernMods eq 'true') {
 
 	if (-f $ProcMods) {
 		FileChk($ProcMods);
-		open(my $FH, '<', $ProcMods);
+		open(my $FH, '<', $ProcMods) or die("$!");
 
 		my @Modules;
 		while (<$FH>) {
@@ -1275,7 +1277,7 @@ if ($KernMods eq 'true') {
 			push(@Modules, $Line[0])
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		foreach (
 			'1274|mei',
@@ -1323,7 +1325,7 @@ if ($DiskSpace eq 'true') {
 		use Filesys::DiskSpace 'df';
 
 		FileChk(MOUNT_FILE);
-		open(my $FH, '<', MOUNT_FILE);
+		open(my $FH, '<', MOUNT_FILE) or die("$!");
 
 		my (@MountPoints, $Base, $Used, $Free, $Size, $Mount, $Perc);
 		while (<$FH>) {
@@ -1357,7 +1359,7 @@ if ($DiskSpace eq 'true') {
 			}
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 	} else {
 		Info("Missing prerequisites -- skipping 'DiskSpace' key.")
 	}
@@ -1415,15 +1417,15 @@ if ($Laptop eq 'true') {
 	my $AdapOnline;
 	if (-f PS_TYPE_FILE) {
 		FileChk(PS_TYPE_FILE);
-		open(my $FH, '<', PS_TYPE_FILE);
+		open(my $FH, '<', PS_TYPE_FILE) or die("$!");
 		chomp(my $AdapType = <$FH>);
-		close($FH);
+		close($FH) or die("$!");
 
 		if ($AdapType eq 'Mains') {
 			FileChk(PS_ONLINE_FILE);
-			open(my $FH, '<', PS_ONLINE_FILE);
+			open(my $FH, '<', PS_ONLINE_FILE) or die("$!");
 			chomp($AdapOnline = <$FH>);
-			close($FH);
+			close($FH) or die("$!");
 
 			if ($AdapOnline == 0) {
 				Info("Device is NOT plugged in.")
@@ -1441,23 +1443,23 @@ if ($Laptop eq 'true') {
 
 			if (-f $BatFile) {
 				FileChk($BatFile);
-				open(my $FH, '<', $BatFile);
+				open(my $FH, '<', $BatFile) or die("$!");
 				chomp(my $BatPerc = <$FH>);
-				close($FH);
+				close($FH) or die("$!");
 
 				my $Battery = $BatFile =~ s/.*\/BAT([[:digit:]]+)\/capacity$/$1/r;
 
 				my ($KNow, $KMax);
 				if (-f $KNowFile and -f $KMaxFile) {
 					FileChk($KNowFile);
-					open(my $FH, '<', $KNowFile);
+					open(my $FH, '<', $KNowFile) or die("$!");
 					chomp($KNow = substr(<$FH>, 0, length($KNow) - 4));
-					close($FH);
+					close($FH) or die("$!");
 
 					FileChk($KMaxFile);
-					open($FH, '<', $KMaxFile);
+					open($FH, '<', $KMaxFile) or die("$!");
 					chomp($KMax = substr(<$FH>, 0, length($KMax) - 4));
-					close($FH);
+					close($FH) or die("$!");
 				}
 
 				if ($BatPerc <= $BatCrit) {
@@ -1515,9 +1517,9 @@ if ($ProcVuln eq 'true') {
 			Info("Checking CPU for vulnerability to $Vuln.");
 
 			FileChk($_);
-			open(my $FH, '<', $_);
+			open(my $FH, '<', $_) or die("$!");
 			chomp(my $Data = <$FH>);
-			close($FH);
+			close($FH) or die("$!");
 
 			if ($Data =~ /Vulnerable/i) {
 				Alert(
@@ -1549,7 +1551,7 @@ if ($ProcVuln eq 'true') {
 if ($MountHome eq 'true') {
 	if (-f MOUNT_FILE) {
 		FileChk(MOUNT_FILE);
-		open(my $FH, '<', MOUNT_FILE);
+		open(my $FH, '<', MOUNT_FILE) or die("$!");
 
 		my ($Device, $Options);
 		while (<$FH>) {
@@ -1562,7 +1564,7 @@ if ($MountHome eq 'true') {
 			}
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		if (length($Device) > 0) {
 			Info("Mountpoint '/home' points to '$Device'.");
@@ -1624,9 +1626,9 @@ if ($CPUTemp eq 'true') {
 			next unless -f and m{/temp[[:digit:]]+_(input|label)$};
 
 			FileChk($_);
-			open(my $FH, '<', $_);
+			open(my $FH, '<', $_) or die("$!");
 			chomp(my $Data = <$FH>);
-			close($FH);
+			close($FH) or die("$!");
 
 			# The files are ordered from input to label, so we need to process
 			# it backwards, otherwise the output would be borked.
@@ -1735,7 +1737,7 @@ if ($AptCache eq 'true') {
 if ($LightDM eq 'true') {
 	if (-f LDM_CONFIG_FILE) {
 		FileChk(LDM_CONFIG_FILE);
-		open(my $FH, '<', LDM_CONFIG_FILE);
+		open(my $FH, '<', LDM_CONFIG_FILE) or die("$!");
 
 		my $AllowGuest;
 		while (<$FH>) {
@@ -1753,7 +1755,7 @@ if ($LightDM eq 'true') {
 			}
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		if ($AllowGuest eq 'true') {
 			Alert(
@@ -1788,9 +1790,9 @@ if ($RootKits eq 'true') {
 	-f RK_DATABASE or die("Err: File '${\RK_DATABASE}' not found.\n");
 	-r RK_DATABASE or die("Err: File '${\RK_DATABASE}' unreadable.\n");
 
-	open(my $FH, '<', RK_DATABASE);
+	open(my $FH, '<', RK_DATABASE) or die("$!");
 	my @DBData = <$FH>;
-	close($FH);
+	close($FH) or die("$!");
 
 	my ($AlertID, $Name);
 	foreach my $Line (@DBData) {
@@ -1873,7 +1875,7 @@ if ($Thumbnails eq 'true') {
 if ($DpkgConf eq 'true') {
 	if (-f DPKG_CONFIG_FILE) {
 		FileChk(DPKG_CONFIG_FILE);
-		open(my $FH, '<', DPKG_CONFIG_FILE);
+		open(my $FH, '<', DPKG_CONFIG_FILE) or die("$!");
 
 		my ($FoundNoDebSig, $FoundLog);
 		while (<$FH>) {
@@ -1884,7 +1886,7 @@ if ($DpkgConf eq 'true') {
 			$FoundLog = 'true' if /^log /;
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		my $ChkStatus = grep({$_ eq 'no-debsig'} @SkipDpkgOpts);
 		unless ($FoundNoDebSig eq 'true' and not $ChkStatus) {
@@ -1919,7 +1921,7 @@ if ($DpkgConf eq 'true') {
 if ($Swaps eq 'true') {
 	if (-f SWAPS_FILE) {
 		FileChk(SWAPS_FILE);
-		open(my $FH, '<', SWAPS_FILE);
+		open(my $FH, '<', SWAPS_FILE) or die("$!");
 
 		my (@Swaps, $SwapCount);
 		while (<$FH>) {
@@ -1984,7 +1986,7 @@ if ($Swaps eq 'true') {
 			)
 		}
 
-		close($FH)
+		close($FH) or die("$!")
 	} else {
 		Info("Missing prerequisites -- skipping 'Swaps' key.")
 	}
@@ -1997,7 +1999,7 @@ if ($Swaps eq 'true') {
 if ($RAM eq 'true') {
 	if (-f MEMINFO_FILE) {
 		FileChk(MEMINFO_FILE);
-		open(my $FH, '<', MEMINFO_FILE);
+		open(my $FH, '<', MEMINFO_FILE) or die("$!");
 
 		my (
 			$BShared, $BSwap, $BTotal, $BFree,
@@ -2024,7 +2026,7 @@ if ($RAM eq 'true') {
 			}
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		my $HumTotal = Human($BTotal);
 
@@ -2055,7 +2057,7 @@ if ($RAM eq 'true') {
 
 if ($CMOS eq 'true') {
 	if (-f RTC_FILE) {
-		open(my $FH, '<', RTC_FILE);
+		open(my $FH, '<', RTC_FILE) or die("$!");
 
 		my $BatStatus;
 		while (<$FH>) {
@@ -2064,7 +2066,7 @@ if ($CMOS eq 'true') {
 			$BatStatus = $Line[1]
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		if ($BatStatus eq 'okay') {
 			Info("CMOS battery appears to be okay.")
@@ -2086,7 +2088,7 @@ if ($CMOS eq 'true') {
 
 if ($ChkPasswd eq 'true') {
 	if (-f PASSWD_FILE) {
-		open(my $FH, '<', PASSWD_FILE);
+		open(my $FH, '<', PASSWD_FILE) or die("$!");
 
 		my ($WormFound, @Roots);
 		while (<$FH>) {
@@ -2101,7 +2103,7 @@ if ($ChkPasswd eq 'true') {
 			}
 		}
 
-		close($FH);
+		close($FH) or die("$!");
 
 		unless (length($WormFound) > 0) {
 			Info("Cannot see 'w0rm' in '${\PASSWD_FILE}' file.")
@@ -2265,13 +2267,13 @@ if (length($CPUGovernor) > 0) {
 		foreach my $File (CPU_GOV_DIR . '/scaling_governor') {
 			$FoundFile = 'true';
 
-			open(my $FH, '<', $File);
+			open(my $FH, '<', $File) or die("$!");
 
 			chomp(my $Data = <$FH>);
 			my $Core = ($Dir =~ m{.*/policy([[:digit:]]+)})[0] + 1;
 			$Governors{$Core} = $Data;
 
-			close($FH)
+			close($FH) or die("$!")
 		}
 	}
 
