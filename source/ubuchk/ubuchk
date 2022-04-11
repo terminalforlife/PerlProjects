@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 21:01:42 BST 2022
+# Last Change       - Mon 11 Apr 21:08:25 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -155,6 +155,9 @@ use constant RTC_FILE => '/proc/driver/rtc';
 use constant PASSWD_FILE => '/etc/passwd';
 use constant FAILLOG_FILE => '/var/log/faillog';
 use constant CPU_GOV_DIR => '/sys/devices/system/cpu/cpufreq';
+use constant OS_REL_FILE => '/etc/os-release';
+use constant CPU_VULN_DIR => '/sys/devices/system/cpu/vulnerabilities';
+use constant DPKG_STATUS_FILE => '/var/lib/dpkg/status';
 
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
@@ -360,9 +363,8 @@ sub GetDirSize($) {
 unless ($ForceRun eq 'true') {
 	die("Err: Unrecognised OS.\n") unless $^O eq 'linux';
 
-	my $OSRelFile = '/etc/os-release';
-	if (-f -r $OSRelFile) {
-		if (open(my $FH, '<', $OSRelFile)) {
+	if (-f -r OS_REL_FILE) {
+		if (open(my $FH, '<', OS_REL_FILE)) {
 			my $Found = 0;
 			while (my $Line = <$FH>) {
 				chomp(my ($Key, $Value) = split('=', $Line));
@@ -381,9 +383,6 @@ unless ($ForceRun eq 'true') {
 		die("Err: Unrecognised LSB.\n")
 	}
 }
-
-# Needs to be here, for the FileChk() function.
-my $VulnDir = '/sys/devices/system/cpu/vulnerabilities';
 
 #-----------------------------------------------------Miscellaneous Subroutines
 
@@ -503,13 +502,11 @@ sub Alert($;$;$) {
 
 # Usage: ParseDpkgStatus(<STATUS_STRING>)
 sub ParseDpkgStatus($) {
-	my $DpkgStatus = '/var/lib/dpkg/status';
-
-	unless (-f $DpkgStatus) {
-		warn("Err: File '$DpkgStatus' not found.\n")
+	unless (-f DPKG_STATUS_FILE) {
+		warn("Err: File '${\DPKG_STATUS_FILE}' not found.\n")
 	} else {
-		FileChk($DpkgStatus);
-		open(my $FH, '<', $DpkgStatus) or die("$!");
+		FileChk(DPKG_STATUS_FILE);
+		open(my $FH, '<', DPKG_STATUS_FILE) or die("$!");
 
 		my ($Package, $Arch, $Status, @Packages);
 		while (<$FH>) {
@@ -533,7 +530,7 @@ sub ParseDpkgStatus($) {
 
 		close($FH);
 
-		Info("Finished with '$DpkgStatus' file.");
+		Info("Finished with '${\DPKG_STATUS_FILE}' file.");
 
 		return(sort(@Packages))
 	}
@@ -1505,11 +1502,14 @@ if ($Laptop eq 'true') {
 #------------------------------------------------------CPU Marked as Vulnerable
 
 if ($ProcVuln eq 'true') {
-	if (-d $VulnDir) {
-		-r $VulnDir or die("Err: Directory '$VulnDir' unreadable.\n");
-		-x $VulnDir or die("Err: Unable to open '$VulnDir' directory.\n");
+	if (-d CPU_VULN_DIR) {
+		die("Err: Directory '${\CPU_VULN_DIR}' unreadable.\n")
+			unless -r CPU_VULN_DIR;
 
-		foreach (glob("$VulnDir/*")) {
+		die("Err: Unable to open '${\CPU_VULN_DIR}' directory.\n")
+			unless -x CPU_VULN_DIR;
+
+		foreach (glob(CPU_VULN_DIR . '/*')) {
 			next unless -f;
 
 			my $Vuln = ($_ =~ m{(?:.*/)(.*)})[0];
