@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Mon 11 Apr 00:58:04 BST 2022
+# Last Change       - Mon 11 Apr 01:00:14 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -41,8 +41,8 @@ sub Usage() {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  --no-header              - Omit table header from output.
+		  --si                     - For size, use powers of 1000, not 1024.
 		  -C, --no-color           - Disable ANSI color escape sequences.
-		  -H, --si                 - For size, use powers of 1000, not 1024.
 		  -N, --no-notation        - Omit the temperature notation.
 		  -f, --fahrenheit         - Display temperatures in Fahrenheit.
 		  -o, --output FMT         - Use FMT instead of the default layout.
@@ -92,7 +92,7 @@ while (defined($ARGV[0])) {
 		undef(%Colors)
 	} elsif ($ARGV[0] =~ '^(--no-notation|-N)$') {
 		$Notation = ''
-	} elsif ($ARGV[0] =~ '^(--si|-H)$') {
+	} elsif ($ARGV[0] eq '--si') {
 		$Powers = 1000
 	} elsif ($ARGV[0] =~ '^(--fahrenheit|-f)$') {
 		unless ($Notation) {
