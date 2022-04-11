@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/noselbuf
 # Started On        - Fri  2 Jul 03:11:14 BST 2021
-# Last Change       - Fri  2 Jul 03:17:27 BST 2021
+# Last Change       - Mon 11 Apr 01:39:40 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,12 +22,11 @@
 #
 #   libclipboard-perl (>= 0.13-1)
 #   libx11-guitest-perl (>= 0.28-1build4)
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.0)
 #------------------------------------------------------------------------------
 
 use strict;
 use warnings;
-use autodie;
 use Clipboard 'Copy';
 use X11::GUITest qw{PressMouseButton ReleaseMouseButton M_BTN2};
 
