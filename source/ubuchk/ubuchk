@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Wed  9 Mar 15:50:23 GMT 2022
+# Last Change       - Mon 11 Apr 19:49:46 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -110,14 +110,12 @@ use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-03-09';
-my $Progrm = 'ubuchk';
-my $ProgrmFancy = 'UbuChk';
-
-my $Domain = 'https://github.com/terminalforlife/PerlProjects';
+use constant VERSION => '2022-04-11';
+use constant PROGRAM => 'ubuchk';
+use constant PROGRAM_FANCY => 'UbuChk';
 
 sub Usage() {
-	print(qq{Usage: $Progrm [OPTS]
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -139,6 +137,28 @@ sub Err($;$) {
 	$_[0] > 0 and exit($_[0])
 }
 
+use constant SYMS_FILE => '/proc/kallsyms';
+use constant USER_ID => $<;
+use constant GROUP_ID => (split(' ', $())[0];
+use constant DATABASE => '/usr/share/ubuchk/database';
+use constant RK_DATABASE => '/usr/share/ubuchk/database-rk';
+use constant DEFAULT_CONFIG_FILE => '/usr/share/' . PROGRAM . '/config';
+use constant PS_BASE_DIR => '/sys/class/power_supply';
+use constant PS_TYPE_FILE => PS_BASE_DIR . '/ADP1/type';
+use constant PS_ONLINE_FILE => PS_BASE_DIR . '/ADP1/online';
+use constant MOUNT_FILE => '/proc/mounts';
+use constant APT_ARCHIVES_DIR => '/var/cache/apt/archives';
+use constant LDM_CONFIG_FILE => '/etc/lightdm/lightdm.conf.d/50-no-guest.conf';
+use constant USER_CACHE_DIR => "$ENV{HOME}/.cache";
+use constant USER_THUMB_DIR => "$ENV{HOME}/.thumbnails";
+use constant DPKG_CONFIG_FILE => '/etc/dpkg/dpkg.cfg';
+use constant SWAPS_FILE => '/proc/swaps';
+use constant MEMINFO_FILE => '/proc/meminfo';
+use constant RTC_FILE => '/proc/driver/rtc';
+use constant PASSWD_FILE => '/etc/passwd';
+use constant FAILLOG_FILE => '/var/log/faillog';
+use constant CPU_GOV_DIR => '/sys/devices/system/cpu/cpufreq';
+
 my (
 	$ForceReset, $KernParams, $PathPerms, @SkipKP, $Query, $HelpAlertID,
 	@UnwantedPKGs, $ForceRun, $PurgeChk, $HardAPT, @SkipAPT, $SSHServer,
@@ -155,8 +175,6 @@ my (
 	$CPUGovernor
 );
 
-my $SymsFile = '/proc/kallsyms';
-
 # Let me know if I missed any.
 my @ValidGovs = (
 	'performance', 'schedutil', 'powersave',
@@ -167,16 +185,11 @@ my @ValidGovs = (
 # the 'ID' key in the '/etc/os-release' file.
 my @SupportedLSBs = ('ubuntu', 'pop');
 
-my $MainDir = "$ENV{HOME}/.config/$Progrm";
+my $MainDir = "$ENV{HOME}/.config/" . PROGRAM;
 my $ConfigFile = "$MainDir/config";
-my $Database = '/usr/share/ubuchk/database';
-my $RKDatabase = '/usr/share/ubuchk/database-rk';
-my $DefaultConfigFile = "/usr/share/$Progrm/config";
 
 # Used with human-readable sizes.
 my $HumanDivisor = 1024;
-
-my $GID = (split(' ', $())[0];
 
 mkdir($MainDir) unless -d $MainDir;
 
@@ -184,7 +197,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ /^(--help|-h|-\?)$/) {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] eq '--version' or $ARGV[0] eq '-v') {
-		say($CurVer); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] eq '--config' or $ARGV[0] eq '-c') {
 		shift();
 
@@ -384,10 +397,10 @@ sub FileChk($) {
 # alert is shown. Not sure why; something about changing a read-only variable.
 # This is usually not ideal, but at least when there are many alerts, the file
 # won't constantly be opened and processed.
-if (-f $Database) {
-	FileChk($Database);
+if (-f DATABASE) {
+	FileChk(DATABASE);
 
-	if (open(my $FH, '<', $Database)) {
+	if (open(my $FH, '<', DATABASE)) {
 		@DBData = <$FH>;
 		close($FH);
 	} else {
@@ -396,7 +409,7 @@ if (-f $Database) {
 } else {
 	# Only error out here if queries are NOT completely disabled.
 	unless ($AutoQuery ne 'true' and $Query ne 'true') {
-		Err(1, "File '$Database' not found.")
+		Err(1, "File '${\DATABASE}' not found.")
 	}
 }
 
@@ -547,7 +560,7 @@ if ($ListKeys eq 'true') {
 
 	exit(0)
 } elsif ($ListDbAlerts eq 'true') {
-	open(my $FH, '<', $Database) or die("$!");
+	open(my $FH, '<', DATABASE) or die("$!");
 
 	while (<$FH>) {
 		chomp();
@@ -565,8 +578,8 @@ if ($ListKeys eq 'true') {
 # Look for old file no longer used as of UbuChk 2021-01-01 version. Ideally, -
 # this would be taken care of by the installer, but just in-case, check. Might
 # avoid any confusion by the user, plus it's just cleaner.
-if ($Verbose eq 'true' and -f $DefaultConfigFile) {
-	print("NOTE: Found '$DefaultConfigFile' -- see: man $Progrm\n");
+if ($Verbose eq 'true' and -f DEFAULT_CONFIG_FILE) {
+	print("NOTE: Found '${\DEFAULT_CONFIG_FILE}' -- see: man ${\PROGRAM}\n");
 }
 
 unlink($ConfigFile) if $ForceReset eq 'true' and -f $ConfigFile;
@@ -841,12 +854,12 @@ if (-f -r -T $ConfigFile) {
 
 	# Write to new user's-own config file.
 	open(my $FH, '>', $ConfigFile);
-	print($FH "# User configuration file for $ProgrmFancy (>= $CurVer)\n");
-	print($FH "# Refer to $Progrm(8) to learn about these settings.\n\n");
+	print($FH "# User configuration file for ${\PROGRAM_FANCY} (>= ${\VERSION})\n");
+	print($FH "# Refer to ${\PROGRAM}(8) to learn about these settings.\n\n");
 	print($FH @Corrected);
 	close($FH);
 
-	print("Configuration file generated -- please reload $ProgrmFancy.\n");
+	print("Configuration file generated -- please reload ${\PROGRAM_FANCY}.\n");
 	exit(0)
 }
 
@@ -1093,14 +1106,14 @@ if ($SSHClient eq 'true') {
 		Alert(
 			5438,
 			"Directory '$SSHDir' is owned by '$Owner'.",
-			"Recommended UID is '$<'."
-		) unless $Owner == $<;
+			"Recommended UID is '${\USER_ID}'."
+		) unless $Owner == USER_ID;
 
 		Alert(
 			5439,
 			"Directory '$SSHDir' is in group '$Group'.",
-			"Recommended GID is '$GID'."
-		) unless $Group == $GID;
+			"Recommended GID is '${\GROUP_ID}'."
+		) unless $Group == GROUP_ID;
 	} else {
 		Info("Missing prerequisites -- skipping 'SSHClient' key.")
 	}
@@ -1314,13 +1327,11 @@ if ($KernMods eq 'true') {
 #--------------------------------------------------------Check Filesystem Sizes
 
 if ($DiskSpace eq 'true') {
-	my $MountFile = '/proc/mounts';
-
-	if (-f $MountFile) {
+	if (-f MOUNT_FILE) {
 		use Filesys::DiskSpace 'df';
 
-		FileChk($MountFile);
-		open(my $FH, '<', $MountFile);
+		FileChk(MOUNT_FILE);
+		open(my $FH, '<', MOUNT_FILE);
 
 		my (@MountPoints, $Base, $Used, $Free, $Size, $Mount, $Perc);
 		while (<$FH>) {
@@ -1366,7 +1377,7 @@ if ($DiskSpace eq 'true') {
 
 if ($DirPerms eq 'true') {
 	foreach ( # [ALERTID] [MODE] [UID] [GID]
-		"5440:700:$<:$GID:$ENV{HOME}",
+		"5440:700:${\USER_ID}:${\GROUP_ID}:$ENV{HOME}",
 		'5436:700:0:0:/boot',
 		'5446:700:0:0:/root'
 	) {
@@ -1405,20 +1416,20 @@ if ($DirPerms eq 'true') {
 #-----------------------------------------------------------------Laptop Checks
 
 if ($Laptop eq 'true') {
-	my $BaseDir = '/sys/class/power_supply';
-	my $AdapTypeFile = "$BaseDir/ADP1/type";
-	my $AdapOnlineFile = "$BaseDir/ADP1/online";
+	#my $BaseDir = '/sys/class/power_supply';
+	#my $AdapTypeFile = "$BaseDir/ADP1/type";
+	#my $AdapOnlineFile = "$BaseDir/ADP1/online";
 
 	my $AdapOnline;
-	if (-f $AdapTypeFile) {
-		FileChk($AdapTypeFile);
-		open(my $FH, '<', $AdapTypeFile);
+	if (-f PS_TYPE_FILE) {
+		FileChk(PS_TYPE_FILE);
+		open(my $FH, '<', PS_TYPE_FILE);
 		chomp(my $AdapType = <$FH>);
 		close($FH);
 
 		if ($AdapType eq 'Mains') {
-			FileChk($AdapOnlineFile);
-			open(my $FH, '<', $AdapOnlineFile);
+			FileChk(PS_ONLINE_FILE);
+			open(my $FH, '<', PS_ONLINE_FILE);
 			chomp($AdapOnline = <$FH>);
 			close($FH);
 
@@ -1430,8 +1441,8 @@ if ($Laptop eq 'true') {
 		}
 	}
 
-	if (-d "$BaseDir/BAT1") { # <-- Ensure at least one battery exists.
-		foreach (glob("$BaseDir/BAT[1-9]")) {
+	if (-d PS_BASE_DIR) { # <-- Ensure at least one battery exists.
+		foreach (glob(PS_BASE_DIR . '/BAT[1-9]')) {
 			my $BatFile = "$_/capacity";
 			my $KNowFile = "$_/charge_now";
 			my $KMaxFile = "$_/charge_full_design";
@@ -1517,7 +1528,7 @@ if ($ProcVuln eq 'true') {
 				Alert(
 					4811,
 					"CPU marked as vulnerable to $Vuln.",
-					"Don't panic -- refer to: $Progrm -Q 4811"
+					"Don't panic -- refer to: ${\PROGRAM} -Q 4811"
 				)
 			} elsif ($Data =~ /Not affected/i) {
 				Info("Unaffected by $Vuln vulnerability.")
@@ -1527,7 +1538,7 @@ if ($ProcVuln eq 'true') {
 				Alert(
 					4812,
 					"Unrecognised vulnerability status to $Vuln.",
-					"Don't panic -- refer to: $Progrm -Q 4812"
+					"Don't panic -- refer to: ${\PROGRAM} -Q 4812"
 				)
 			}
 		}
@@ -1541,11 +1552,9 @@ if ($ProcVuln eq 'true') {
 #--------------------------------------------------------Mount Options for HOME
 
 if ($MountHome eq 'true') {
-	my $MountFile = '/proc/mounts';
-
-	if (-f $MountFile) {
-		FileChk($MountFile);
-		open(my $FH, '<', $MountFile);
+	if (-f MOUNT_FILE) {
+		FileChk(MOUNT_FILE);
+		open(my $FH, '<', MOUNT_FILE);
 
 		my ($Device, $Options);
 		while (<$FH>) {
@@ -1583,7 +1592,7 @@ if ($MountHome eq 'true') {
 				} else {
 					Alert($AlertID,
 						"Missing mount option '$Option' for '/home'.",
-						"Please refer to: $Progrm -Q $AlertID"
+						"Please refer to: ${\PROGRAM} -Q $AlertID"
 					)
 				}
 			}
@@ -1683,13 +1692,11 @@ if ($CPUTemp eq 'true') {
 #----------------------------------------------------------APT Cache Disk Usage
 
 if ($AptCache eq 'true') {
-	my $Dir = '/var/cache/apt/archives';
-
-	if (-d $Dir) {
+	if (-d APT_ARCHIVES_DIR) {
 		# Ignoring `partial` directory, as it often needs root access to use.
 		# The same goes for files like `lock`, as they're irrelevant here.
 		my ($FileCount, $Size);
-		foreach (glob("$Dir/*.deb")) {
+		foreach (glob(APT_ARCHIVES_DIR . '/*.deb')) {
 			$Size += -s;
 			$FileCount++;
 
@@ -1733,11 +1740,9 @@ if ($AptCache eq 'true') {
 #-----------------------------------------------------------------------LightDM
 
 if ($LightDM eq 'true') {
-	my $Config = '/etc/lightdm/lightdm.conf.d/50-no-guest.conf';
-
-	if (-f $Config) {
-		FileChk($Config);
-		open(my $FH, '<', $Config);
+	if (-f LDM_CONFIG_FILE) {
+		FileChk(LDM_CONFIG_FILE);
+		open(my $FH, '<', LDM_CONFIG_FILE);
 
 		my $AllowGuest;
 		while (<$FH>) {
@@ -1787,10 +1792,10 @@ if ($LightDM eq 'true') {
 #
 # Also inspired by various checks made by rkhunter(8).
 if ($RootKits eq 'true') {
-	-f $RKDatabase or Err(1, "File '$RKDatabase' not found.");
-	-r $RKDatabase or Err(1, "File '$RKDatabase' unreadable.");
+	-f RK_DATABASE or Err(1, "File '${\RK_DATABASE}' not found.");
+	-r RK_DATABASE or Err(1, "File '${\RK_DATABASE}' unreadable.");
 
-	open(my $FH, '<', $RKDatabase);
+	open(my $FH, '<', RK_DATABASE);
 	my @DBData = <$FH>;
 	close($FH);
 
@@ -1819,10 +1824,8 @@ if ($RootKits eq 'true') {
 #------------------------------------------------------------------User's Cache
 
 if ($HomeCache eq 'true') {
-	my $CacheDir = "$ENV{HOME}/.cache";
-
-	if (-d $CacheDir) {
-		my $Size = GetDirSize($CacheDir);
+	if (-d USER_CACHE_DIR) {
+		my $Size = GetDirSize(USER_CACHE_DIR);
 		if ($Size > 0) {
 			use POSIX 'ceil';
 
@@ -1850,10 +1853,8 @@ if ($HomeCache eq 'true') {
 #-------------------------------------------------------------User's Thumbnails
 
 if ($Thumbnails eq 'true') {
-	my $ThumbDir = "$ENV{HOME}/.thumbnails";
-
-	if (-d $ThumbDir) {
-		my $Size = GetDirSize($ThumbDir);
+	if (-d USER_THUMB_DIR) {
+		my $Size = GetDirSize(USER_THUMB_DIR);
 		if ($Size > 0) {
 			use POSIX 'ceil';
 
@@ -1881,11 +1882,9 @@ if ($Thumbnails eq 'true') {
 #------------------------------------------------------------DPKG Configuration
 
 if ($DpkgConf eq 'true') {
-	my $DpkgConfFile = '/etc/dpkg/dpkg.cfg';
-
-	if (-f $DpkgConfFile) {
-		FileChk($DpkgConfFile);
-		open(my $FH, '<', $DpkgConfFile);
+	if (-f DPKG_CONFIG_FILE) {
+		FileChk(DPKG_CONFIG_FILE);
+		open(my $FH, '<', DPKG_CONFIG_FILE);
 
 		my ($FoundNoDebSig, $FoundLog);
 		while (<$FH>) {
@@ -1929,13 +1928,11 @@ if ($DpkgConf eq 'true') {
 #-------------------------------------------------------------------------Swaps
 
 if ($Swaps eq 'true') {
-	my $SwapFile = '/proc/swaps';
-
-	if (-f $SwapFile) {
+	if (-f SWAPS_FILE) {
 		use POSIX 'ceil';
 
-		FileChk($SwapFile);
-		open(my $FH, '<', $SwapFile);
+		FileChk(SWAPS_FILE);
+		open(my $FH, '<', SWAPS_FILE);
 
 		my (@Swaps, $SwapCount);
 		while (<$FH>) {
@@ -2011,13 +2008,11 @@ if ($Swaps eq 'true') {
 #---------------------------------------------------------------------------RAM
 
 if ($RAM eq 'true') {
-	my $MemFile = '/proc/meminfo';
-
-	if (-f $MemFile) {
+	if (-f MEMINFO_FILE) {
 		use POSIX 'ceil';
 
-		FileChk($MemFile);
-		open(my $FH, '<', $MemFile);
+		FileChk(MEMINFO_FILE);
+		open(my $FH, '<', MEMINFO_FILE);
 
 		my (
 			$BShared, $BSwap, $BTotal, $BFree,
@@ -2061,7 +2056,7 @@ if ($RAM eq 'true') {
 			Alert(
 				8971,
 				"Using $HumUsed of $HumTotal available RAM.",
-				"Please refer to: $Progrm -Q 8971"
+				"Please refer to: ${\PROGRAM} -Q 8971"
 			)
 		}
 	} else {
@@ -2074,10 +2069,8 @@ if ($RAM eq 'true') {
 #------------------------------------------------------------------CMOS Battery
 
 if ($CMOS eq 'true') {
-	my $RTCFile = '/proc/driver/rtc';
-
-	if (-f $RTCFile) {
-		open(my $FH, '<', $RTCFile);
+	if (-f RTC_FILE) {
+		open(my $FH, '<', RTC_FILE);
 
 		my $BatStatus;
 		while (<$FH>) {
@@ -2107,10 +2100,8 @@ if ($CMOS eq 'true') {
 #-------------------------------------------------------------------/etc/passwd
 
 if ($ChkPasswd eq 'true') {
-	my $PasswdFile = '/etc/passwd';
-
-	if (-f $PasswdFile) {
-		open(my $FH, '<', $PasswdFile);
+	if (-f PASSWD_FILE) {
+		open(my $FH, '<', PASSWD_FILE);
 
 		my ($WormFound, @Roots);
 		while (<$FH>) {
@@ -2128,18 +2119,18 @@ if ($ChkPasswd eq 'true') {
 		close($FH);
 
 		unless (length($WormFound) > 0) {
-			Info("Cannot see 'w0rm' in '$PasswdFile' file.")
+			Info("Cannot see 'w0rm' in '${\PASSWD_FILE}' file.")
 		} else {
 			Alert(
 				1428,
-				"Found 'w0rm' on line #$WormFound in '$PasswdFile' file.",
+				"Found 'w0rm' on line #$WormFound in '${\PASSWD_FILE}' file.",
 				"Please refer to a search engine."
 			)
 		}
 
 		if ($ID0NonRoots eq 'true') {
 			unless (@Roots > 1) {
-				Info("Just 'root' with '0:0' found in '$PasswdFile' file.")
+				Info("Just 'root' with '0:0' found in '${\PASSWD_FILE}' file.")
 			} else {
 				if (@Roots > 1) {
 					my ($Wording1, $Wording2);
@@ -2153,7 +2144,7 @@ if ($ChkPasswd eq 'true') {
 
 					Alert(
 						9848,
-						"Non-root $Wording1 with '0' UID/GID in '$PasswdFile' file.",
+						"Non-root $Wording1 with '0' UID/GID in '${\PASSWD_FILE}' file.",
 						"Recommended action is to confirm $Wording2 legitimate."
 					);
 
@@ -2239,10 +2230,8 @@ if ($AppArmor eq 'true') {
 #---------------------------------------------------------Failed Login Attempts
 
 if ($FailedLogins eq 'true') {
-	my $FailFile = '/var/log/faillog';
-
-	if (-f $FailFile) {
-		unless (-s $FailFile) {
+	if (-f FAILLOG_FILE) {
+		unless (-s FAILLOG_FILE) {
 			Alert(
 				2223,
 				'Detected possible failed login attempts.',
@@ -2261,16 +2250,16 @@ if ($FailedLogins eq 'true') {
 #-----------------------------------------------Check for '/proc/kallsyms' Mode
 
 if ($SymsFileMode eq 'true') {
-	if (-f $SymsFile) {
-		my $Mode = (stat($SymsFile))[2];
+	if (-f SYMS_FILE) {
+		my $Mode = (stat(SYMS_FILE))[2];
 		$Mode = substr(sprintf('%04o', $Mode & 07777), 1);
 
 		if ($Mode == 400) {
-			Info("Mode '400' set for '$SymsFile'.")
+			Info("Mode '400' set for '${\SYMS_FILE}'.")
 		} else {
 			Alert(
 				8128,
-				"Mode for '$SymsFile' file found.",
+				"Mode for '${\SYMS_FILE}' file found.",
 				"Recommended mode is '400'."
 			)
 		}
@@ -2278,19 +2267,17 @@ if ($SymsFileMode eq 'true') {
 		Info("Missing prerequisites -- skipping 'SymsFileMode' key.")
 	}
 } else {
-	Info("Ignoring mode of '$SymsFile' file.") unless $HushIgnored eq 'true'
+	Info("Ignoring mode of '${\SYMS_FILE}' file.") unless $HushIgnored eq 'true'
 }
 
 #----------------------------------------------Check CPU Governor Is As Desired
 
 if (length($CPUGovernor) > 0) {
-	my $GovDir = '/sys/devices/system/cpu/cpufreq';
-
 	my (%Governors, $FoundFile);
-	foreach my $Dir (glob("$GovDir/*")) {
+	foreach my $Dir (glob(CPU_GOV_DIR . '/*')) {
 		-d $Dir or next;
 
-		foreach my $File ("$Dir/scaling_governor") {
+		foreach my $File (CPU_GOV_DIR . '/scaling_governor') {
 			$FoundFile = 'true';
 
 			open(my $FH, '<', $File);
