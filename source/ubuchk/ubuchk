@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Mon 11 Apr 20:07:15 BST 2022
+# Last Change       - Mon 11 Apr 20:22:27 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -256,6 +256,8 @@ while (defined($ARGV[0])) {
 -w $MainDir or die("Err: Directory '$MainDir' unwritable.\n");
 -x $MainDir or die("Err: Directory '$MainDir' unexectuable.\n");
 
+#-----------------------------------------------------------Primary Subroutines
+
 sub DepChk {
 	my @Files;
 	foreach my $Dir (split(':', $ENV{'PATH'})) {
@@ -264,7 +266,7 @@ sub DepChk {
 		foreach my $File (glob("$Dir/*")) {
 			-f -r -x $File or next;
 
-			my $Base = ($File =~ m{(?:.*/)([^/.*])})[0];
+			my $Base = ($File =~ m{(?:.*/)([^/].*)})[0];
 			push(@Files, $Base)
 		}
 	}
