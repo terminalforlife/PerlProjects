@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue 12 Apr 00:47:26 BST 2022
+# Last Change       - Tue 12 Apr 19:16:11 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -102,6 +102,7 @@ require Text::Wrap;
 use feature 'say';
 use strict;
 use warnings;
+use autodie;
 use Term::ANSIColor 'color', 'colorvalid';
 use Term::ReadKey 'GetTerminalSize';
 use Text::Wrap 'wrap';
@@ -313,8 +314,12 @@ sub SlurpFile($) {
 
 	open(my $FH, '<', $_[0]) or die("$!");
 
-	local $/ = undef();
-	chomp(my $Buffer = <$FH>);
+	my $Buffer;
+	{
+		local $/ = undef();
+		$Buffer = <$FH>
+	}
+	chomp($Buffer);
 
 	close($FH) or die("$!");
 	return($Buffer)
@@ -2311,13 +2316,8 @@ if (length($CPUGovernor)) {
 
 			$FoundFile = 'true';
 
-			open(my $FH, '<', $File) or die("$!");
-
-			chomp(my $Data = <$FH>);
 			my $Core = ($Dir =~ m{(?:^.*/cpu)(\d+$)})[0];
-			$Governors{$Core} = $Data;
-
-			close($FH) or die("$!")
+			$Governors{$Core} = SlurpFile($File);
 		}
 	}
 
