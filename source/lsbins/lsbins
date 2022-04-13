@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019
-# Last Change       - Wed 13 Apr 18:10:03 BST 2022
+# Last Change       - Wed 13 Apr 18:46:34 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -75,6 +75,9 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
+# Addresses issues like parentheses in string.
+my $REGEX = quotemeta($ARGV[0]);
+
 die("Err: Only one MATCH is applicable.\n") if @ARGV > 1;
 
 my (%Execs, $FoundMan);
@@ -107,9 +110,9 @@ sub DoMatch($) {
 
 	# If a MATCH is provided, check for it, then skip if found.
 	if ($CaseInsen) {
-		$_[0] =~ /$ARGV[0]/i and return(1)
+		return(1) if $_[0] =~ m/$REGEX/i
 	} else {
-		$_[0] =~ $ARGV[0] and return(1)
+		return(1) if $_[0] =~ $REGEX
 	}
 
 	return(0)
