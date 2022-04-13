@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Wed 13 Apr 16:21:35 BST 2022
+# Last Change       - Wed 13 Apr 16:52:15 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -28,15 +28,14 @@
 #
 # Dependencies:
 #
-#   libglib-perl (>= 3:1.326-1build1)
 #   libgtk2-perl (>= 2:1.24992-1build1)
 #   perl (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
 use autodie;
-use Glib 'TRUE', 'FALSE';
 use Gtk2 '-init';
 
 no warnings 'uninitialized';
@@ -54,7 +53,6 @@ sub Usage {
 		  -S, --scheme [INT]       - See below for valid button schemes.
 		  -Y, --yes-cmd [CMD]      - Run shell CMD when result is True.
 		  -f, --frame              - Display a frame around the widgets.
-		  -q, --quiet              - Omit returned True/False booleans.
 
 		  The use of '--' is supported in $ProgrmFancy.
 
@@ -68,19 +66,19 @@ sub Usage {
 	} =~ tr/\t//dr);
 }
 
-my $Hush = 'False';
-my $DoFrame = 'False';
+my $Hush = 0;
+my $DoFrame = 0;
 my $Scheme = 0;
 
 my ($YesText, $NoText, $YesCMD, $NoCMD, @ButtonSize);
 
 while ( defined($ARGV[0]) ) {
-	if ($ARGV[0] =~ '^--$') {
-		shift(); last
+	if ($ARGV[0] eq '--') {
+		shift(); last()
 	} elsif ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say($CurVer); exit(0)
 	} elsif ($ARGV[0] =~ '^(--no-cmd|-N)$') {
 		shift(); $NoCMD = $ARGV[0];
 
@@ -94,13 +92,11 @@ while ( defined($ARGV[0]) ) {
 
 		die('Affirmative command required') unless length($YesCMD) > 0
 	} elsif ($ARGV[0] =~ '^(--frame|-f)$') {
-		$DoFrame = 'True'
-	} elsif ($ARGV[0] =~ '^(--quiet|-q)$') {
-		$Hush = 'True'
+		$DoFrame = 1
 	} elsif ($ARGV[0] =~ '^-') {
-		die("Option '$ARGV[0]' invalid")
+		die("Err: Option '$ARGV[0]' invalid.\n")
 	} else {
-		last
+		last()
 	}
 
 	shift()
@@ -109,100 +105,92 @@ while ( defined($ARGV[0]) ) {
 # Remaining arguments (not options -- duh) become the question; `echo` style.
 my $Question = join(' ', @ARGV);
 
-$Question || die("Question string missing");
-length($Question) > 100 && die("Question string exceeds maximum length");
+die("Err: Question string missing.\n")
+	unless defined($Question);
 
-if ($Scheme == 0) {
-	$YesText = '_Yes';
-	$NoText = '_No';
-	@ButtonSize = (100, 60)
-} elsif ($Scheme == 1) {
-	$YesText = '_Accept';
-	$NoText = '_Decline';
-	@ButtonSize = (120, 60)
-} elsif ($Scheme == 2) {
-	$YesText = '_Agree';
-	$NoText = '_Disagree';
-	@ButtonSize = (120, 60)
-} elsif ($Scheme == 3) {
-	$YesText = '_Allow';
-	$NoText = '_Deny';
-	@ButtonSize = (110, 60)
-} elsif ($Scheme == 4) {
-	$YesText = '_True';
-	$NoText = '_False';
-	@ButtonSize = (120, 60)
-} elsif ($Scheme == 5) {
-	$YesText = '_Correct';
-	$NoText = '_Incorrect';
-	@ButtonSize = (120, 60)
-}
+die("Err: Question string exceeds maximum length.\n")
+	if length($Question) > 100;
 
-sub Clicked {
-	# Dereferencing the argument array sent to callback.
-	my ($ExitStatus, $String) = @{$_[1]};
-
-	print("$String\n") unless $Hush eq 'True';
+sub Clicked($;$) {
 	Gtk2::main_quit();
 
-	system($YesCMD) if $String eq 'True';
-	system($NoCMD) if $String eq 'False';
+	if (defined($_[0])) {
+		system($YesCMD)
+	} else {
+		system($NoCMD)
+	}
 
-	exit($ExitStatus)
+	exit($_[1])
+}
+
+sub NewButton(\@;$) {
+	my $Button = Gtk2::Button->new($_[1]);
+	$Button->set_size_request(@{$_[0]});
+	$Button->signal_connect('clicked' => \&Clicked, 0);
+
+	return($Button)
 }
 
 my $RootWin = Gtk2::Window->new();
-	$RootWin->signal_connect('destroy' => sub {Gtk2::main_quit()});
-	$RootWin->signal_connect('delete_event' => sub {return(0)});
+$RootWin->set_title($ProgrmFancy);
+$RootWin->set_default_size(280, 120);
+$RootWin->set_resizable(0);
+$RootWin->set_decorated(1);
+$RootWin->set_border_width(10);
 
-	$RootWin->set_title($ProgrmFancy);
-	$RootWin->set_default_size(280, 120);
-	$RootWin->set_resizable(FALSE);
-	$RootWin->set_decorated(TRUE);
+$RootWin->signal_connect('destroy' => sub {Gtk2::main_quit()});
+$RootWin->signal_connect('delete_event' => sub {return(0)});
 
-my $VBox = Gtk2::VBox->new(FALSE, 4);
-	$VBox->set_border_width(8);
+my $VBox = Gtk2::VBox->new(0, 4);
+$VBox->set_border_width(8);
 
 # Putting HBoxButtons within HBoxMain to keep buttons centered sans stretching.
-my $HBoxMain = Gtk2::HBox->new(FALSE, 4);
-	# Ensures minimum size is maintained, else buttons would be cropped.
-	$HBoxMain->set_size_request(280, 46);
+# Ensures minimum size is maintained, else buttons would be cropped.
+my $HBoxMain = Gtk2::HBox->new(0, 4);
+$HBoxMain->set_size_request(280, 46);
 
-my $HBoxButtons = Gtk2::HBox->new(FALSE, 4);
-	$HBoxButtons->set_border_width(8);
+my $HBoxButtons = Gtk2::HBox->new(0, 4);
+$HBoxButtons->set_border_width(8);
 
 my $Frame = Gtk2::Frame->new();
-	$Frame->set_border_width(20);
+$Frame->set_border_width(20);
 
 my $Label = Gtk2::Label->new();
-	$Label->set_text($Question);
-	$Label->set_max_width_chars(100);
-	$Label->set_justify('center');
-	$Label->set_line_wrap(FALSE);
-	$Label->set_line_wrap_mode('word');
+$Label->set_text($Question);
+$Label->set_max_width_chars(100);
+$Label->set_justify('center');
+$Label->set_line_wrap(0);
+$Label->set_line_wrap_mode('word');
 
-my $JaButton = Gtk2::Button->new($YesText);
-	$JaButton->set_size_request(@ButtonSize);
-	$JaButton->signal_connect('clicked' => \&Clicked, [0, 'True']);
+unless ($Scheme) {
+	($YesText, $NoText, @ButtonSize) = ('_Yes', '_No', (100, 60))
+} elsif ($Scheme == 1) {
+	($YesText, $NoText, @ButtonSize) = ('_Accept', '_Decline', (120, 60))
+} elsif ($Scheme == 2) {
+	($YesText, $NoText, @ButtonSize) = ('_Agree', '_Disagree', (120, 60))
+} elsif ($Scheme == 3) {
+	($YesText, $NoText, @ButtonSize) = ('_Allow', '_Deny', (110, 60))
+} elsif ($Scheme == 4) {
+	($YesText, $NoText, @ButtonSize) = ('_True', '_False', (120, 60))
+} elsif ($Scheme == 5) {
+	($YesText, $NoText, @ButtonSize) = ('_Correct', '_Incorrect', (120, 60))
+}
 
-my $NeinButton = Gtk2::Button->new($NoText);
-	$NeinButton->set_size_request(@ButtonSize);
-	$NeinButton->signal_connect('clicked' => \&Clicked, [1, 'False']);
+my $JaButton = NewButton(@ButtonSize, $YesText);
+my $NeinButton = NewButton(@ButtonSize, $NoText);
 
-$VBox->pack_start($Label, TRUE, TRUE, 4);
-$VBox->pack_start($HBoxMain, FALSE, FALSE, 4);
+$VBox->pack_start($Label, 1, 1, 4);
+$VBox->pack_start($HBoxMain, 0, 0, 4);
 
-$HBoxMain->pack_start($HBoxButtons, TRUE, FALSE, 4);
+$HBoxMain->pack_start($HBoxButtons, 1, 0, 4);
 
-$HBoxButtons->pack_start($JaButton, TRUE, TRUE, 4);
-$HBoxButtons->pack_start($NeinButton, TRUE, TRUE, 4);
+$HBoxButtons->pack_start($JaButton, 1, 1, 4);
+$HBoxButtons->pack_start($NeinButton, 1, 1, 4);
 
-if ($DoFrame eq 'True') {
-	$RootWin->set_border_width(8);
+if ($DoFrame) {
 	$Frame->add($VBox);
 	$RootWin->add($Frame);
 } else {
-	$RootWin->set_border_width(0);
 	$RootWin->add($VBox);
 }
 
