@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Wed 13 Apr 16:57:23 BST 2022
+# Last Change       - Wed 13 Apr 17:09:47 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,7 +22,7 @@
 #
 # Bugs:
 #
-#TODO: Handle out-of-range (non-existent) scheme error.
+# N/A
 #
 # Dependencies:
 #
@@ -46,10 +46,10 @@ sub Usage() {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  -N, --no-cmd [CMD]       - Run shell CMD when result is False.
-		  -S, --scheme [INT]       - See below for valid button schemes.
-		  -Y, --yes-cmd [CMD]      - Run shell CMD when result is True.
-		  -f, --frame              - Display a frame around the widgets.
+		  -F, --no-frame           - Omit frame around the widgets.
+		  -n, --no-cmd [CMD]       - Run shell CMD when result is False.
+		  -s, --scheme [INT]       - See below for valid button schemes.
+		  -y, --yes-cmd [CMD]      - Run shell CMD when result is True.
 
 		  The use of '--' is supported in ${\PROGRAM_FANCY}.
 
@@ -64,7 +64,7 @@ sub Usage() {
 }
 
 my $Hush = 0;
-my $DoFrame = 0;
+my $NoFrame = 0;
 my $Scheme = 0;
 
 my ($YesText, $NoText, $YesCMD, $NoCMD, @ButtonSize);
@@ -76,20 +76,26 @@ while ( defined($ARGV[0]) ) {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		say(VERSION); exit(0)
-	} elsif ($ARGV[0] =~ '^(--no-cmd|-N)$') {
-		shift(); $NoCMD = $ARGV[0];
+	} elsif ($ARGV[0] =~ '^(--no-cmd|-n)$') {
+		die("Err: Option '$ARGV[0]' requires an argument.\n")
+			unless defined($ARGV[1]);
 
-		die('Negative command required') unless length($NoCMD) > 0
-	} elsif ($ARGV[0] =~ '^(--scheme|-S)$') {
-		shift(); $Scheme = $ARGV[0];
+		$NoCMD = $ARGV[1];
+		shift();
+	} elsif ($ARGV[0] =~ '^(--scheme|-s)$') {
+		die("Err: Option '$ARGV[0]' requires an argument.\n")
+			unless defined($ARGV[1]);
 
-		die("Scheme '$Scheme' not an integer") unless $Scheme =~ /^[0-9]{1}$/
-	} elsif ($ARGV[0] =~ '^(--yes-cmd|-Y)$') {
-		shift(); $YesCMD = $ARGV[0];
+		$Scheme = $ARGV[1];
+		shift();
+	} elsif ($ARGV[0] =~ '^(--yes-cmd|-y)$') {
+		die("Err: Option '$ARGV[0]' requires an argument.\n")
+			unless defined($ARGV[1]);
 
-		die('Affirmative command required') unless length($YesCMD) > 0
-	} elsif ($ARGV[0] =~ '^(--frame|-f)$') {
-		$DoFrame = 1
+		$YesCMD = $ARGV[1];
+		shift();
+	} elsif ($ARGV[0] =~ '^(--no-frame|-F)$') {
+		$NoFrame = 1
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Err: Option '$ARGV[0]' invalid.\n")
 	} else {
@@ -102,11 +108,13 @@ while ( defined($ARGV[0]) ) {
 # Remaining arguments (not options -- duh) become the question; `echo` style.
 my $Question = join(' ', @ARGV);
 
-die("Err: Question string missing.\n")
-	unless defined($Question);
-
-die("Err: Question string exceeds maximum length.\n")
-	if length($Question) > 100;
+unless (defined($Question)) {
+	die("Err: Question string missing.\n")
+} elsif (length($Question) > 100) {
+	die("Err: Question string exceeds maximum length.\n")
+} elsif (not length($Question) > 0) {
+	die("Err: Missing question string.\n")
+}
 
 sub Clicked($;$) {
 	Gtk2::main_quit();
@@ -126,6 +134,22 @@ sub NewButton(\@;$) {
 	$Button->signal_connect('clicked' => \&Clicked, 0);
 
 	return($Button)
+}
+
+unless ($Scheme) {
+	($YesText, $NoText, @ButtonSize) = ('_Yes', '_No', (100, 60))
+} elsif ($Scheme == 1) {
+	($YesText, $NoText, @ButtonSize) = ('_Accept', '_Decline', (120, 60))
+} elsif ($Scheme == 2) {
+	($YesText, $NoText, @ButtonSize) = ('_Agree', '_Disagree', (120, 60))
+} elsif ($Scheme == 3) {
+	($YesText, $NoText, @ButtonSize) = ('_Allow', '_Deny', (110, 60))
+} elsif ($Scheme == 4) {
+	($YesText, $NoText, @ButtonSize) = ('_True', '_False', (120, 60))
+} elsif ($Scheme == 5) {
+	($YesText, $NoText, @ButtonSize) = ('_Correct', '_Incorrect', (120, 60))
+} else {
+	die("Err: Scheme '$Scheme' invalid.\n")
 }
 
 my $RootWin = Gtk2::Window->new();
@@ -159,20 +183,6 @@ $Label->set_justify('center');
 $Label->set_line_wrap(0);
 $Label->set_line_wrap_mode('word');
 
-unless ($Scheme) {
-	($YesText, $NoText, @ButtonSize) = ('_Yes', '_No', (100, 60))
-} elsif ($Scheme == 1) {
-	($YesText, $NoText, @ButtonSize) = ('_Accept', '_Decline', (120, 60))
-} elsif ($Scheme == 2) {
-	($YesText, $NoText, @ButtonSize) = ('_Agree', '_Disagree', (120, 60))
-} elsif ($Scheme == 3) {
-	($YesText, $NoText, @ButtonSize) = ('_Allow', '_Deny', (110, 60))
-} elsif ($Scheme == 4) {
-	($YesText, $NoText, @ButtonSize) = ('_True', '_False', (120, 60))
-} elsif ($Scheme == 5) {
-	($YesText, $NoText, @ButtonSize) = ('_Correct', '_Incorrect', (120, 60))
-}
-
 my $JaButton = NewButton(@ButtonSize, $YesText);
 my $NeinButton = NewButton(@ButtonSize, $NoText);
 
@@ -184,7 +194,7 @@ $HBoxMain->pack_start($HBoxButtons, 1, 0, 4);
 $HBoxButtons->pack_start($JaButton, 1, 1, 4);
 $HBoxButtons->pack_start($NeinButton, 1, 1, 4);
 
-if ($DoFrame) {
+unless ($NoFrame) {
 	$Frame->add($VBox);
 	$RootWin->add($Frame);
 } else {
