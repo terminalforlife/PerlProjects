@@ -3,16 +3,13 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/dev/update-perl-depends
 # Started On        - Wed 13 Apr 18:50:59 BST 2022
-# Last Change       - Wed 13 Apr 20:55:42 BST 2022
+# Last Change       - Wed 13 Apr 21:08:58 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Changes the required version of PERL displayed in the headers of all scripts
 # and programs within this repository's 'source' directory (somewhat -
 # recursively).
-#
-# WARNING: For some reason, this confuses git(1), causing it to see every
-#          single line as being edited, so until that is fixed, don't run this!
 #
 # Usage: $0 [{--destructive|-d}]
 #------------------------------------------------------------------------------
@@ -42,6 +39,7 @@ for File in "$Target"/source{/*/*,/*}; {
 	read < "$File"
 	case $REPLY in
 		'#!/usr/bin/env perl'|'#!/usr/bin/perl')
+			Output=()
 			while read -r; do
 				if [[ $REPLY == '#   perl ('*\) ]]; then
 					printf '\e[37m%s\e[0m\n' "${File#$Target/source/}"
