@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lspkg/lspkg
 # Started On        - Wed  6 Apr 20:09:09 BST 2022
-# Last Change       - Sun 10 Apr 22:42:18 BST 2022
+# Last Change       - Wed 13 Apr 18:48:45 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use feature 'say';
 use strict;
 use warnings;
 
-use constant VERSION => '2022-04-10';
+use constant VERSION => '2022-04-13';
 use constant PROGRAM => 'lspkg';
 
 no warnings 'uninitialized';
@@ -147,7 +147,8 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-my $REGEX = $ARGV[0];
+# Addresses issues like parentheses in string.
+my $REGEX = quotemeta($ARGV[0]);
 
 die("Err: Options '$DoPriorityArg' and '$DoEssentialArg' incompatible.\n")
 	if defined($DoPriority) and $DoEssential;
