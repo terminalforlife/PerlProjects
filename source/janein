@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/janein
 # Started On        - Wed 28 Oct 17:26:51 GMT 2020
-# Last Change       - Sat 31 Oct 19:30:02 GMT 2020
+# Last Change       - Wed 13 Apr 16:21:35 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ no warnings 'uninitialized';
 
 my $Progrm = 'janein';
 my $ProgrmFancy = 'JaNein';
-my $CurVer = '2020-10-31';
+my $CurVer = '2022-04-13';
 
 sub Usage {
 	print(qq{Usage: $Progrm [OPTS] [QUESTION]
@@ -171,8 +171,8 @@ my $HBoxMain = Gtk2::HBox->new(FALSE, 4);
 my $HBoxButtons = Gtk2::HBox->new(FALSE, 4);
 	$HBoxButtons->set_border_width(8);
 
-my $Frame = Gtk2::Frame->new('Query');
-	$Frame->set_border_width(8);
+my $Frame = Gtk2::Frame->new();
+	$Frame->set_border_width(20);
 
 my $Label = Gtk2::Label->new();
 	$Label->set_text($Question);
