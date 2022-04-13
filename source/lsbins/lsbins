@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/lsbins
 #------------------------------------------------------------------------------
-# Project Name      - PerlProjects/source/lsbins
+# Project Name      - PerlProjects/source/lsbins/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019
-# Last Change       - Thu 13 Jan 21:07:20 GMT 2022
+# Last Change       - Wed 13 Apr 18:10:03 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -17,92 +17,89 @@
 #
 # Dependencies:
 #
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-use v5.22.1;
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-13';
-my $Progrm = 'lsbins';
+use constant VERSION => '2022-04-13';
+use constant PROGRAM => 'lsbins';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [MATCH]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS] [MATCH]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  -E, --extended-regexp    - Search with extended REGEX.
-		  -N, --nodescribe         - Omit the short description.
-		  -a, --show-all           - Show alternative descriptions.
+		  -C, --no-color           - Disable ANSI color escape sequences.
+		  -D, --no-describe        - Omit the short description.
 		  -i, --ignore-case        - Search case-insensitively.
+		  -n, --name-only          - Match only the executable names.
 	} =~ tr/\t//dr)
 }
 
 my $CaseInsen = 0;
-my $ExtReg = 0;
 my $NoDescribe = 0;
-my $ShowAll = 0;
+my $NameOnly = 0;
 
-my ($FlagExtReg, $FlagCaseInsen);
+my $C_Grey = "\e[37m";
+my $C_DimGrey = "\e[2;37m";
+my $C_Reset = "\e[0m";
+
+my $FlagCaseInsen;
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
+	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+		$C_Grey = '';
+		$C_DimGrey = '';
+		$C_Reset = ''
 	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
 		$FlagCaseInsen = $ARGV[0];
 		$CaseInsen = 1
-	} elsif ($ARGV[0] =~ '^(--extended-regexp|-E)$') {
-		$FlagExtReg = $ARGV[0];
-		$ExtReg = 1
-	} elsif ($ARGV[0] =~ '^(--nodescribe|-N)$') {
+	} elsif ($ARGV[0] =~ '^(--no-describe|-D)$') {
 		$NoDescribe = 1
-	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
-		$ShowAll = 1
+	} elsif ($ARGV[0] =~ '^(--name-only|-n)$') {
+		$NameOnly = 1
 	} elsif ($ARGV[0] =~ '^-.*') {
-		die("Unrecognised option(s) specified")
+		die("Err: Unrecognised option(s) specified.\n")
 	} else {
-		last
+		last()
 	}
 
 	shift()
 }
 
-scalar(@ARGV) > 1 and die('Only one MATCH is applicable');
+die("Err: Only one MATCH is applicable.\n") if @ARGV > 1;
 
-unless (defined($ARGV[0])) {
-	if ($ExtReg) {
-		die("OPT '$FlagExtReg' provided, but missing MATCH")
-	} elsif ($CaseInsen) {
-		die("OPT '$FlagCaseInsen' provided, but missing MATCH")
-	}
-}
-
-my (@ExeArray, %ExeHash);
+my (%Execs, $FoundMan);
 foreach my $Dir (split(':', $ENV{PATH})) {
-	-d $Dir or next;
+	next() unless -d $Dir;
 
-	opendir(my $DH, $Dir);
+	if (opendir(my $DH, $Dir)) {
+		foreach my $File (readdir($DH)) {
+			next() unless -f -r -x "$Dir/$File";
 
-	foreach my $File (readdir($DH)) {
-		-f -r -x "$Dir/$File" or next;
+			my $Basename = ($File =~ m{(?:.*/)?([^/].*)})[0];
 
-		# Push only the unique files' basename into the array.
-		my $BaseName = ($File =~ m{(?:.*/)?([^/].*)})[0];
-		unless ($ExeHash{$BaseName} == 1) {
-			push(@ExeArray, $BaseName);
-			$ExeHash{$BaseName} = 1
+			$FoundMan = 1 if $Basename eq 'man';
+
+			# Add the basename of the file path. Only need key, for uniques.
+			$Execs{$Basename} = undef()
 		}
-	}
 
-	closedir($DH)
+		closedir($DH) or die("$!")
+	} else {
+		warn("$!")
+	}
 }
 
-@ExeArray = sort({$a cmp $b} @ExeArray);
+my @Sorted = sort({$a cmp $b} keys(%Execs));
 
 # Usage: DoMatch(<NAME>)
 sub DoMatch($) {
@@ -111,10 +108,6 @@ sub DoMatch($) {
 	# If a MATCH is provided, check for it, then skip if found.
 	if ($CaseInsen) {
 		$_[0] =~ /$ARGV[0]/i and return(1)
-	} elsif ($ExtReg) {
-		$_[0] =~ /$ARGV[0]/x and return(1)
-	} elsif ($CaseInsen and $ExtReg) {
-		$_[0] =~ /$ARGV[0]/ix and return(1)
 	} else {
 		$_[0] =~ $ARGV[0] and return(1)
 	}
@@ -122,43 +115,22 @@ sub DoMatch($) {
 	return(0)
 }
 
-my $FoundMan = 0;
-foreach my $Dir (split(':', $ENV{'PATH'})) {
-	-d -r -x $Dir or next;
+if (not $NoDescribe and $FoundMan) {
+	foreach (`man -f @Sorted 2> /dev/null`) {
+		chomp(my @Line = split());
 
-	foreach my $File (glob("$Dir/*")) {
-		-f -r -x $File or next;
+		my $MatchName = $Line[0] . $Line[1];
+		my $Desc = ' - ' . ucfirst(join(' ', @Line[3..@Line]));
 
-		my $Base = ($File =~ m{(?:.*/)([^/].*)})[0];
-		if ($Base eq 'man') {
-			$FoundMan = 1;
-			last
-		}
+		my $MatchStr = $MatchName . $Desc;
+		$MatchStr = $MatchName if $NameOnly;
+
+		next() unless DoMatch($MatchStr);
+
+		say("$Line[0]$C_DimGrey$Line[1]$C_Reset$C_Grey$Desc$C_Reset")
 	}
-
-	$FoundMan and last
-}
-
-if (not $NoDescribe and $FoundMan){
-	my $OldName = '';
-	foreach (`man -f @ExeArray 2> /dev/null`) {
-		chomp();
-		my $Name = (split(' ', $_))[0];
-
-		# Using `OldName` to avoid alternative descriptions.
-		if ($Name eq $OldName and not $ShowAll) { next }
-
-		# Capitalise the first letter of the description.
-		my $Desc = ' - ' . ucfirst(s/^.* - //gr);
-
-		DoMatch($Name) or next;
-		printf("%s%s\n", $Name, $Desc);
-
-		$OldName = $Name
-	}
-}else{
-	foreach (@ExeArray){
-		DoMatch($_) or next;
-		printf("%s\n", $_)
+} else {
+	foreach (@Sorted){
+		say() if DoMatch($_)
 	}
 }
