@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+#------------------------------------------------------------------------------
+# Project Name      - PerlProjects/dev/update-perl-depends
+# Started On        - Wed 13 Apr 18:50:59 BST 2022
+# Last Change       - Wed 13 Apr 20:55:42 BST 2022
+# Author E-Mail     - terminalforlife@yahoo.com
+# Author GitHub     - https://github.com/terminalforlife
+#------------------------------------------------------------------------------
+# Changes the required version of PERL displayed in the headers of all scripts
+# and programs within this repository's 'source' directory (somewhat -
+# recursively).
+#
+# WARNING: For some reason, this confuses git(1), causing it to see every
+#          single line as being edited, so until that is fixed, don't run this!
+#
+# Usage: $0 [{--destructive|-d}]
+#------------------------------------------------------------------------------
+
+while [[ -n $1 ]]; do
+	case $1 in
+		--destructive|-d)
+			Edit=1 ;;
+		-*)
+			printf "Err: Option '$1' invalid.\n" 1>&2
+			exit 1 ;;
+		*)
+			break ;;
+	esac
+	shift
+done
+
+if [[ -z $1 ]]; then
+	printf 'Err: New version string required.\n' 1>&2
+	exit 1
+fi
+
+Target=`git rev-parse --show-toplevel`
+for File in "$Target"/source{/*/*,/*}; {
+	[[ -f $File && -r $File ]] || continue
+
+	read < "$File"
+	case $REPLY in
+		'#!/usr/bin/env perl'|'#!/usr/bin/perl')
+			while read -r; do
+				if [[ $REPLY == '#   perl ('*\) ]]; then
+					printf '\e[37m%s\e[0m\n' "${File#$Target/source/}"
+					printf "    \e[91mBefore:\e[0m '%s'\n" "$REPLY"
+
+					InsideParens=${REPLY#*(}
+					InsideParens=${InsideParens%)}
+					NewLine=${REPLY/$InsideParens/>= $1}
+					Output+=("$NewLine")
+
+					printf "     \e[92mAfter:\e[0m '%s'\n\n" "$NewLine"
+				else
+					Output+=("$REPLY")
+				fi
+			done < "$File"
+
+			(( Edit )) && printf '%s\n' "${Output[@]}" > "$File"
+	esac
+}
+
+(( Edit )) || printf 'NOTE: Results are simulated.\n'
