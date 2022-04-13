@@ -30,7 +30,7 @@
 #   libfile-listing-perl (>= 6.04-1)
 #   libgit-repository-perl (>= 1.317-1)
 #   libnumber-bytes-human-perl (>= 0.09-1)
-#   perl (>= 5.22.1-9)
+#   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
 require Cwd;

@@ -90,7 +90,7 @@
 #   libfilesys-diskspace-perl (>= 0.05-16)
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
-#   perl (>= 5.26.1-6)
+#   perl (>= 5.26.1)
 #   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 

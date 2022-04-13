@@ -21,7 +21,7 @@
 #
 #   libterm-readkey-perl (>= 2.33-1build1)
 #   libtext-wrapi18n-perl (>= 0.06-7.1)
-#   perl (>= 5.10)
+#   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
 require Term::ANSIColor;
