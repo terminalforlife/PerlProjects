@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/grand-total
 # Started On        - Sat 22 Jan 03:42:38 GMT 2022
-# Last Change       - Fri 15 Apr 20:47:05 BST 2022
+# Last Change       - Fri 15 Apr 20:49:09 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,18 +18,19 @@ use warnings;
 
 die("Err: No arguments required.\n") if @ARGV > 0;
 
+use constant TARGET => '/sys/block';
+
 my $Sectors;
-my $Target = '/sys/block';
-if (opendir(my $DH, $Target)) {
+if (opendir(my $DH, TARGET)) {
 	foreach my $Block (readdir($DH)) {
 		next() if $Block eq '.' or $Block eq '..';
-		next() unless -d "$Target/$Block";
+		next() unless -d TARGET . "/$Block";
 
-		if (opendir(my $SubDH, "$Target/$Block")) {
+		if (opendir(my $SubDH, TARGET . "/$Block")) {
 			foreach my $File (readdir($SubDH)) {
 				next() unless $File eq 'size';
 
-				if (open(my $FH, '<', "$Target/$Block/$File")) {
+				if (open(my $FH, '<', TARGET . "/$Block/$File")) {
 					chomp(my $Data = <$FH>);
 					$Sectors += $Data
 				} else {
