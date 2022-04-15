@@ -1,13 +1,13 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/suptime
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/suptime
 # Started On        - Wed 17 Apr 13:13:34 BST 2019
-# Last Change       - Sun  1 Nov 19:16:42 GMT 2020
+# Last Change       - Fri 15 Apr 21:12:11 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#----------------------------------------------------------------------------------
-# A Perl rewrite of up() previously found in TFL .bash_functions.
+#------------------------------------------------------------------------------
+# A Perl rewrite of `up()` previously found in BashConfig's '.bash_functions'.
 #
 # Features:
 #
@@ -20,69 +20,50 @@
 # Dependencies:
 #
 #   perl (>= 5.26.1)
-#----------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-01';
-my $Progrm = 'suptime';
+use constant VERSION => '2022-04-15';
+use constant PROGRAM => 'suptime';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
-		  -a, --ampersand          - Use ampersand ('&') instead of 'and'.
-		  -c, --comma              - Use comma instead of 'and'.
-		  -t, --time-only          - Omit 'UP:' header & trailing period.
 
 		  If multiple formats are chosen, only the last one applies.
 	} =~ tr/\t//dr)
 }
 
-my $TimeOnly = 'False';
-my $Mid = ' and';
+use constant FILE => '/proc/uptime';
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
-	} elsif ($ARGV[0] =~ '^(--ampersand|-a)$') {
-		$Mid = ' &'
-	} elsif ($ARGV[0] =~ '^(--comma|-c)$') {
-		$Mid = ','
-	} elsif ($ARGV[0] =~ '^(--time-only|-t)$') {
-		$TimeOnly = 'True'
+		say(VERSION); exit(0)
 	} else {
-		die("Incorrect option(s) specified")
+		die("Err: Incorrect option(s) specified.\n")
 	}
 
 	shift()
 }
 
-my $File = '/proc/uptime';
+open(my $FH, '<', FILE) or die("$!");
+my @Array = split(' ', <$FH>);
+close($FH) or die("$!");
 
-open(my $FH, '<', $File) or die("File '$File' failed to open");
-
-my @Array = split(" ", <$FH>);
 my $Hour = int($Array[0] / 60 / 60);
 my $Min = int($Array[0] / 60 - ($Hour * 60));
 
 # Use correct grammar.
-my $Hour_S = "s";
-my $Min_S = "s";
-$Hour <= 1 and $Hour_S = '';
-$Min <= 1 and $Min_S = '';
+my $Hour_S = 's' if $Hour > 1 or not $Hour;
+my $Min_S = 's' if $Min > 1 or not $Min;
 
-if ($TimeOnly eq 'True') {
-	printf("%d hour%s%s %d minute%s\n", $Hour, $Hour_S, $Mid, $Min, $Min_S);
-} else {
-	printf("UP: %d hour%s%s %d minute%s.\n", $Hour, $Hour_S, $Mid, $Min, $Min_S);
-}
-
-close($FH)
+say("$Hour hour$Hour_S and $Min minute$Min_S")
