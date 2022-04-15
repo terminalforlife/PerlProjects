@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/grand-total
 # Started On        - Sat 22 Jan 03:42:38 GMT 2022
-# Last Change       - Sun 10 Apr 03:33:46 BST 2022
+# Last Change       - Fri 15 Apr 20:47:05 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -12,7 +12,7 @@
 # This uses SYSFS, so if you don't have access to that and 'block', you're SoL.
 #------------------------------------------------------------------------------
 
-use v5.10;
+use feature 'say';
 use strict;
 use warnings;
 
