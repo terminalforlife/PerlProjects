@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ldmod
 # Started On        - Sat 11 Jan 14:33:58 GMT 2020
-# Last Change       - Mon 11 Apr 02:39:53 BST 2022
+# Last Change       - Sat 16 Apr 00:22:50 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ use warnings;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-11';
+use constant VERSION => '2022-04-16';
 use constant PROGRAM => 'ldmod';
 
 sub Usage() {
@@ -30,6 +30,7 @@ sub Usage() {
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
+		  -C, --no-color           - Disable ANSI color escape sequences.
 		  -a, --show-all           - Don't omit undescribed modules.
 		  -i, --ignore-case        - Case-insensitive REGEX search.
 
@@ -42,11 +43,19 @@ use constant PROC_MOD => '/proc/modules';
 
 my ($DoCase, $ShowAll, $LiveOnly);
 
+my $C_Grey = "\e[37m";
+my $C_Red = "\e[91m";
+my $C_Reset = "\e[0m";
+
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
 		say(VERSION); exit(0)
+	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+		$C_Grey = '';
+		$C_Red = '';
+		$C_Reset = '';
 	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
 		$DoCase = 'i'
 	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
@@ -70,22 +79,17 @@ if (@ARGV > 1) {
 	die(1, "File '${\PROC_MOD}' missing or inaccessible.")
 }
 
-sub FetchMods($) {
-	open(my $FH, '<', $_[0]) or die("$!");
+open(my $FH, '<', PROC_MOD) or die("$!");
 
-	my @Mods;
-	while (<$FH>) {
-		chomp(my @LineArr = split());
-
-		push(@Mods, $LineArr[0])
-	}
-
-	close($FH) or die("$!");
-
-	return(@Mods);
+my %Modules;
+while (<$FH>) {
+	chomp(my ($Module, $Refs) = (split())[0,2]);
+	$Modules{$Module} = $Refs
 }
 
-foreach (sort({$a cmp $b} FetchMods(PROC_MOD))) {
+close($FH) or die("$!");
+
+foreach (sort({$a cmp $b} keys(%Modules))) {
 	# Look for user-provided REGEX in line, if one is given.
 	if (defined($RegexStr)) {
 		if ($DoCase eq 'i') {
@@ -95,12 +99,15 @@ foreach (sort({$a cmp $b} FetchMods(PROC_MOD))) {
 		}
 	}
 
-	# This is hopefully just a temporary measure.
-	chomp(my $Desc = `modinfo -d "$_" 2> /dev/null` || '?');
+	my $Len = length($Modules{$_});
+	our $MaxLen = $Len if $Len > $MaxLen;
 
-	if ($ShowAll) {
-		say("$_ - $Desc")
-	} else {
-		say("$_ - $Desc") unless $Desc eq '?'
-	}
+	# This is hopefully just a temporary measure.
+	chomp(my $Desc = `modinfo -d "$_" 2> /dev/null`);
+	$Desc = "${C_Red}[Unknown]$C_Reset" unless length($Desc);
+
+	printf(
+		"$C_Grey%*d$C_Reset %s $C_Grey- %s$C_Reset\n",
+		$MaxLen, $Modules{$_}, $_, $Desc
+	)
 }
