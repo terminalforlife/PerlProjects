@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ldmod
 # Started On        - Sat 11 Jan 14:33:58 GMT 2020
-# Last Change       - Sat 16 Apr 00:22:50 BST 2022
+# Last Change       - Sat 16 Apr 00:39:10 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -31,8 +31,8 @@ sub Usage() {
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
 		  -C, --no-color           - Disable ANSI color escape sequences.
-		  -a, --show-all           - Don't omit undescribed modules.
 		  -i, --ignore-case        - Case-insensitive REGEX search.
+		  -n, --numeric            - Sort by module references (numeric).
 
 		  Where REGEX is a regular expression string to use in order
 		  to filter modules by their names, not their descriptions.
@@ -41,12 +41,14 @@ sub Usage() {
 
 use constant PROC_MOD => '/proc/modules';
 
-my ($DoCase, $ShowAll, $LiveOnly);
+my $NumericSort = 0;
+my $IgnoreCase = 0;
 
 my $C_Grey = "\e[37m";
 my $C_Red = "\e[91m";
 my $C_Reset = "\e[0m";
 
+my $IgnoreCaseArg;
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h|-\?)$') {
 		Usage(); exit(0)
@@ -57,9 +59,10 @@ while (defined($ARGV[0])) {
 		$C_Red = '';
 		$C_Reset = '';
 	} elsif ($ARGV[0] =~ '^(--ignore-case|-i)$') {
-		$DoCase = 'i'
-	} elsif ($ARGV[0] =~ '^(--show-all|-a)$') {
-		$ShowAll = 1
+		$IgnoreCaseArg = $ARGV[0];
+		$IgnoreCase = 1
+	} elsif ($ARGV[0] =~ '^(--numeric|-n)$') {
+		$NumericSort = 1
 	} elsif ($ARGV[0] =~ '^-') {
 		die("Err: Incorrect option(s) specified.\n")
 	} else {
@@ -72,11 +75,11 @@ while (defined($ARGV[0])) {
 my $RegexStr = $ARGV[0] if defined($ARGV[0]);
 
 if (@ARGV > 1) {
-	die("Too many arguments -- see: ${\PROGRAM} -h")
-} elsif ($DoCase eq 'i' and not @ARGV) {
-	die("Option '--ignore-case|-i' used, but no REGEX provided.")
+	die("Err: Too many arguments -- see: ${\PROGRAM} -h\n")
+} elsif ($IgnoreCase and not @ARGV) {
+	die("Err: Option '$IgnoreCaseArg' used, but no REGEX provided.\n")
 } elsif (not -f -r PROC_MOD) {
-	die(1, "File '${\PROC_MOD}' missing or inaccessible.")
+	die("Err: File '${\PROC_MOD}' missing or inaccessible.\n")
 }
 
 open(my $FH, '<', PROC_MOD) or die("$!");
@@ -89,10 +92,17 @@ while (<$FH>) {
 
 close($FH) or die("$!");
 
-foreach (sort({$a cmp $b} keys(%Modules))) {
-	# Look for user-provided REGEX in line, if one is given.
+my @Sorted;
+my @Keys = keys(%Modules);
+if ($NumericSort) {
+	@Sorted = sort({$Modules{$b} <=> $Modules{$a}} keys(%Modules))
+} else {
+	@Sorted = sort({$a cmp $b} keys(%Modules))
+}
+
+foreach (@Sorted) {
 	if (defined($RegexStr)) {
-		if ($DoCase eq 'i') {
+		if ($IgnoreCase) {
 			next() unless grep(m/$RegexStr/i, $_)
 		} else {
 			next() unless grep(m/$RegexStr/, $_)
