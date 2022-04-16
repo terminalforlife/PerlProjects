@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Mon 11 Apr 02:37:07 BST 2022
+# Last Change       - Sat 16 Apr 22:42:33 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,19 +24,18 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-require Term::ANSIColor;
-require Term::ReadKey;
-require Text::Wrap;
-require Time::Piece;
-require APTHistory;
-
 use feature 'say';
 use strict;
 use warnings;
+use Term::ANSIColor 'colorstrip', 'color';
+use Term::ReadKey 'GetTerminalSize';
+use Text::Wrap 'wrap';
+use Time::Piece;
+use APTHistory;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-11';
+use constant VERSION => '2022-04-16';
 use constant PROGRAM => 'apt-history';
 
 sub Usage() {
@@ -179,11 +178,6 @@ my %History = $APTHistory->history('/var/log/apt/history.log');
 my @InstalledPKGs = $APTHistory->packages('/var/lib/dpkg/status');
 
 #-------------------------------------------------------------Use Gathered Data
-
-use Term::ANSIColor 'colorstrip', 'color';
-use Term::ReadKey 'GetTerminalSize';
-use Text::Wrap 'wrap';
-use Time::Piece;
 
 unless ($NoColor) {
 	$C_Action = color('bright_yellow');

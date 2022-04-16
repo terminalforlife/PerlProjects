@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitbrov (Git Branch Overview)
 # Started On        - Sun  1 Dec 16:01:38 GMT 2019
-# Last Change       - Sun 10 Apr 03:28:12 BST 2022
+# Last Change       - Sat 16 Apr 22:40:08 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -25,10 +25,6 @@
 #   libgit-repository-perl (>= 1.317-1)
 #------------------------------------------------------------------------------
 
-require Git::Repository;
-require Date::Format;
-
-use v5.10;
 use strict;
 use warnings;
 use autodie;

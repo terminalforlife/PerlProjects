@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitsap
 # Started On        - Mon  6 Jan 23:46:07 GMT 2020
-# Last Change       - Thu 13 Jan 21:05:33 GMT 2022
+# Last Change       - Sat 16 Apr 22:45:00 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,20 +33,18 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-require Cwd;
-require File::Find;
-require Git::Repository;
-require Number::Bytes::Human;
-require Term::ANSIColor;
-
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
+use Term::ANSIColor 'color', 'colorvalid';
+use Number::Bytes::Human 'format_bytes';
+use Git::Repository;
+use File::Find;
+use Cwd;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-13';
+my $CurVer = '2022-04-16';
 my $Progrm = 'gitsap';
 my $ProgrmFancy = 'GitSAP';
 
@@ -180,8 +178,6 @@ my %Index = (
 		'Char_Unstaged' => '≭'      # Changes in repository yet to be staged.
 	}
 );
-
-use Term::ANSIColor 'color', 'colorvalid';
 
 # This is the correct number of keys, for which will later be checked.
 my $ValidKeysTTL = @{$Index{'Sets'}} + @{$Index{'CKeys'}} + keys(%{$Index{'Syms'}});
@@ -366,11 +362,7 @@ $Target = $Target =~ s|^~|$ENV{'HOME'}|r if $Target =~ '^~/';
 length($Target) > 0 or die("Target directory not provided");
 -d $Target or die("Target directory not found");
 
-use Git::Repository;
-
 sub GetRepos{
-	use Cwd;
-
 	#TODO: Temporary. Redirect `Git::Repository` to `/dev/null`, but how?
 	# If we're within a repository, handle it, then bail.
 	if (system('git rev-parse --show-toplevel 1> /dev/null 2>&1') == 0) {
@@ -574,9 +566,6 @@ foreach (GetRepos($Target)) {
 	}
 
 	if ($ShowSize eq 'true') {
-		use Number::Bytes::Human 'format_bytes';
-		use File::Find;
-
 		my $Bytes = 0;
 
 		# Don't repeat hard links.

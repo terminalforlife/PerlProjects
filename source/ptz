@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ptz
 # Started On        - Sat 18 May 21:21:35 BST 2019
-# Last Change       - Fri 28 Jan 01:48:49 GMT 2022
+# Last Change       - Sat 16 Apr 22:39:59 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,14 +22,11 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-require Time::Piece;
-
-use v5.22.1;
 use strict;
 use warnings;
 use Time::Piece;
 
-my $CurVer = '2022-01-28';
+my $CurVer = '2022-04-16';
 my $Progrm = 'ptz';
 
 sub Usage {

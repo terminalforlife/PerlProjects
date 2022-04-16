@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/previewer/previewer
 # Started On        - Mon 22 Apr 01:30:36 BST 2019
-# Last Change       - Thu 13 Jan 21:09:34 GMT 2022
+# Last Change       - Sat 16 Apr 22:46:25 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,10 +23,6 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-require LWP::UserAgent;
-require Term::ReadKey;
-
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
@@ -34,7 +30,7 @@ use Text::Wrap;
 use LWP::UserAgent;
 use Term::ReadKey 'GetTerminalSize';
 
-my $CurVer = '2022-01-13';
+my $CurVer = '2022-04-16';
 my $Progrm = 'previewer';
 
 sub Usage {

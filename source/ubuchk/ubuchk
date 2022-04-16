@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Tue 12 Apr 19:16:11 BST 2022
+# Last Change       - Sat 16 Apr 22:47:55 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -94,22 +94,18 @@
 #   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
-require Filesys::DiskSpace;
-require Term::ANSIColor;
-require Term::ReadKey;
-require Text::Wrap;
-
 use feature 'say';
 use strict;
 use warnings;
 use autodie;
 use Term::ANSIColor 'color', 'colorvalid';
 use Term::ReadKey 'GetTerminalSize';
+use Filesys::DiskSpace 'df';
 use Text::Wrap 'wrap';
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-12';
+use constant VERSION => '2022-04-16';
 use constant PROGRAM => 'ubuchk';
 use constant PROGRAM_FANCY => 'UbuChk';
 
@@ -1382,8 +1378,6 @@ if ($KernMods eq 'true') {
 
 if ($DiskSpace eq 'true') {
 	if (-f MOUNT_FILE) {
-		use Filesys::DiskSpace 'df';
-
 		FileChk(MOUNT_FILE);
 		open(my $FH, '<', MOUNT_FILE) or die("$!");
 

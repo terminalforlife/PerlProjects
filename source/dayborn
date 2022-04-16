@@ -19,9 +19,6 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-require Date::Format;
-require Time::Piece;
-
 use feature 'say';
 use strict;
 use warnings;

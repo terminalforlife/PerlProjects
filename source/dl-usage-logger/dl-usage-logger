@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - Personal/PerlProjects/source/dl-usage-logger/dl-usage-logger
 # Started On        - Tue 15 Mar 01:58:14 GMT 2022
-# Last Change       - Tue 15 Mar 03:15:33 GMT 2022
+# Last Change       - Sat 16 Apr 22:43:49 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -41,9 +41,7 @@
 # arithmetic and figuring out what the new value should be, each time.
 #------------------------------------------------------------------------------
 
-require Date::Format;
-
-use v5.10;
+use feature 'say';
 use strict;
 use warnings;
 use Date::Format 'strftime';

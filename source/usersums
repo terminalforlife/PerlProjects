@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/usersums
 # Started On        - Mon 25 Jan 21:02:07 GMT 2021
-# Last Change       - Tue  5 Apr 02:13:03 BST 2022
+# Last Change       - Sat 16 Apr 22:40:33 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -29,10 +29,6 @@
 #   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
-require Digest::MD5;
-require Encode;
-
-use v5.10;
 use strict;
 use warnings;
 use Digest::MD5 'md5_hex';

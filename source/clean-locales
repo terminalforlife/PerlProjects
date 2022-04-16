@@ -21,8 +21,6 @@
 #   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
-require File::Path;
-
 use feature 'say';
 use strict;
 use warnings;

@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/apt-undo-install
 # Started On        - Tue 23 Apr 18:46:07 BST 2019
-# Last Change       - Thu 13 Jan 20:53:02 GMT 2022
+# Last Change       - Sat 16 Apr 22:43:01 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -24,16 +24,14 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-require AptPkg::Cache;
-
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
+use AptPkg::Cache;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-01-13';
+my $CurVer = '2022-04-16';
 my $Progrm = 'apt-undo-install';
 
 sub Usage {
@@ -206,8 +204,6 @@ unless ($OutOnly) {
 	)
 } else {
 	if ($OutputFormat eq 'desc') {
-		use AptPkg::Cache;
-
 		my $Cache = AptPkg::Cache->new();
 		my $Descs = $Cache->packages('DescriptionList');
 		foreach (@InstalledPKGs) {

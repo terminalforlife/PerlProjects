@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-download-deps
 # Started On        - Sat  4 Jan 21:55:31 GMT 2020
-# Last Change       - Sun 14 Mar 00:05:15 GMT 2021
+# Last Change       - Sat 16 Apr 22:41:14 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -14,14 +14,12 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
-require AptPkg::Cache;
-
-use v5.22.1;
 use strict;
 use warnings;
 use autodie;
+use AptPkg::Cache;
 
-my $CurVer = '2021-03-14';
+my $CurVer = '2022-04-16';
 my $Progrm = 'apt-download-deps';
 
 sub Usage {
@@ -67,8 +65,6 @@ foreach my $Dir (split(':', $ENV{'PATH'})) {
 $Found or die("Dependency 'apt-get' not met");
 
 #----------------------------------------------------Determine the Dependencies
-
-use AptPkg::Cache;
 
 my $Cache = AptPkg::Cache->new();
 
