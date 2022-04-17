@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun 17 Apr 22:19:30 BST 2022
+# Last Change       - Sun 17 Apr 22:32:44 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -154,8 +154,7 @@ if (not $ShowColor and $CustomRanges) {
 	die("Err: Powers of 1000 redundant if displaying bytes.\n")
 }
 
-my @Targets;
-my $TargetErr = 0;
+my (@Targets, $TargetErr);
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^/dev/(sd|fd|hd)[[:alpha:]]+$') {
 		push(@Targets, $ARGV[0])
@@ -167,19 +166,22 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-exit(1) if $TargetErr > 0;
+exit(1) if $TargetErr;
 
 #--------------------------------------------------------------Main Subroutines
 
 sub ReadFile($) {
 	my $File = $_[0];
 
-	-f $File or die("Err: File '$File' missing.\n");
-	-r $File or die("Err: File '$File' unreadable.\n");
+	die("Err: File '$File' missing.\n")
+		unless -f $File;
+
+	die("Err: File '$File' unreadable.\n")
+		unless -r $File;
 
 	open(my $FH, '<', $File) or die("$!");
 	chomp(my $Buffer = join("\n", <$FH>));
-	close($FH);
+	close($FH) or die("$!");
 
 	return($Buffer =~ s/[[:space:]]+$//r)
 }
@@ -188,11 +190,7 @@ sub Width($;$) {
 	my ($String, $MaxWidth) = @_;
 
 	my $Width = length($String);
-	if ($Width > $MaxWidth) {
-		return($Width)
-	} else {
-		return($MaxWidth)
-	}
+	$Width > $MaxWidth ? return($Width) : return($MaxWidth)
 }
 
 sub Human($) {
