@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun 17 Apr 22:32:44 BST 2022
+# Last Change       - Sun 17 Apr 22:38:25 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -198,10 +198,9 @@ sub Human($) {
 	foreach ('', qw{K M G T P E Z Y}) {
 		if ($Size < $Powers) {
 			my $Result = sprintf('%.1f', $Size);
-			my $Len = length($Result);
-			my $LastTwo = substr($Result, $Len - 2);
+			my $LastTwo = substr($Result, -2);
 			if ($LastTwo eq '.0') {
-				return(substr($Result, 0, $Len - 2) . $_)
+				return(substr($Result, 0, -2) . $_)
 			} else {
 				return($Result . $_)
 			}
