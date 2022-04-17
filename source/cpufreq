@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cpufreq
 # Started On        - Sat  4 May 15:51:08 BST 2019
-# Last Change       - Sun 10 Apr 22:49:10 BST 2022
+# Last Change       - Sun 17 Apr 16:06:27 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ use warnings;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-10';
+use constant VERSION => '2022-04-17';
 use constant PROGRAM => 'cpufreq';
 
 sub Usage() {
@@ -36,8 +36,6 @@ sub Usage() {
 		  -v, --version            - Output the version datestamp.
 	} =~ tr/\t//dr)
 }
-
-my $ProcFile = '/proc/cpuinfo';
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
@@ -51,10 +49,15 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-die("Err: File '$ProcFile' not found.\n") unless -f $ProcFile;
-die("Err: Read access for '$ProcFile' is denied.\n") unless -r $ProcFile;
+use constant PROC_FILE => '/proc/cpuinfo';
 
-open(my $FH, '<', $ProcFile) or die("$!");
+die("Err: File '${\PROC_FILE}' not found.\n")
+	unless -f PROC_FILE;
+
+die("Err: Read access for '${\PROC_FILE}' is denied.\n")
+	unless -r PROC_FILE;
+
+open(my $FH, '<', PROC_FILE) or die("$!");
 
 while (<$FH>) {
 	chomp(my @Line = split(':'));
