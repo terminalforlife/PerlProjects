@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/debttl
 # Started On        - Tue  5 Apr 00:19:48 BST 2022
-# Last Change       - Sun 10 Apr 23:33:41 BST 2022
+# Last Change       - Sun 17 Apr 15:59:11 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ use warnings;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-10';
+use constant VERSION => '2022-04-17';
 use constant PROGRAM => 'debttl';
 
 sub Usage() {
@@ -120,11 +120,8 @@ while (<$FH>) {
 	} elsif ($Line[0] eq 'Status') {
 		$Status = substr($Line[1], 1);
 	} elsif ($Line[0] eq 'Installed-Size') {
-		if ($Status eq 'install ok installed') {
-			push(@II_Sizes, substr($Line[1], 1))
-		} elsif ($Status eq 'deinstall ok config-files') {
-			push(@RC_Sizes, substr($Line[1], 1))
-		}
+		push(@II_Sizes, substr($Line[1], 1))
+			if $Status eq 'install ok installed'
 	}
 }
 
@@ -137,10 +134,7 @@ if ($Filter eq 'ttl_pkgs') {
 	say(Commas(@II_Sizes))
 } elsif ($Filter eq 'ii_size') {
 	say(Human($II_TTL))
-} elsif ($Filter eq 'rc_size') {
-	say(Human($RC_TTL))
 } else {
 	say('Total Packages: ' . Commas(@II_Sizes));
-	say('Installed Size: ' . Human($II_TTL));
-	say(' Unpurged Size: ' . Human($RC_TTL))
+	say('Installed Size: ' . Human($II_TTL))
 }

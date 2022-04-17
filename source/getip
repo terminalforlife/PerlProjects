@@ -1,12 +1,12 @@
 #!/usr/bin/env perl
 #cito M:755 O:0 G:0 T:/usr/bin/getip
-#--------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/getip
 # Started On        - Wed  8 May 14:35:49 BST 2019
 # Last Change       - Sat 16 Apr 22:39:08 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
-#--------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 # Features:
 #
 # N/A
