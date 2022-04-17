@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Mon 11 Apr 01:00:14 BST 2022
+# Last Change       - Sun 17 Apr 22:19:30 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use warnings;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-11';
+use constant VERSION => '2022-04-17';
 use constant PROGRAM => 'dtp';
 
 sub Usage() {
@@ -270,7 +270,7 @@ foreach my $Dir (glob("${\HW_FILE}/hwmon[0-9]*")) {
 }
 
 @Keys = keys(%Drives);
-scalar(@Keys) or die("Err: No storage devices found.\n");
+die("Err: No storage devices found.\n") unless @Keys;
 
 my ($Sectors, $Size);
 my $MaxWidthSize = length('SIZE_?');
