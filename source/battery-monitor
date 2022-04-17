@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/battery-monitor
 # Started On        - Mon 27 Jan 02:54:42 GMT 2020
-# Last Change       - Sun 10 Apr 22:58:20 BST 2022
+# Last Change       - Sun 17 Apr 22:43:06 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -79,7 +79,7 @@ while (1) {
 		chomp(my @Arr = split());
 		next() unless $Arr[0] eq 'percentage:';
 
-		my $PRemains = substr($Arr[1], 0, length($Arr[1]) - 1);
+		my $PRemains = substr($Arr[1], 0, -1);
 
 		if ($PRemains < 2) {
 			Notify("Initiating emergency shutdown in 7s.");
