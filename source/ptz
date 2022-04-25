@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ptz
 # Started On        - Sat 18 May 21:21:35 BST 2019
-# Last Change       - Sat 16 Apr 22:39:59 BST 2022
+# Last Change       - Mon 25 Apr 23:31:13 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -22,15 +22,16 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
 use Time::Piece;
 
-my $CurVer = '2022-04-16';
-my $Progrm = 'ptz';
+use constant VERSION => '2022-04-25';
+use constant PROGRAM => 'ptz';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [YYYY-MM-DD]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS] [YYYY-MM-DD]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -43,21 +44,21 @@ my $DoCommas = 1;
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ /^(--help|-h)$/) {
 		Usage(); exit 0
-	} elsif ($ARGV[0] =~ /^(--version|-v)$/) {
-		print("$CurVer\n"); exit 0
-	} elsif ($ARGV[0] =~ /^(--no-commas|-C)$/) {
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		say(VERSION); exit 0
+	} elsif ($ARGV[0] =~ '^(--no-commas|-C)$') {
 		$DoCommas = 0
-	} elsif ($ARGV[0] =~ /^-/) {
-		die("Incorrect argument(s) specified")
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Err: Incorrect argument(s) specified.\n")
 	} else {
-		last
+		last()
 	}
 
-	shift(@ARGV)
+	shift()
 }
 
-die("Target date of YYYY-MM-DD is required")
-	if scalar(@ARGV) == 0;
+die("Err: Target date of YYYY-MM-DD is required.\n")
+	unless @ARGV;
 
 my $Target = shift();
 
@@ -74,21 +75,17 @@ sub Commas($) {
 		}
 	}
 
-	my $Len = length($Nr);
-	$Nr = substr($Nr, 1, $Len)
+	$Nr = substr($Nr, 1, length($Nr))
 		if substr($Nr, 0, 1) eq ',';
 
 	return($Nr)
 }
 
-die("Invalid target date") unless $Target =~ /^\d{4}-\d{2}-\d{2}$/a;
+die("Invalid target date")
+	unless $Target =~ /^\d{4}-\d{2}-\d{2}$/a;
 
 my $CurrentTime = localtime->epoch();
 my $TargetTime = Time::Piece->strptime($Target, '%Y-%m-%d')->epoch();
 my $Seconds = $TargetTime - $CurrentTime;
 
-if ($DoCommas) {
-	print(Commas($Seconds) . "\n")
-} else {
-	print($Seconds . "\n")
-}
+$DoCommas ? say(Commas($Seconds)) : say($Seconds)
