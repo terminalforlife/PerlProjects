@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/somacli
 # Started On        - Fri  6 Nov 23:18:28 GMT 2020
-# Last Change       - Fri 13 Nov 15:31:44 GMT 2020
+# Last Change       - Mon 25 Apr 22:49:36 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -15,7 +15,7 @@
 #
 # Bugs:
 #
-# N/A
+#TODO: Broken, as of at least 2022-04-25.
 #
 # Dependencies:
 #
@@ -23,19 +23,19 @@
 #   perl-modules-5.26 (>= 5.26.1-6)
 #------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
-use autodie;
 use HTTP::Tiny;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2020-11-13';
-my $Progrm = 'somacli';
-my $ProgrmFancy = 'Soma CLI';
+use constant VERSION => '2022-04-25';
+use constant PROGRAM => 'somacli';
+use constant PROGRAM_FANCY => 'Soma CLI';
 
-sub Usage{
-	print(qq{Usage: $Progrm [OPTS] [STATION]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS] [STATION]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -43,69 +43,68 @@ sub Usage{
 	} =~ tr/\t//dr)
 }
 
-my $ShowInfo;
+use constant PLAY_URL => 'https://somafm.com';
 
-while (defined($ARGV[0])){
-	if ($ARGV[0] =~ '^(--help|-h)$'){
+my $ShowInfo = 0;
+
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
-	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
-		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] =~ '^(--stations|-s)$'){
-		$ShowInfo = 'True'
-	}elsif ($ARGV[0] =~ '^-'){
-		Err(1, "Incorrect option(s) specified.")
-	}else{
-		last
+	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
+		say(VERSION); exit(0)
+	} elsif ($ARGV[0] =~ '^(--stations|-s)$') {
+		$ShowInfo = 1
+	} elsif ($ARGV[0] =~ '^-') {
+		die("Err: Incorrect option(s) specified.\n")
+	} else {
+		last()
 	}
 
 	shift()
 }
 
-scalar(@ARGV) > 1 and die("Too many arguments provided");
+die("Err: Too many arguments provided.\n")
+	if @ARGV > 1;
 
-unless ($ShowInfo eq 'True') {
-	scalar(@ARGV) == 0 and die("Station not provided")
-}
-
-my $PlayURL = 'https://somafm.com';
+die("Err: Station not provided.\n")
+	unless @ARGV;
 
 #--------------------------------------------Parse Site for Station Information
 
-my $WebPage = HTTP::Tiny->new()->get($PlayURL . '/listen');
-$WebPage->{'success'} or die("Problems connecting to SomaFM");
+my $WebPage = HTTP::Tiny->new()->get(PLAY_URL . '/listen');
 
-my %Station = ();
-my ($MaxLenName, $Name, $Desc, $Counter, $URL);
-
-# We need this default value for the information header itself.
-my $MaxLenCounter = 6;
+die("Problems connecting to SomaFM")
+	unless $WebPage->{'success'};
 
 # This isn't really all that effecient; it's a nice place-holder for future
 # expansion of SomaCLI, though. It gets used well when listing stations.
+my $MaxLenCounter = 6;
+my (%Station, $MaxLenName, $Name, $Desc, $Counter, $URL);
 foreach (split("\n", $WebPage->{'content'})) {
 	chomp();
 
-	if ($_ =~ '^\<h3\>.*\</h3\>$') {
+	if (/^\<h3\>.*\<\/h3\>$/) {
 		# This is what the user has to enter to select a station; inconvenient.
-		$Name = ($_ =~ m{(^\<h3\>)(.*)(\</h3\>$)})[1];
+		$Name = (m{(^\<h3\>)(.*)(\</h3\>$)})[1];
 
 		# Determine maximum length needed for printf() later on.
 		$MaxLenName < length($Name) and $MaxLenName = length($Name)
-	} elsif ($_ =~ '^\<p class="descr"\>') {
-		$Desc = ($_ =~ m{(^\<p class="descr"\>)(.*)(\</p\>$)})[1];
+	} elsif (/^\<p class="descr"\>/) {
+		$Desc = (m{(^\<p class="descr"\>)(.*)(\</p\>$)})[1];
 		$Station{$Name}{'Desc'} = $Desc
-	} elsif ($_ =~ '\<nobr>MP3:') {
-		$URL = ($_ =~ m{(\<a href=\")(.*)(\"\>)})[1];
+	} elsif (/\<nobr>MP3:/) {
+		$URL = (m{(\<a href=\")(.*)(\"\>)})[1];
 		$Station{$Name}{'URL'} = $URL
-	} elsif ($_ =~ '^\<dd\>[0-9]+\</dd\>$') {
-		$Counter = ($_ =~ m{(\<dd\>)(.*)(\</dd\>)})[1];
+	} elsif (/^\<dd\>[0-9]+\<\/dd\>$/) {
+		$Counter = (m{(\<dd\>)(.*)(\</dd\>)})[1];
 		$Station{$Name}{'Counter'} = $Counter;
 
 		# Determine maximum length needed for printf() later on.
-		$MaxLenCounter < length($Counter) and $MaxLenCounter = length($Counter)
-	} elsif ($_ =~ '\<!-- end stations --\>') {
+		$MaxLenCounter = length($Counter)
+			if $MaxLenCounter < length($Counter)
+	} elsif (/\<!-- end stations --\>/) {
 		# Station list has ended, so we're done here.
-		last
+		last()
 	}
 }
 
@@ -114,7 +113,7 @@ undef($WebPage);
 
 #---------------------------------------------------Display Station Information
 
-if ($ShowInfo eq 'True') {
+if ($ShowInfo) {
 	printf(
 		"%-*s  %-*s\n",
 		$MaxLenName, 'STATION',
@@ -122,19 +121,20 @@ if ($ShowInfo eq 'True') {
 	);
 
 	printf(
-		"%-*s  %-*d\n",
-		$MaxLenName, $_,
+		"%-*s  %-*d\n", $MaxLenName, $_,
 		$MaxLenCounter, $Station{$_}{'Counter'}
 	) foreach sort({$a cmp $b} keys(%Station));
 
 	exit(0)
 }
 
-length($ARGV[0]) == 0 and die("Station NAME not provided");
+die("Err: Station NAME not provided.\n")
+	unless length($ARGV[0]);
 
 #-----------------------------------------------------Play Station with MPlayer
 
-exists($Station{$ARGV[0]}) or die("Station not found");
+die("Err: Station not found.\n")
+	 unless exists($Station{$ARGV[0]});
 
 print("Playing '$ARGV[0]' (Ctrl + C to Quit) ... ");
 
@@ -143,7 +143,7 @@ print("Playing '$ARGV[0]' (Ctrl + C to Quit) ... ");
 # I'm finding the documentation to be lackluster.
 system(
 	'mplayer -nogui -input nodefault-bindings:conf=/dev/null ' .
-	"-really-quiet -playlist '$PlayURL$Station{$ARGV[0]}{URL}' " .
+	"-really-quiet -playlist '${\PLAY_URL}$Station{$ARGV[0]}{URL}' " .
 	'1> /dev/null 2>&1'
 );
 
