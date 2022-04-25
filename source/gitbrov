@@ -32,7 +32,7 @@ use Git::Repository;
 use Date::Format 'strftime';
 
 sub Main($) {
-	our $Repo;
+	my $Repo;
 
 	sub GetBranches() {
 		my @Branches;
