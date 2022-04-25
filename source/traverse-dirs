@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/traverse-dirs
 # Started On        - Fri 21 Jan 22:45:20 GMT 2022
-# Last Change       - Fri 21 Jan 23:08:56 GMT 2022
+# Last Change       - Mon 25 Apr 23:39:21 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -23,7 +23,7 @@
 # stuff if all one wants to do is to simply grab the directories.
 #------------------------------------------------------------------------------
 
-use v5.22.1;
+use feature 'say';
 use strict;
 use warnings;
 
@@ -31,9 +31,8 @@ my $Target = $ARGV[0] || '.';
 
 # Address `Target` ending in '/'.
 my $Len = length($Target);
-if (substr($Target, $Len - 1, $Len) eq '/') {
-	$Target = substr($Target, 0, $Len - 1)
-}
+$Target = substr($Target, 0, $Len - 1)
+	if substr($Target, $Len - 1, $Len) eq '/';
 
 sub Recurse {
 	if (opendir(my $DH, $_[0])) {
@@ -42,28 +41,29 @@ sub Recurse {
 			next() unless -d "$_[0]/$_";
 			next() if -l "$_[0]/$_";
 
-			print("$_[0]/$_\n");
+			say("$_[0]/$_");
 			Recurse("$_[0]/$_")
 		}
 
 		closedir($DH) or die("$!")
 	} else {
-		warn("$!: $_\n")
+		warn("$!")
 	}
 }
 
-print("$Target/\n");
 if (opendir(my $DH, $Target)) {
+	say("$Target/");
+
 	foreach (readdir($DH)) {
 		next() if $_ eq '.' or $_ eq '..';
 		next() unless -d "$Target/$_";
 		next() if -l "$Target/$_";
 
-		print("$Target/$_\n");
+		say("$Target/$_");
 		Recurse("$Target/$_")
 	}
 
 	closedir($DH) or die("$!")
 } else {
-	die("$!: $Target\n")
+	die("$!")
 }
