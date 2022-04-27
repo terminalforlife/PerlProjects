@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dayborn
 # Started On        - Mon 10 Feb 23:49:15 GMT 2020
-# Last Change       - Sun 10 Apr 22:54:58 BST 2022
+# Last Change       - Wed 27 Apr 15:39:32 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -27,7 +27,7 @@ use Time::Piece;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-10';
+use constant VERSION => '2022-04-27';
 use constant PROGRAM => 'dayborn';
 
 sub Usage() {
@@ -52,48 +52,47 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-die("Err: File name(s) required.\n") if @ARGV == 0;
+die("Err: File name(s) required.\n")
+	if @ARGV == 0;
 
 foreach my $File (@ARGV) {
 	die("Err: File '$File' not found.\n") unless -f $File;
 	die("Err: File '$File' unreadable.\n") unless -r $File;
 	die("Err: File '$File' is binary.\n") if -B $File;
 
-	if (open(my $FH, '<', $File)) {
-		my ($Start, $Now);
-		while (<$FH>){
-			next() unless /^# (Started|Last) /;
+	open(my $FH, '<', $File) or die("$!");
 
-			chomp(my @Arr = split(' '));
+	my ($Start, $Now);
+	while (<$FH>){
+		next() unless /^# (Started|Last) /;
 
-			# The following format (sans quotes) is expected:
-			#
-			#   '# Started On        - Mon 10 Feb 23:49:15 GMT 2020'
-			#
-			if ($Arr[1] eq 'Started') {
-				$Start = Time::Piece->strptime(
-					join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
-				)->epoch()
-			}
+		chomp(my @Arr = split(' '));
 
-			# The following format (sans quotes) is expected:
-			#
-			#   '# Last Change       - Tue 11 Feb 01:00:34 GMT 2020'
-			#
-			if ($Arr[1] eq 'Last') {
-				$Now = Time::Piece->strptime(
-					join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
-				)->epoch()
-			}
+		# The following format (sans quotes) is expected:
+		#
+		#   '# Started On        - Mon 10 Feb 23:49:15 GMT 2020'
+		#
+		if ($Arr[1] eq 'Started') {
+			$Start = Time::Piece->strptime(
+				join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+			)->epoch()
 		}
 
-		close($FH) or die("$!");
-
-		my $Project = ($File =~ m{(?:.*/)?([^/].*)})[0];
-		my $DeltaDay = ($Now - $Start) / 60 / 60 / 24;
-
-		printf("Project '%s' was born %.2f day's ago.\n", $Project, $DeltaDay)
-	} else {
-		die("$!")
+		# The following format (sans quotes) is expected:
+		#
+		#   '# Last Change       - Tue 11 Feb 01:00:34 GMT 2020'
+		#
+		if ($Arr[1] eq 'Last') {
+			$Now = Time::Piece->strptime(
+				join(' ', @Arr[4,6,5,7,9]), '%a %b %d %T %Z %Y'
+			)->epoch()
+		}
 	}
+
+	close($FH) or die("$!");
+
+	my $Project = ($File =~ m{(?:.*/)?([^/].*)})[0];
+	my $DeltaDay = ($Now - $Start) / 60 / 60 / 24;
+
+	printf("Project '%s' was born %.2f day's ago.\n", $Project, $DeltaDay)
 }
