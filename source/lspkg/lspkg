@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lspkg/lspkg
 # Started On        - Wed  6 Apr 20:09:09 BST 2022
-# Last Change       - Wed 13 Apr 18:48:45 BST 2022
+# Last Change       - Mon  2 May 15:02:05 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ use feature 'say';
 use strict;
 use warnings;
 
-use constant VERSION => '2022-04-13';
+use constant VERSION => '2022-05-02';
 use constant PROGRAM => 'lspkg';
 
 no warnings 'uninitialized';
@@ -215,7 +215,8 @@ unless (-f $File) {
 		} elsif ($Line[0] eq 'Architecture') {
 			$Arch = $Line[1]
 		} elsif ($Line[0] eq 'Description') {
-			next() unless $Status eq 'install ok installed';
+			next() unless $Status eq 'install ok installed'
+				or $Status eq 'deinstall ok installed';
 
 			# Because the 'Essential' line only tends to exist for packages
 			# which are essential, this has to be handled specially, -
