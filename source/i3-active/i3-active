@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/i3-active/i3-active
 # Started On        - Fri 21 Jan 00:08:26 GMT 2022
-# Last Change       - Sat 16 Apr 22:45:50 BST 2022
+# Last Change       - Sat 28 May 23:50:30 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -21,17 +21,18 @@
 #   perl (>= 5.26.1)
 #------------------------------------------------------------------------------
 
+use feature 'say';
 use strict;
 use warnings;
 use AnyEvent::I3 'i3', 'TYPE_GET_TREE';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-04-16';
-my $Progrm = 'i3-active';
+use constant VERSION => '2022-05-28';
+use constant PROGRAM => 'i3-active';
 
-sub Usage {
-	print(qq{Usage: $Progrm [OPTS] [KEY]
+sub Usage() {
+	print(qq{Usage: ${\PROGRAM} [OPTS] [KEY]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -40,11 +41,6 @@ sub Usage {
 		  display, geometry, role, floating, border, layout, fullscreen, -
 		  sticky, or urgent.
 	} =~ tr/\t//dr)
-}
-
-sub Err($;$) {
-	print(STDERR "Err: %s\n", $_[1]);
-	exit($_[0]) if $_[0] > 0
 }
 
 my @ValidKeys = (
@@ -57,9 +53,9 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		print("$CurVer\n"); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^-') {
-		die("Incorrect option(s) specified")
+		die("Err: Incorrect option(s) specified.\n")
 	} else {
 		last()
 	}
@@ -137,6 +133,4 @@ sub Recurse {
 	}
 }
 
-foreach my $Node (@{$JSON->{nodes}}) {
-	Recurse($Node);
-}
+Recurse($_) foreach @{$JSON->{nodes}}

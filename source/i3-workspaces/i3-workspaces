@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/i3-workspaces/i3-workspaces
 # Started On        - Fri 21 Jan 18:01:01 GMT 2022
-# Last Change       - Sat 16 Apr 22:46:12 BST 2022
+# Last Change       - Sat 28 May 23:55:18 BST 2022
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -34,11 +34,11 @@ use AnyEvent::I3 'i3', 'TYPE_GET_WORKSPACES';
 
 no warnings 'uninitialized';
 
-my $CurVer = '2022-04-16';
-my $Progrm = 'i3-workspaces';
+use constant VERSION => '2022-05-28';
+use constant PROGRAM => 'i3-workspaces';
 
 sub Usage() {
-	print(qq{Usage: $Progrm [OPTS] [NR PROP]
+	print(qq{Usage: ${\PROGRAM} [OPTS] [NR PROP]
 
 		  -h, --help               - Display this help information.
 		  -v, --version            - Output the version datestamp.
@@ -51,11 +51,6 @@ sub Usage() {
 		  It's also possible to output only property PROP of workspace NR.
 		  Valid PROPs are name, visible, output, urgent, and focused.
 	} =~ tr/\t//dr)
-}
-
-sub Err($;$) {
-	say(STDERR "Err: $_[1]");
-	exit($_[0]) if $_[0] > 0
 }
 
 my @Valids = ('name', 'visible', 'output', 'urgent', 'focused');
@@ -72,9 +67,7 @@ while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
 		Usage(); exit(0)
 	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		say("$CurVer"); exit(0)
-	} elsif ($ARGV[0] =~ '^(--version|-v)$') {
-		say("$CurVer"); exit(0)
+		say(VERSION); exit(0)
 	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
 		$Arg_NoColor = $ARGV[0];
 		undef($Grey);
@@ -89,7 +82,7 @@ while (defined($ARGV[0])) {
 	} elsif ($ARGV[0] eq '--csv') {
 		$CSV = 1
 	} elsif ($ARGV[0] =~ '^-') {
-		Err(1, "Incorrect option(s) specified.")
+		die("Err: Incorrect option(s) specified.\n")
 	} else {
 		last()
 	}
@@ -97,27 +90,27 @@ while (defined($ARGV[0])) {
 	shift()
 }
 
-if (scalar(@ARGV) > 2) {
-	for (my $Index = 2; $Index < scalar(@ARGV); $Index++) {
-		Err(0, "Argument '$ARGV[$Index]' invalid.")
+if (@ARGV > 2) {
+	for (my $Index = 2; $Index < @ARGV; $Index++) {
+		die("Err: Argument '$ARGV[$Index]' invalid.\n")
 	}
 
 	exit(1)
 } elsif ($Quote and $CSV) {
-	Err(1, "Option '--csv' and '$Arg_Quote' are incompatible.")
+	die("Err: Option '--csv' and '$Arg_Quote' are incompatible.\n")
 } elsif (defined($Arg_NoColor) and $CSV) {
-	Err(1, "Option '--csv' and '$Arg_NoColor' are incompatible.")
+	die("Err: Option '--csv' and '$Arg_NoColor' are incompatible.\n")
 }
 
 my $Arg_Nr = lc($ARGV[0]);
 my $Arg_Key = lc($ARGV[1]);
 if (defined($ARGV[0]) or defined($ARGV[1])) {
 	if (not defined($Arg_Nr) and not defined($Arg_Key)) {
-		Err(1, 'Unpaired NR and PROP arguments.')
+		die("Err: Unpaired NR and PROP arguments.\n")
 	} elsif (not grep({$_ eq $ARGV[1]} @Valids)) {
-		Err(1, 'Unknown workspace property.')
+		die("Err: Unknown workspace property.\n")
 	} elsif ($CSV) {
-		Err(1, "Option '--csv' cannot be used with NR PROP.")
+		die("Err: Option '--csv' cannot be used with NR PROP.\n")
 	}
 
 	$GetValue = 1
@@ -146,7 +139,7 @@ sub LenChk($;$) {
 #----------------------------------------------------------Fetch Data from JSON
 
 my $i3 = i3();
-$i3->connect()->recv() or Err(1, 'Failed to connect to i3-wm.');
+$i3->connect()->recv() or die("Err: Failed to connect to i3-wm.\n");
 my $JSON = $i3->message(TYPE_GET_WORKSPACES)->recv();
 
 my $Nr_LenMax = 2;
@@ -202,9 +195,9 @@ if ($CSV) {
 	}
 } elsif ($GetValue) {
 	if ($Arg_Nr !~ /^[[:digit:]]+$/) {
-		Err(1, "Workspace '$Arg_Nr' invalid.")
+		die("Err: Workspace '$Arg_Nr' invalid.\n")
 	} elsif (not grep({$_ eq $Arg_Nr} keys(%Keys))) {
-		Err(1, "Workspace #$Arg_Nr not found.")
+		die("Err: Workspace #$Arg_Nr not found.\n")
 	}
 
 	say("$Keys{$Arg_Nr}{$Arg_Key}");
