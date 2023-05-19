@@ -3,13 +3,20 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk
 # Started On        - Mon  3 Feb 18:22:57 GMT 2020
-# Last Change       - Sat 16 Apr 22:47:55 BST 2022
+# Last Change       - Wed 17 May 11:43:18 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # An ever-growing Perl rewrite and vast overhaul of `ubuntu-syschk`.
 #
 # Features:
+#
+#TODO: Check for CVE-2021-3156. Local exploit.
+#
+#      Can be done with: sudoedit -s '\' `perl -e 'print "A" x 65536'`
+#      This has been fixed. Apparently the '/etc/passwd' last modified time
+#      needs to be newer than when the system was booted. A segmentation error
+#      indicates you are vulnerable to this exploit.
 #
 #TODO: Check for Firefox parameters, whether to optimize or make more secure.
 #
