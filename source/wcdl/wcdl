@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/wcdl
+#cito M:755 O:0 G:0 T:/usr/local/bin/wcdl
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl/wcdl
 # Started On        - Sat 27 Apr 18:54:48 BST 2019

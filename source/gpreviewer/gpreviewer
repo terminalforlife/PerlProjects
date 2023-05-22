@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-#cito M:755 O:0 G:0 T:/usr/bin/gpreviewer
+#cito M:755 O:0 G:0 T:/usr/local/bin/gpreviewer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gpreviewer/gpreviewer
 # Started On        - Sun 25 Oct 01:10:22 BST 2020

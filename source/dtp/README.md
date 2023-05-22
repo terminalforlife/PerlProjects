@@ -1,31 +1,28 @@
-# Introduction
+### Description
 
-Lightweight and fairly portable tool to display drive temperatures using the _drivetemp_ driver in modern Linux kernels, via the _hwmon_ class in _SYSFS_.
+Flexible and lightweight, DTP displays storage device temperatures using the _drivetemp_ driver in modern Linux kernels, via the _hwmon_ class in _SYSFS_.
 
-# Installation Instructions
+### Requirements
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via DTP's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/dtp/dtp-installer).
+Written for Linux.
 
-For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
+Depends:
 
-```sh
-(cd /tmp; curl -so dtp-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/dtp/dtp-installer' && sudo \sh dtp-installer; rm dtp-installer)
-```
+* Linux >= 5.26 (with _drivetemp_ available)
+* Perl (>= 5.22)
 
-If that fails, you probably don't have curl(1), so try wget(1):
+### Files
 
-```sh
-(cd /tmp; wget -qO dtp-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/dtp/dtp-installer' && sudo \sh dtp-installer; rm dtp-installer)
-```
+The installer provides the following:
 
-If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+* '/usr/local/bin/dtp'
+* '/usr/share/bash-completion/completions/dtp'
+* '/usr/share/man/man1/dtp.1.gz'
 
-# Removing DTP
+### Contributions
 
-If you've used the installer, then you can run the following to delete the files it creates:
+The best way to help is to let me know of any bugs or oversights.
 
-```
-sudo rm -v /usr/share/bash-completion/completions/dtp /usr/share/man/man1/dtp.1.gz /usr/bin/dtp
-```
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
 
-If you don't have sudo(8), you'll have to acquire root privileges by other means.
+If submitting any documentation, try to ensure the English is correct and presentable.

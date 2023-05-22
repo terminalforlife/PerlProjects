@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/apt-download-deps
+#cito M:755 O:0 G:0 T:/usr/local/bin/apt-download-deps
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-download-deps
 # Started On        - Sat  4 Jan 21:55:31 GMT 2020

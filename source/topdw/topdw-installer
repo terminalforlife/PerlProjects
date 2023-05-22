@@ -1,5 +1,5 @@
 #!/bin/sh
-#cito M:755 O:0 G:0 T:/usr/bin/topdw-installer
+#cito M:755 O:0 G:0 T:/usr/local/bin/topdw-installer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/topdw/topdw-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
@@ -146,7 +146,7 @@ printf 'Moving files into place:\n'
 ErrCount=0
 for File in\
 \
-	'topdw:/usr/bin/topdw'
+	'topdw:/usr/local/bin/topdw'
 do
 	if [ -f "${File#*:}" ]; then
 		Replace='False'
@@ -192,7 +192,7 @@ fi
 
 printf 'Checking for dependencies:\n'
 
-for File in '/usr/bin/topdw'; do
+for File in '/usr/local/bin/topdw'; do
 	printf "* Looking in '%s' file...\n" "$File"
 
 	FileErr=0

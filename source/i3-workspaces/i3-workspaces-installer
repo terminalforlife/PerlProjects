@@ -1,5 +1,5 @@
 #!/bin/sh
-#cito M:755 O:0 G:0 T:/usr/bin/i3-workspaces-installer
+#cito M:755 O:0 G:0 T:/usr/local/bin/i3-workspaces-installer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/i3-workspaces/i3-workspaces-installer
 # Started On        - Wed 17 Feb 01:19:32 GMT 2021
@@ -155,7 +155,7 @@ for File in\
 \
 	'completions:/usr/share/bash-completion/completions/i3-workspaces'\
 	'i3-workspaces.1.gz:/usr/share/man/man1/i3-workspaces.1.gz'\
-	'i3-workspaces:/usr/bin/i3-workspaces'
+	'i3-workspaces:/usr/local/bin/i3-workspaces'
 do
 	if [ -f "${File#*:}" ]; then
 		Replace='False'
@@ -201,7 +201,7 @@ fi
 
 printf 'Checking for dependencies:\n'
 
-for File in '/usr/bin/i3-workspaces'; do
+for File in '/usr/local/bin/i3-workspaces'; do
 	printf "* Looking in '%s' file...\n" "$File"
 
 	FileErr=0

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/notify-upgrade
+#cito M:755 O:0 G:0 T:/usr/local/bin/notify-upgrade
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/notify-upgrade
 # Started On        - Wed 15 Jan 00:45:46 GMT 2020

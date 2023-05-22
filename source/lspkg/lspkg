@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/lspkg
+#cito M:755 O:0 G:0 T:/usr/local/bin/lspkg
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lspkg/lspkg
 # Started On        - Wed  6 Apr 20:09:09 BST 2022

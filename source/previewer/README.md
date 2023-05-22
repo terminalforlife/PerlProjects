@@ -1,31 +1,30 @@
-# Introduction
+### Description
 
-To be written...
+List and filter Linux Mint user-submitted package reviews.
 
-# Installation Instructions
+### Requirements
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via Previewer's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/previewer/previewer-installer).
+Written for Linux Mint.
 
-For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
+Depends:
 
-```sh
-(cd /tmp; curl -so previewer-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/previewer/previewer-installer' && sudo \sh previewer-installer; rm previewer-installer)
-```
+* Perl (>= 5.22)
+* LWP for Perl (e.g., 'libwww-perl')
+* term-readkey for Perl (e.g., 'libterm-readkey-perl')
+* text-wrapi18n for Perl (e.g., 'libtext-wrapi18n-perl')
 
-If that fails, you probably don't have curl(1), so try wget(1):
+### Files
 
-```sh
-(cd /tmp; wget -qO previewer-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/previewer/previewer-installer' && sudo \sh previewer-installer; rm previewer-installer)
-```
+The installer provides the following:
 
-If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+* '/usr/local/bin/previewer'
+* '/usr/share/bash-completion/completions/previewer'
+* '/usr/share/man/man1/previewer.1.gz'
 
-# Removing Previewer
+### Contributions
 
-If you've used the installer, then you can run the following to delete the files it creates:
+The best way to help is to let me know of any bugs or oversights.
 
-```
-sudo rm -v /usr/share/man/man1/previewer.1.gz /usr/share/bash-completion/completions/previewer /usr/bin/previewer
-```
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
 
-If you don't have sudo(8), you'll have to acquire root privileges by other means.
+If submitting any documentation, try to ensure the English is correct and presentable.

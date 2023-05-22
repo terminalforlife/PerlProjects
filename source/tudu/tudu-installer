@@ -1,5 +1,5 @@
 #!/bin/sh
-#cito M:755 O:0 G:0 T:/usr/bin/tudu-installer
+#cito M:755 O:0 G:0 T:/usr/local/bin/tudu-installer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/tudu/tudu-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
@@ -146,7 +146,7 @@ printf 'Moving files into place:\n'
 ErrCount=0
 for File in\
 \
-	'tudu:/usr/bin/tudu'\
+	'tudu:/usr/local/bin/tudu'\
 	'completions:/usr/share/bash-completion/completions/tudu'\
 	'tudu.1.gz:/usr/share/man/man1/tudu.1.gz'
 do
@@ -194,7 +194,7 @@ fi
 
 printf 'Checking for dependencies:\n'
 
-for File in '/usr/bin/tudu'; do
+for File in '/usr/local/bin/tudu'; do
 	printf "* Looking in '%s' file...\n" "$File"
 
 	FileErr=0

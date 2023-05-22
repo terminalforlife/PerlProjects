@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:600 O:1000 G:1000 T:/usr/bin/battery-monitor
+#cito M:600 O:1000 G:1000 T:/usr/local/bin/battery-monitor
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/battery-monitor
 # Started On        - Mon 27 Jan 02:54:42 GMT 2020

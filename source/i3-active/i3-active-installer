@@ -1,5 +1,5 @@
 #!/bin/sh
-#cito M:755 O:0 G:0 T:/usr/bin/i3-active-installer
+#cito M:755 O:0 G:0 T:/usr/local/bin/i3-active-installer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/i3-active/i3-active-installer
 # Started On        - Wed 17 Feb 01:19:32 GMT 2021
@@ -155,7 +155,7 @@ for File in\
 \
 	'completions:/usr/share/bash-completion/completions/i3-active'\
 	'i3-active.1.gz:/usr/share/man/man1/i3-active.1.gz'\
-	'i3-active:/usr/bin/i3-active'
+	'i3-active:/usr/local/bin/i3-active'
 do
 	if [ -f "${File#*:}" ]; then
 		Replace='False'
@@ -201,7 +201,7 @@ fi
 
 printf 'Checking for dependencies:\n'
 
-for File in '/usr/bin/i3-active'; do
+for File in '/usr/local/bin/i3-active'; do
 	printf "* Looking in '%s' file...\n" "$File"
 
 	FileErr=0

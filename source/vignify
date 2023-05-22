@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/vignify
+#cito M:755 O:0 G:0 T:/usr/local/bin/vignify
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/vignify
 # Started On        - Sun 12 Jan 22:02:23 GMT 2020

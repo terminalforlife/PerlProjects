@@ -1,31 +1,30 @@
-# Introduction
+### Description
 
-To be written...
+A surprisingly useful tool for undoing APT installation operations. APT Undo Install primarily works by parsing APT's 'history.log' files, allowing you to undo the last one or more of these installation operations, even by date and time.This is especially useful to those often exploring new packages.
 
-# Installation Instructions
+### Requirements
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via APT Undo Install's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/apt-undo-install/apt-undo-install-installer).
+Written for Debian- and Ubuntu-based distributions of Linux.
 
-For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
+Depends:
 
-```sh
-(cd /tmp; curl -so apt-undo-install-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/apt-undo-install/apt-undo-install-installer' && sudo \sh apt-undo-install-installer; rm apt-undo-install-installer)
-```
+* Perl (>= 5.22)
+* apt-pkg for Perl (e.g., 'libapt-pkg-perl')
+* apt
+* bsdmainutils
+* less
 
-If that fails, you probably don't have curl(1), so try wget(1):
+### Files
 
-```sh
-(cd /tmp; wget -qO apt-undo-install-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/apt-undo-install/apt-undo-install-installer' && sudo \sh apt-undo-install-installer; rm apt-undo-install-installer)
-```
+The installer provides the following:
 
-If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+* '/usr/local/bin/apt-undo-install'
+* '/usr/share/bash-completion/completions/apt-undo-install'
 
-# Removing APT Undo Install
+### Contributions
 
-If you've used the installer, then you can run the following to delete the files it creates:
+The best way to help is to let me know of any bugs or oversights.
 
-```
-sudo rm -v /usr/share/bash-completion/completions/apt-undo-install /usr/bin/apt-undo-install
-```
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
 
-If you don't have sudo(8), you'll have to acquire root privileges by other means.
+If submitting any documentation, try to ensure the English is correct and presentable.

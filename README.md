@@ -6,7 +6,6 @@
   * [apt-download-deps](source/apt-download-deps) - Download dependencies for one or more Debian packages.
   * [apt-history](source/apt-history) - View, filter, and pretty-print APT's log files.
   * [apt-undo-install](source/apt-undo-install) - A Perl solution to undo recent APT installations.
-  * [cheater](source/cheater) - Command-line alternative to the 'cheat.sh' web interface.
   * [clean-locales](source/clean-locales) - Remove non-English localizations.
   * [cpufreq](source/cpufreq) - Display the current CPU core frequencies.
   * [dtp](source/dtp) - View drive temperatures using SYSFS in modern Linux.
@@ -16,10 +15,8 @@
   * [i3-workspaces](source/i3-workspaces) - Display information on i3-wm workspaces.
   * [lsbins](source/lsbins) - A descriptive, searchable overview of PATH executables.
   * [lspkg](source/lspkg) - List, describe, and filter installed Debian packages.
-  * [previewer](source/previewer) - CLI solution to printing Linux Mint package reviews.
   * [redshifter](source/redshifter) - Redshift wrapper offering extra functionality
   * [tudu](source/tudu) - Configurable developer tool to overview projects' todos.
-  * [ubuchk](source/ubuchk) - Send your Ubuntu system to the doctor for a check-up.
   * [wcdl](source/wcdl) - Extensive Perl downloader for Wallpaperscraft.
 
 # Bug/Issue Reporting

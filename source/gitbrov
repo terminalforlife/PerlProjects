@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/gitbrov
+#cito M:755 O:0 G:0 T:/usr/local/bin/gitbrov
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/gitbrov (Git Branch Overview)
 # Started On        - Sun  1 Dec 16:01:38 GMT 2019

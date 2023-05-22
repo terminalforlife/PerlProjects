@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/previewer
+#cito M:755 O:0 G:0 T:/usr/local/bin/previewer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/previewer/previewer
 # Started On        - Mon 22 Apr 01:30:36 BST 2019

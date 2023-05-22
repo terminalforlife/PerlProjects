@@ -1,80 +1,45 @@
-**MASTER** - _Hopefully stable branch._\
-**DEV** - _Development Branch (latest changes)_
+### Description
 
-# Introduction
+UbuChk is an administrative tool to perform various system checks.
 
-UbuChk -- a vast upgrade to its old predecessor -- is an administrative tool to determine various aspects of system health, with a focus on a safer system. Whether it's checking CPU temperatures, PATH executables, disk space, security settings for APT, over 70 rootkits, potentially unwanted packages, or questionable kernel parameters, UbuChk is looking out for you.
+### Important Note from Author
 
-Thanks to UbuChk being written in Perl, performance is a huge leap forward. This tool offers the potential additional portability, despite targeting Ubuntu users, allowing the user to roll the dice, forcing UbuChk to run as though in a supported Ubuntu installation of Linux.
+Aside from general code improvements, I must point out UbuChk hasn't been updated properly in some time. As a result, not everything will be current, particularly some of the security checks.
 
-![image](screenshots/Screenshot_2020-03-10_00:37:13.jpg)
+I've had to put UbuChk to the side. I believe I underestimated the amount of time and work it would take to constantly keep it up-to-date. I'm not yet sure whether I will be staying on an Ubuntu base, which pulls me further away from UbuChk. Despite this, it's thankfully still a very useful tool, especially on a new installation.
 
-More care has been given to the user's experience, particularly to those whom are perhaps not so experienced with Linux. By default, for any of the 160+ given alerts, text briefly recommending or suggesting an action or value is displayed to the user; this can be disabled, however.
+### Requirements
 
-Alongside the rootkit database, UbuChk also comes with an alert database, storing various `queries`, which are essentially tidbits of information the user can read to better understand why they were alerted, what they can do, and/or if it's worth doing anything at all. Ultimately, however, it's up the user.
+Written for Ubuntu-based distributions of Linux.
 
-![image](screenshots/Screenshot_2020-03-10_00:59:02.jpg)
+Depends:
 
-The core concept of UbuChk is as it always has been: to inform the user, but _not_ to actually _do_ anything. UbuChk will _not_ delete critical files, mess with system settings, or do anything else of concern which can be hard to track, as you may find with other system health utilities; all of this is **entirely** left to the user's discretion.
+* Perl (>= 5.22)
+* filesys-diskspace for Perl (e.g., 'libfilesys-diskspace-perl')
+* term-readkey for Perl (e.g., 'libterm-readkey-perl')
+* text-wrapi18n for Perl (e.g., 'libtext-wrapi18n-perl')
 
-Want to [see UbuChk in action](https://youtu.be/CZ4Kn0gtHaM) right now?
+Recommends:
 
-Alerts are each assigned an Alert ID consisting of a 4-digit number, which can easily be used to either query UbuChk itself (see: `ubuchk -h`), or perhaps seek help elsewhere, making the ID an easy reference point.
+* POSIX-compliant shell (e.g., DASH)
+* coreutils
+* Wget | cURL
 
-The future of UbuChk looks bright, with development ongoing, and plenty of room for further expansion.
+### Files
 
-UbuChk has been developed for and used in variations of Ubuntu 16.04, 18.04, and 20.04. Distributions based on regular Ubuntu (that one with GNOME 3), such as Linux Mint, Linux Lite, Peppermint OS, and Zorin OS, should all be capable of running UbuChk, although some features may not work as intended.
+The installer provides the following:
 
-The _ubuchk(8)_ manual page offers plenty of further reading, including definitions for each of the 60+ user configuration keys.
+* '/usr/local/bin/ubuchk'
+* '/usr/local/bin/ubuchk-db'
+* '/usr/share/bash-completion/completions/ubuchk'
+* '/usr/share/bash-completion/completions/ubuchk-db'
+* '/usr/share/man/man8/ubuchk.8.gz'
+* '/usr/share/ubuchk'
 
-Thank you for your interest and time.
+### Contributions
 
-# Installation Instructions
+The best way to help is to let me know of any bugs or oversights.
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via UbuChk's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/ubuchk/ubuchk-installer).
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
 
-For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
-
-```sh
-(cd /tmp; curl -so ubuchk-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/ubuchk/ubuchk-installer' && sudo \sh ubuchk-installer; rm ubuchk-installer)
-```
-
-If that fails, you probably don't have curl(1), so try wget(1):
-
-```sh
-(cd /tmp; wget -qO ubuchk-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/ubuchk/ubuchk-installer' && sudo \sh ubuchk-installer; rm ubuchk-installer)
-```
-
-If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
-
-# Removing UbuChk
-
-If you've used the installer, then you can run the following to delete the files it creates:
-
-```
-sudo rm -v /usr/share/bash-completion/completions/ubuchk /usr/share/bash-completion/completions/ubuchk-db /usr/share/man/man8/ubuchk.8.gz /usr/bin/ubuchk /usr/bin/ubuchk-db; sudo rm -vr /usr/share/ubuchk
-```
-
-If you don't have sudo(8), you'll have to acquire root privileges by other means.
-
-# Dependencies
-
-For those of you returning, note that as of version 2020-11-01, UbuChk no longer requires [libtfl-perl](https://github.com/terminalforlife/PerlProjects/blob/master/source/TFL.pm).
-
-  * libfilesys-diskspace-perl (>= 0.05-16)
-  * libnumber-bytes-human-perl (>= 0.09-1)
-  * libterm-readkey-perl (>= 2.33-1build1)
-  * libtext-wrapi18n-perl (>= 0.06-7.1)
-  * perl (>= 5.22.1-9)
-
-If you use `ubuntu-db`, or install via the UbuChk Debian package, you'll also need what's mentioned below.
-
-  * coreutils (>= 8.25-2)
-  * libtflbp-sh (>= 2019-12-10)
-  * wget (>= 1.17.1-1) | curl (>= 7.47.0-1)
-
-If you're on an Ubuntu or similar system, you can use `sudo apt-get install -f` to get all of the remaining missing dependencies sorted, but **only** IF and AFTER you install the Debian package.
-
-# Want to Take Part?
-
-Whether you wish to contribute code, add to the databases, or report bugs and other issues, your support here would be appreciated.
+If submitting any documentation, try to ensure the English is correct and presentable.

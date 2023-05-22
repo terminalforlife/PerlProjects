@@ -1,33 +1,28 @@
-# Introduction
+### Description
 
-Output information for the active window in i3-wm or i3-gaps. This is a much leaner alternative to the use of xdotool(1), but specifically for this window manager, and without the potential overhead it might incur.
+Output information for the active window in i3WM.
 
-Importantly, this program _does_ allow the output of _only_ a given value, such as the title, class, or window ID (hexadecimal or decimal), which are commonly used when scripting for this window manager.
+### Requirements
 
-# Installation Instructions
+Written for i3WM in Linux.
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via i3 Active's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/i3-active/i3-active-installer).
+Depends:
 
-For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
+* Perl (>= 5.22)
+* anyevent-i3 for Perl (e.g., 'libanyevent-i3-perl')
 
-```sh
-(cd /tmp; curl -so i3-active-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/i3-active/i3-active-installer' && sudo \sh i3-active-installer; rm i3-active-installer)
-```
+### Files
 
-If that fails, you probably don't have curl(1), so try wget(1):
+The installer provides the following:
 
-```sh
-(cd /tmp; wget -qO i3-active-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/i3-active/i3-active-installer' && sudo \sh i3-active-installer; rm i3-active-installer)
-```
+* '/usr/local/bin/i3-active'
+* '/usr/share/bash-completion/completions/i3-active'
+* '/usr/share/man/man1/i3-active.1.gz'
 
-If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+### Contributions
 
-# Removing i3 Active
+The best way to help is to let me know of any bugs or oversights.
 
-If you've used the installer, then you can run the following to delete the files it creates:
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
 
-```
-sudo rm -v /usr/share/man/man1/i3-active.1.gz /usr/share/bash-completion/completions/i3-active /usr/bin/i3-active
-```
-
-If you don't have sudo(8), you'll have to acquire root privileges by other means.
+If submitting any documentation, try to ensure the English is correct and presentable.

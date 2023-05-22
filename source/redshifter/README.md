@@ -1,53 +1,30 @@
-**MASTER** - _Hopefully stable branch._\
-**DEV** - _Development Branch (latest changes)_
+### Description
 
-# Introduction
+Redshift's manual temperature control leaves a lot to be desired. Redshift_er_ is a simple wrapper aiming to bridge the gap between Redshift and users who prefer to manually control the temperature, by providing simple command-line wrapper with which you can easily assign keyboard shortcuts.
 
-While redshift(1) is a fantastic tool for protecting the user's eyes, it has always lacked a very useful feature, which Redshifter offers: the ability to easily increment and decrement the current color temperature.
+As a bonus, the last used temperature is restored when you log back in, to avoid blasting you with enough light to make even our _sun_ cover its eyes! Features like this make this wrapper ideal for hangovers and headaches.
 
-Redshifter is intended to be executed from keyboard shortcuts.
+### Requirements
 
-As an added bonus, Redshifter will also save the current value, allowing the user to restore from their last session's temperature value; excellent if you don't want to be blinded at night when you log in to your OS.
+Written for Linux.
 
-While the primarily functionality is to increment and decrement, the user can also specify a set value or reset to the standard 6500K temperature value. These features don't offer anything new, but it is a bit simpler than with redshift(1).
+Depends:
 
-# Installation Instructions
+* Perl (>= 5.22)
+* redshift
 
-Install the very latest version via Redshifter's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/redshifter/redshifter-installer).
+### Files
 
-For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
+The installer provides the following:
 
-```sh
-(cd /tmp; curl -so redshifter-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/redshifter/redshifter-installer' && sudo \sh redshifter-installer; rm redshifter-installer)
-```
+* '/usr/local/bin/redshifter'
+* '/usr/share/bash-completion/completions/redshifter'
+* '/usr/share/man/man1/redshifter.1.gz'
 
-If that fails, you probably don't have curl(1), so try wget(1):
+### Contributions
 
-```sh
-(cd /tmp; wget -qO redshifter-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/redshifter/redshifter-installer' && sudo \sh redshifter-installer; rm redshifter-installer)
-```
+The best way to help is to let me know of any bugs or oversights.
 
-If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
 
-# Uninstalling Redshifter
-
-If you've used the installer, then you can run the following to delete the files it creates:
-
-```
-sudo rm -v /usr/bin/redshifter /usr/share/man/man1/redshifter.1.gz /usr/share/bash-completion/completions/redshifter
-```
-
-If you don't have sudo(8), you'll have to acquire root privileges by other means.
-
-# Dependencies
-
-The only dependencies are of course Redshift itself and Perl.
-
-  * perl (>= 5.22.1-9)
-  * redshift (>= 1.11)
-
-If you're on an Ubuntu or similar system, you can use `sudo apt-get install -f` to get all of the remaining missing dependencies sorted, but **only** IF and AFTER you install the Debian package.
-
-# Want to Take Part?
-
-Whether you wish to contribute code, add to the databases, or report bugs and other issues, your support here would be appreciated.
+If submitting any documentation, try to ensure the English is correct and presentable.

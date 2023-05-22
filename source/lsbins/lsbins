@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/lsbins
+#cito M:755 O:0 G:0 T:/usr/local/bin/lsbins
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lsbins/lsbins
 # Started On        - Thu 25 Apr 14:17:05 BST 2019

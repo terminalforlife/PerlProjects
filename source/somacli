@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-#cito M:755 O:0 G:0 T:/usr/bin/somacli
+#cito M:755 O:0 G:0 T:/usr/local/bin/somacli
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/somacli
 # Started On        - Fri  6 Nov 23:18:28 GMT 2020

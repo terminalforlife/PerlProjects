@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/i3-workspaces
+#cito M:755 O:0 G:0 T:/usr/local/bin/i3-workspaces
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/i3-workspaces/i3-workspaces
 # Started On        - Fri 21 Jan 18:01:01 GMT 2022

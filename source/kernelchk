@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/kernelchk
+#cito M:755 O:0 G:0 T:/usr/local/bin/kernelchk
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/kernelchk
 # Started On        - Sun  5 May 13:15:29 BST 2019

@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-#cito M:755 O:0 G:0 T:/usr/bin/ppass
+#cito M:755 O:0 G:0 T:/usr/local/bin/ppass
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ppass
 # Started On        - Wed 20 Jan 13:48:15 GMT 2021

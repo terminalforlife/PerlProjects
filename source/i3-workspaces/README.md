@@ -1,31 +1,28 @@
-# Introduction
+### Description
 
-To be written...
+Display information about i3WM workspaces.
 
-# Installation Instructions
+### Requirements
 
-Installation can be done with [Cito](https://github.com/terminalforlife/Extra/blob/master/source/cito). Your best bet, however, is to install via i3 Workspaces's [installation script](https://github.com/terminalforlife/PerlProjects/blob/master/source/i3-workspaces/i3-workspaces-installer).
+Written for Linux.
 
-For a quick terminal one-liner, using the aforementioned installation script, you should be able to execute the following, assuming you have sudo(8):
+Depends:
 
-```sh
-(cd /tmp; curl -so i3-workspaces-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/i3-workspaces/i3-workspaces-installer' && sudo \sh i3-workspaces-installer; rm i3-workspaces-installer)
-```
+* Perl (>= 5.22)
+* anyevent-i3 for Perl (e.g., 'libanyevent-i3-perl')
 
-If that fails, you probably don't have curl(1), so try wget(1):
+### Files
 
-```sh
-(cd /tmp; wget -qO i3-workspaces-installer 'https://raw.githubusercontent.com/terminalforlife/PerlProjects/master/source/i3-workspaces/i3-workspaces-installer' && sudo \sh i3-workspaces-installer; rm i3-workspaces-installer)
-```
+The installer provides the following:
 
-If you don't have sudo(8), just omit it from the command(s) above, and run them as the `root` user, however you gain such privileges.
+* '/usr/local/bin/i3-workspaces'
+* '/usr/share/bash-completion/completions/i3-workspaces'
+* '/usr/share/man/man1/i3-workspaces.1.gz'
 
-# Removing i3 Workspaces
+### Contributions
 
-If you've used the installer, then you can run the following to delete the files it creates:
+The best way to help is to let me know of any bugs or oversights.
 
-```
-sudo rm -v /usr/share/man/man1/i3-workspaces.1.gz /usr/share/bash-completion/completions/i3-workspaces /usr/bin/i3-workspaces
-```
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
 
-If you don't have sudo(8), you'll have to acquire root privileges by other means.
+If submitting any documentation, try to ensure the English is correct and presentable.

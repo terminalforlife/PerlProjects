@@ -1,5 +1,5 @@
 #!/bin/sh
-#cito M:755 O:0 G:0 T:/usr/bin/apt-history-installer
+#cito M:755 O:0 G:0 T:/usr/local/bin/apt-history-installer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history/apt-history-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
@@ -158,7 +158,7 @@ for File in\
 \
 	'APTHistory.pm:/usr/share/perl5/APTHistory.pm'\
 	'apt-history.1.gz:/usr/share/man/man1/apt-history.1.gz'\
-	'apt-history:/usr/bin/apt-history'\
+	'apt-history:/usr/local/bin/apt-history'\
 	'completions:/usr/share/bash-completion/completions/apt-history'
 do
 	if [ -f "${File#*:}" ]; then
@@ -205,7 +205,7 @@ fi
 
 printf 'Checking for dependencies:\n'
 
-for File in '/usr/bin/apt-history'; do
+for File in '/usr/local/bin/apt-history'; do
 	printf "* Looking in '%s' file...\n" "$File"
 
 	FileErr=0

@@ -1,5 +1,5 @@
 #!/bin/sh
-#cito M:755 O:0 G:0 T:/usr/bin/ubuchk-db
+#cito M:755 O:0 G:0 T:/usr/local/bin/ubuchk-db
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/ubuchk-db
 # Started On        - Mon  2 Mar 15:21:20 GMT 2020

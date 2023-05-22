@@ -1,5 +1,5 @@
 #!/bin/sh
-#cito M:755 O:0 G:0 T:/usr/bin/apt-undo-install-installer
+#cito M:755 O:0 G:0 T:/usr/local/bin/apt-undo-install-installer
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/apt-undo-install-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
@@ -146,7 +146,7 @@ printf 'Moving files into place:\n'
 ErrCount=0
 for File in\
 \
-	'apt-undo-install:/usr/bin/apt-undo-install'\
+	'apt-undo-install:/usr/local/bin/apt-undo-install'\
 	'completions:/usr/share/bash-completion/completions/apt-undo-install'
 do
 	if [ -f "${File#*:}" ]; then
@@ -193,7 +193,7 @@ fi
 
 printf 'Checking for dependencies:\n'
 
-for File in '/usr/bin/apt-undo-install'; do
+for File in '/usr/local/bin/apt-undo-install'; do
 	printf "* Looking in '%s' file...\n" "$File"
 
 	FileErr=0
