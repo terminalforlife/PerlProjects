@@ -1,7 +1,6 @@
-**MASTER** - _Hopefully stable branch._\
-**DEV** - _Development Branch (latest changes)_
+### Description
 
-# What's Available Here?
+Programs and scripts written in Perl.
 
   * [apt-download-deps](source/apt-download-deps) - Download dependencies for one or more Debian packages.
   * [apt-history](source/apt-history) - View, filter, and pretty-print APT's log files.
@@ -19,6 +18,10 @@
   * [tudu](source/tudu) - Configurable developer tool to overview projects' todos.
   * [wcdl](source/wcdl) - Extensive Perl downloader for Wallpaperscraft.
 
-# Bug/Issue Reporting
+### Contributions
 
-If you have any issues or bugs, I strongly recommend reporting it here on GitHub, as it will surely get my attention. Be sure to provide as much information as possible, if you're reporting a bug, such as program output, error messages, system information, etc. Thanks!
+The best way to help is to let me know of any bugs or oversights.
+
+If you wish to contribute any code, try to keep to the existing programming style. Avoid reaching outside of the language whenever possible or reasonable, and keep things consistent and presentable. If you're contributing a new file, such as a helper or wrapper, try to stick to similar dependencies (where reasonable) and please keep the style of the output the same.
+
+If submitting any documentation, try to ensure the English is correct and presentable.
