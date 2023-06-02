@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dtp/dtp
 # Started On        - Fri  5 Mar 19:54:53 GMT 2021
-# Last Change       - Sun 17 Apr 22:38:25 BST 2022
+# Last Change       - Fri  2 Jun 18:41:21 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,7 +32,7 @@ use warnings;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-04-17';
+use constant VERSION => '2023-06-02';
 use constant PROGRAM => 'dtp';
 
 sub Usage() {
@@ -78,6 +78,23 @@ my %Ranges = (
 	'F' => [68, 77, 104, 122],
 	'C' => [20, 25, 40, 50]
 );
+
+my @Args;
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ /^-[^-]/) {
+		my $Str = substr($ARGV[0], 1);
+		my $Len = length($Str);
+		for (my $Index = 0; $Index < $Len; $Index++) {
+			push(@Args, '-' . substr($Str, $Index, 1))
+		}
+	} else {
+		push(@Args, $ARGV[0])
+	}
+
+	shift()
+}
+
+@ARGV = @Args;
 
 my @TargetCols;
 while (defined($ARGV[0])) {

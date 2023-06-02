@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater
 # Started On        - Sun 22 Nov 20:45:37 GMT 2020
-# Last Change       - Sun 29 May 00:13:28 BST 2022
+# Last Change       - Fri  2 Jun 18:40:57 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ use Term::ANSIColor 'color';
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2022-05-29';
+use constant VERSION => '2023-06-02';
 use constant PROGRAM => 'cheater';
 
 sub Usage() {
@@ -62,6 +62,23 @@ use constant EXCLUDE_FILE => SHARE_DIR . '/excluded_lines';
 use constant RAW_URL => 'https://raw.githubusercontent.com/chubin/cheat.sheets/master/sheets';
 
 my ($NoPager, $PagerFound, %Colors, @AvailFiles, $Highlight, $NoColors);
+
+my @Args;
+while (defined($ARGV[0])) {
+	if ($ARGV[0] =~ /^-[^-]/) {
+		my $Str = substr($ARGV[0], 1);
+		my $Len = length($Str);
+		for (my $Index = 0; $Index < $Len; $Index++) {
+			push(@Args, '-' . substr($Str, $Index, 1))
+		}
+	} else {
+		push(@Args, $ARGV[0])
+	}
+
+	shift()
+}
+
+@ARGV = @Args;
 
 while (defined($ARGV[0])) {
 	if ($ARGV[0] =~ '^(--help|-h)$') {
