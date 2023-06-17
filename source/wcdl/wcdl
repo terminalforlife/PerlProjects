@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/wcdl/wcdl
 # Started On        - Sat 27 Apr 18:54:48 BST 2019
-# Last Change       - Fri  2 Jun 18:43:06 BST 2023
+# Last Change       - Sat 17 Jun 22:22:39 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -38,7 +38,7 @@ use File::Temp;
 
 no warnings 'uninitialized';
 
-my $CurVer = '2023-06-02';
+my $CurVer = '2023-06-17';
 my $Progrm = 'wcdl';
 
 sub Usage{
@@ -98,7 +98,7 @@ while (defined($ARGV[0])){
 		Usage(); exit(0)
 	}elsif ($ARGV[0] =~ '^(--version|-v)$'){
 		print("$CurVer\n"); exit(0)
-	}elsif ($ARGV[0] eq '--colorless'){
+	}elsif ($ARGV[0] =~ '^(--colorless|--colourless)$'){
 		$Color = 0
 	}elsif ($ARGV[0] =~ '^(--links-only|-O)$'){
 		$LinksOnly = 1

@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/lspkg/lspkg
 # Started On        - Wed  6 Apr 20:09:09 BST 2022
-# Last Change       - Fri  9 Jun 22:03:29 BST 2023
+# Last Change       - Sat 17 Jun 22:20:28 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ use feature 'say';
 use strict;
 use warnings;
 
-use constant VERSION => '2023-06-02';
+use constant VERSION => '2023-06-17';
 use constant PROGRAM => 'lspkg';
 
 no warnings 'uninitialized';
@@ -125,7 +125,7 @@ while (defined($ARGV[0])) {
 		$Divisor = 1000
 	} elsif ($ARGV[0] =~ '^(--show-arch|-a)$') {
 		$DoArch = 1
-	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+	} elsif ($ARGV[0] =~ '^(--no-color|--no-colour|-C)$') {
 		$C_Grey = '';
 		$C_DimGrey = '';
 		$C_Reset = ''

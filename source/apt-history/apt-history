@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-history/apt-history
 # Started On        - Sat 21 Nov 16:11:20 GMT 2020
-# Last Change       - Wed  7 Jun 22:22:18 BST 2023
+# Last Change       - Sat 17 Jun 22:22:35 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ use APTHistory;
 
 no warnings 'uninitialized';
 
-use constant VERSION => '2023-06-02';
+use constant VERSION => '2023-06-17';
 use constant PROGRAM => 'apt-history';
 
 sub Usage() {
@@ -154,11 +154,11 @@ while (defined($ARGV[0])) {
 		}
 	} elsif ($ARGV[0] =~ '^(--reverse|-r)$') {
 		$DoReverse = 1
-	} elsif ($ARGV[0] =~ '^--no-color-status$') {
+	} elsif ($ARGV[0] =~ '^--no-(color|colour)-status$') {
 		$NoColorStatus = 1
 	} elsif ($ARGV[0] =~ '^(--command|-c)$') {
 		$DoCommand = 1
-	} elsif ($ARGV[0] =~ '^(--no-color|-C)$') {
+	} elsif ($ARGV[0] =~ '^(--no-color|--no-colour|-C)$') {
 		$NoColor = 1
 	} elsif ($ARGV[0] eq '--margin') {
 		unless (length($ARGV[1])) {
