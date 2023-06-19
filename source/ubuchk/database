@@ -2,7 +2,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/ubuchk/database
 # Started On        - ???  ? Feb ??:??:?? GMT 2020
-# Last Change       - Wed  9 Mar 15:25:20 GMT 2022
+# Last Change       - Tue 20 Jun 00:16:25 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -82,9 +82,9 @@ If you have PurgeRC installed, you can simply run:
 .
   # purgerc
 .
-To systematically purge all packages removed but not yet purged. You can find this small tool in the Extra repository of GitHub user 'terminalforlife'.
+To systematically purge all packages removed but not yet purged. You can find this small tool in the ShellProjects repository of GitHub user 'terminalforlife'.
 .
-  https://github.com/terminalforlife/Extra
+  https://github.com/terminalforlife/ShellProjects
 .
 PurgeRC was written by the same person who wrote UbuChk.
 :6131,6132,6133,6134,6135,6136,6137,6138
