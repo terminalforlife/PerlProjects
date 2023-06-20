@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/apt-undo-install/apt-undo-install-installer
 # Started On        - Thu 12 Mar 14:54:26 GMT 2020
-# Last Change       - Sun  9 Jan 18:08:32 GMT 2022
+# Last Change       - Tue 20 Jun 20:38:04 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,7 +32,7 @@
 #------------------------------------------------------------------------------
 
 Err(){
-	printf 'ERROR: %s\n' "$2" 1>&2
+	printf 'Err: %s\n' "$2" 1>&2
 	[ $1 -gt 0 ] && exit $1
 }
 
@@ -44,7 +44,7 @@ else
 	Err 1 "Neither 'wget' nor 'curl' are available."
 fi
 
-[ `id -u` -ne 0 ] && Err 1 'Root access is required for system-wide changes.'
+[ `id -u` -ne 0 ] && Err 1 'Permission denied -- are you 'root'?'
 
 while :; do
 	printf 'Install latest version of APT Undo Install? [Y/N] '

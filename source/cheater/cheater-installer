@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/cheater/cheater-installer
 # Started On        - Tue 24 Nov 03:32:18 GMT 2020
-# Last Change       - Sun  9 Jan 18:08:40 GMT 2022
+# Last Change       - Tue 20 Jun 20:38:18 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -32,7 +32,7 @@
 #------------------------------------------------------------------------------
 
 Err(){
-	printf 'ERROR: %s\n' "$2" 1>&2
+	printf 'Err: %s\n' "$2" 1>&2
 	[ $1 -gt 0 ] && exit $1
 }
 
@@ -41,12 +41,12 @@ if command -v curl 1> /dev/null 2>&1; then
 elif command -v wget 1> /dev/null 2>&1; then
 	DLCMD='wget -qO'
 else
-	printf "ERROR: Neither 'wget' nor 'curl' are available.\n" 1>&2
+	printf "Err: Neither 'wget' nor 'curl' are available.\n" 1>&2
 	exit 1
 fi
 
 if [ `id -u` -ne 0 ]; then
-	printf "ERROR: Root access is required for system-wide changes.\n" 1>&2
+	printf "Err: Permission denied -- are you 'root'?\n" 1>&2
 	exit 1
 fi
 
@@ -126,7 +126,7 @@ do
 done
 
 if [ $ErrCount -gt 0 ]; then
-	printf 'ERROR: Failed to download one or more files.\n' 1>&2
+	printf 'Err: Failed to download one or more files.\n' 1>&2
 	exit 1
 fi
 
