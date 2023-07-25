@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dl-usage-logger/dl-usage-logger
 # Started On        - Tue 15 Mar 01:58:14 GMT 2022
-# Last Change       - Wed  7 Jun 22:22:18 BST 2023
+# Last Change       - Tue 25 Jul 22:46:13 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
@@ -18,19 +18,17 @@
 #   $ sudo install -o 0 -g 0 -m 755 dl-usage-logger /usr/local/bin
 #   $ sudo install -o 0 -g 0 -m 644 dlul.service /etc/systemd/system
 #
-# Be sure to install the service/unit file, then enable and start the service.
-# This way, this script will automatically execute when you shut the system
-# down. This is admittedly not a perfect system, but it may suffice. There is
-# some commented code if you want to try a 24/7 server approach.
-#
-# Don't write to the file it creates -- ever. This is because the file is not
-# locked during operation. Reading from the file is harmless, of course.
+# Be sure to install the service/unit file, edit the file if needed, then
+# enable and start the service. This way, this script will automatically
+# execute when you shut the system down. This is admittedly not a perfect
+# solution, but it may suffice. There is some commented code if you want to try
+# a 24/7 server approach.
 #
 # This is pretty portable, requiring only standard PERL stuff.
 #
 # The log file used is '~/.dl-usage.log' but by all means change it to whatever
 # you want. I may eventually overhaul and rename this script and turn it into
-# an actual program, rather than a quick script.
+# an actual program, rather than a quick script, likely in Python.
 #
 # To view the log file with human-readable sizes, you can run:
 #
@@ -39,6 +37,12 @@
 # However, the sizes are always in bytes. I'd love for this to be in
 # human-readable sizes, but that adds a LOT of complexity simply because of the
 # arithmetic and figuring out what the new value should be, each time.
+#
+# USAGE: dl-usage-logger UID IFACE
+#
+# Dependencies:
+#
+#   perl (>= 5.10)
 #------------------------------------------------------------------------------
 
 use feature 'say';
@@ -48,9 +52,14 @@ use Date::Format 'strftime';
 
 no warnings 'uninitialized';
 
-my $LogFile = $ENV{HOME} . '/.dl-usage.log';
+if ($ARGV[0] !~ /^[[:digit:]]+$/ or not defined($ARGV[1])) {
+	say("Usage: dl-usage-logger UID IFACE.");
+	exit(1)
+}
+
+my $LogFile = (getpwuid($ARGV[0]))[7] . '/.dl-usage.log';
 my $NetFile = '/proc/net/dev';
-my $Interface = 'enp3s0';
+my $Interface = $ARGV[1];
 my $Divisor = 1024;
 
 sub GetBytes() {
@@ -106,10 +115,10 @@ if (open(my $FH, '+<', $LogFile)) {
 	}
 
 	# New date entry to append to the file, if it wasn't found already.
-	push(@Output, "$Date  " . GetBytes()) unless $Found;
+	push(@Output, $Date . '  ' . GetBytes()) unless $Found;
 
 	seek($FH, 0, 0) or die("$!");
-	say($FH "$_") foreach @Output;
+	say($FH $_) foreach @Output;
 
 	close($FH) or die("$!")
 } else {

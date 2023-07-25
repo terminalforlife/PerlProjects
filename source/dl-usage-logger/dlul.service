@@ -1,11 +1,17 @@
 #------------------------------------------------------------------------------
 # Project Name      - PerlProjects/source/dl-usage-logger/dlul.service
 # Started On        - Tue 15 Mar 03:07:19 GMT 2022
-# Last Change       - Tue 15 Mar 03:12:13 GMT 2022
+# Last Change       - Tue 25 Jul 22:45:14 BST 2023
 # Author E-Mail     - terminalforlife@yahoo.com
 # Author GitHub     - https://github.com/terminalforlife
 #------------------------------------------------------------------------------
 # Service/Unit file for '/usr/local/bin/dl-usage-logger'.
+#
+# Replace '1000' with the User ID of the user whose HOME you wish to store the
+# log file, which will be the '~/.dl-usage.log' file. As it is, the service
+# will use the first and initial standard non-system user.
+#
+# Replace 'enp3s0' with the network interface you wish to track, if needed.
 #------------------------------------------------------------------------------
 
 [Unit]
@@ -15,7 +21,7 @@ Before=shutdown.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/dl-usage-logger
+ExecStart=/usr/local/bin/dl-usage-logger 1000 enp3s0
 TimeoutStartSec=0
 
 [Install]
